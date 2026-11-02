@@ -1,15 +1,18 @@
 # Open questions
 
-- Desired extra features beyond the 4 picked loosely (scene/content
-  customization, save progress & personal notes, custom meditation
-  audio/music) are not yet spec'd — need concrete detail on each before
-  planning.
-- Haven't technically inspected sansatemple.com yet (JS bundle, 3D/WebGL
-  assets, text strings, any API calls) — browser automation tool disconnected
-  mid-session before this could happen. Needed to know feasibility/scope.
-- No tech decision yet on: save-progress storage (local file? SQLite?), and
-  how text strings will be swapped (direct JS/data edit vs an i18n layer).
-- Process formality not decided: whether to run this as a full gated
-  spec/design/plan/build (per global CLAUDE.md dev-team process) or keep it
-  lightweight, given it's a solo personal hobby app. Not yet asked.
-- No git repository initialized yet in the project folder.
+See also the PRD's own Open Questions section:
+docs/product/vieng-chua-online.prd.md
+
+- Which single interaction (염불 듣기 / 절하기 / 목탁 / 염주) to build first
+  for the MVP — needs Milestone 1 (asset/protocol recon) to answer.
+- Access control for the privately-deployed server — a URL alone isn't
+  access control. Needs a decision before Milestone 4 (deploy).
+- Where extracted original assets live during dev — committed to the repo
+  (simple, but bloats history with third-party binary assets) vs. kept
+  local-only/gitignored. Needs a decision before Milestone 1 produces files.
+- Hosting provider/cost for the private cloud deployment — not chosen.
+- Deferred past MVP per the PRD: save-progress storage design, scene/content
+  customization, custom meditation audio — no tech decisions needed until
+  those milestones are picked up.
+- Process formality: resolved — owner chose the full gated dev-team process
+  (spec → design → plan → build). PRD is written; next is /dev-team:spec.
