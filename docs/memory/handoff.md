@@ -8,9 +8,24 @@ backend server the owner runs themselves, deployed privately so the owner can
 reach it remotely. Never shared/published/monetized. Full PRD:
 docs/product/vieng-chua-online.prd.md.
 
-## Status: PRD written, following the gated dev-team process. Not yet building.
-Baseline git commit + `baseline` tag exist. `docs/memory/` and
-`docs/product/vieng-chua-online.prd.md` exist. No app code yet.
+## Status: Milestone 1 (recon) done. Not yet building app code.
+Baseline git commit + `baseline` tag exist. `docs/memory/`,
+`docs/product/vieng-chua-online.prd.md`, and
+`docs/specs/milestone-1-asset-protocol-recon/` (spec + asset-manifest +
+protocol-notes) exist. No app code yet.
+
+## Milestone 1 results (read these before Milestone 2)
+- docs/specs/milestone-1-asset-protocol-recon/asset-manifest.md — every 3D
+  model/texture/audio/font URL found, grouped by type.
+- docs/specs/milestone-1-asset-protocol-recon/protocol-notes.md — the real
+  WebSocket endpoint, connection flow, per-visitor state shape, and full
+  message-type vocabulary, inferred from reading the client bundle. Also
+  recommends 목탁 (moktak) as the MVP interaction (client-local, no server
+  round-trip needed) — **still needs the owner's explicit confirmation**,
+  it hasn't been asked yet.
+- Found and **excluded** a real-money donation flow (복전함/공양미) tied to
+  the original developer's personal bank account + KakaoPay — not part of
+  this project at all, not just deferred.
 
 ## Decisions made (see docs/memory/decisions/) — read these before re-deciding anything
 1. **0001** — Personal use only, never shared/published/monetized.
@@ -47,19 +62,25 @@ Baseline git commit + `baseline` tag exist. `docs/memory/` and
   next session; did not force-kill it to avoid risking the user's real
   browser windows via an unscoped `taskkill`.
 
-## What's NOT done yet (pick up here — Milestone 1 of the PRD)
-- No real asset/protocol extraction yet: need to pull the full list of 3D
-  model/texture/audio URLs (likely most load only after the loading screen
-  finishes or on interaction, not in the first 5s), and use
-  `recover_javascript_sources` (REA, needs Wakaru) on `game-*.js` to get
-  readable modules — then locate Korean UI text strings and the
-  client-server message shapes for presence/the one MVP interaction.
+## What's NOT done yet (pick up here)
+- `recover_javascript_sources` (REA/Wakaru) was attempted but Wakaru isn't
+  installed in this environment (needs a Linux x64 binary via
+  `REA_WAKARU_COMMAND`) — fell back to plain grep on the minified bundle
+  instead, which worked well enough for Milestone 1's needs via string
+  literals. If deeper deobfuscation is ever needed, that's still open.
 - Milestone 2 (Vietnamese client), 3 (owner backend), 4 (private deploy) not
   started.
-- Open questions from the PRD (see docs/product/vieng-chua-online.prd.md
-  Open Questions) still unresolved: which interaction to build first, access
-  control for the private deployment, where extracted assets live during dev
-  (committed to repo or not), hosting provider.
+- Owner has not yet confirmed 목탁 as the MVP interaction (recommended, not
+  decided).
+- Open questions from the PRD + docs/memory/open-questions.md still
+  unresolved: access control for the private deployment, final call on
+  where extracted assets live once Milestone 2 starts touching the actual
+  project (not just the session scratchpad), hosting provider.
+- A throwaway Chrome instance (debug port 9333, profile in the session
+  scratchpad) may still be running — the live site stayed stuck in a
+  "연결이 지연되고 있어요" (reconnecting) loop throughout this session, so a
+  real live WebSocket capture was never obtained; protocol-notes.md is
+  built from reading the client code, not from observed traffic.
 
 ## Constraints to respect going forward
 - Never bypass any DRM/anti-copy protection on sansatemple.com; only use
