@@ -3,12 +3,18 @@
 See also the PRD's own Open Questions section:
 docs/product/vieng-chua-online.prd.md
 
-- **New finding, needs a decision**: the original site has a real-money
-  donation flow (복전함/공양미) wired to the original developer's personal
-  bank account and KakaoPay. This has been excluded from the asset manifest
-  entirely (not deferred — excluded). Confirm this exclusion stands, in
-  case the owner wants a *different* donation/support mechanic of their own
-  later (not the original's).
+- **Resolved**: the original site's donation flow (복전함/공양미), tied to
+  the original developer's personal bank account/KakaoPay, stays excluded —
+  confirmed by owner. Not reused in any form.
+- **Future idea (not scoped, not MVP)**: owner wants a donation/offering
+  feature later, backed by the owner's own public, fully transparent
+  account — not a copy of the original's. This is NOT the same as decision
+  0001's "never shared" app: a *public* donation account implies other
+  people see/contribute to it, which is a different exposure surface than
+  the private app itself. When this is actually planned, needs its own
+  explicit scoping (e.g. a separate public donation page vs. something
+  inside the private app) rather than silently stretching decision 0001.
+  No action needed now — flagged for whenever this feature is picked up.
 
 - Which single interaction (절하기 / 목탁 / 염주) to build first for the
   MVP — Milestone 1 recon recommends 목탁 (moktak), since it's client-local
