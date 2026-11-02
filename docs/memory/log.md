@@ -25,3 +25,20 @@
   from Electron to a plain web app (decision 0005 supersedes 0002). Ran
   /dev-team:plan-prd; wrote docs/product/vieng-chua-online.prd.md. Next:
   /dev-team:spec for Milestone 1 (asset & protocol recon).
+- 2026-11-02: Owner confirmed moktak as MVP interaction and said to proceed.
+  Also clarified the earlier donation-feature exclusion: original developer's
+  payment info stays excluded, but owner wants a transparent public donation
+  account as a *future* feature on their own account — flagged as a separate
+  future scoping question, not acted on now (see open-questions.md).
+  Milestone 2 built: scaffolded `app/` (Vite + TS + Three.js + vitest), TDD'd
+  `moktak.ts` (strike/autoplay controller) and `i18n.ts` (Vietnamese string
+  table) first, then built `scene.ts` (loads reused buddha/bodhisattva/pine/
+  monk .glb models + ground texture, orbit camera) and `main.ts` (wires UI +
+  audio). Downloaded real assets into `app/public/sansatemple/` (gitignored,
+  decision 0006) via `scripts/fetch-sansatemple-assets.sh`. Hit and fixed a
+  real bug: original `.glb` files need Meshopt decompression
+  (`meshoptimizer` package + `setMeshoptDecoder`). Verified visually via a
+  screenshot through REA/CDP — scene renders correctly with Vietnamese UI.
+  Tests + typecheck green. Next: Milestone 3 (owner-run backend — mainly a
+  live player-count/presence service, since moktak itself is client-local
+  and needs no server round-trip).

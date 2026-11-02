@@ -1,0 +1,151 @@
+:root {
+  --color-ink: oklch(22% 0.03 70);
+  --color-parchment: oklch(93% 0.02 85);
+  --color-temple-green: oklch(52% 0.07 150);
+  --color-temple-green-deep: oklch(38% 0.06 150);
+  --color-gold: oklch(72% 0.1 80);
+
+  --space-hud: clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem);
+  --radius-panel: 1.1rem;
+
+  --duration-fast: 150ms;
+  --duration-normal: 280ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /*
+    Not using the extracted SansaQuietUI-Core.woff2 for Vietnamese text:
+    a Korean UI font is unlikely to ship Vietnamese diacritic glyphs
+    (ệ, ẵ, ộ, ...) and would silently fall back to tofu/boxes. System
+    fonts have reliable Vietnamese coverage.
+  */
+  --font-ui: "Segoe UI", "Helvetica Neue", Roboto, system-ui, sans-serif;
+
+  color-scheme: light;
+  font-family: var(--font-ui);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--color-ink);
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#viewport {
+  position: absolute;
+  inset: 0;
+}
+
+#viewport canvas {
+  display: block;
+  cursor: grab;
+}
+
+#viewport canvas:active {
+  cursor: grabbing;
+}
+
+.hud-top {
+  position: absolute;
+  top: var(--space-hud);
+  left: var(--space-hud);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: oklch(98% 0.01 85 / 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 14px oklch(22% 0.03 70 / 0.18);
+}
+
+.room-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: 0.01em;
+}
+
+.hint {
+  position: absolute;
+  bottom: var(--space-hud);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--color-parchment);
+  background: oklch(22% 0.03 70 / 0.45);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.moktak-panel {
+  position: absolute;
+  right: var(--space-hud);
+  bottom: var(--space-hud);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: min(15rem, calc(100vw - 2 * var(--space-hud)));
+  padding: 1rem;
+  border-radius: var(--radius-panel);
+  background: oklch(98% 0.01 85 / 0.85);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.25);
+}
+
+.moktak-panel button {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid oklch(22% 0.03 70 / 0.1);
+  color: oklch(98% 0.01 85);
+  background: var(--color-temple-green);
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out-expo),
+    background var(--duration-fast) var(--ease-out-expo);
+}
+
+.moktak-panel button:hover {
+  background: var(--color-temple-green-deep);
+}
+
+.moktak-panel button:active {
+  transform: scale(0.97);
+}
+
+.moktak-panel button:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+#moktak-autoplay {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-temple-green);
+}
+
+#moktak-autoplay:hover {
+  background: oklch(52% 0.07 150 / 0.1);
+}
+
+.moktak-status {
+  margin: 0;
+  min-height: 1.1em;
+  font-size: 0.78rem;
+  color: var(--color-ink);
+  opacity: 0.75;
+}
