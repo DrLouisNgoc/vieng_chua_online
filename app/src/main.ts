@@ -1,10 +1,22 @@
 import "./style.css";
 import { createTempleScene } from "./scene";
 import { createMoktakController } from "./moktak";
+import { createPresenceClient, type PresenceStatus } from "./presence";
 import { t } from "./i18n";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
-const PLACEHOLDER_PRESENCE_COUNT = "1/100";
+const DEFAULT_PRESENCE_URL = "ws://localhost:8787";
+
+function presenceStatusText(status: PresenceStatus): string {
+  switch (status.kind) {
+    case "connecting":
+      return "Đang kết nối...";
+    case "online":
+      return `${status.count} người đang viếng chùa`;
+    case "offline":
+      return "Mất kết nối máy chủ. Đang thử lại...";
+  }
+}
 
 function renderShell(): void {
   document.title = t("산사 — 온라인 절");
@@ -17,7 +29,7 @@ function renderShell(): void {
   app.innerHTML = `
     <div id="viewport"></div>
     <header class="hud-top">
-      <span class="room-label">${t("산사")} · ${PLACEHOLDER_PRESENCE_COUNT} ${t("방문객 보기")}</span>
+      <span class="room-label">${t("산사")} · <span id="presence-label"></span></span>
     </header>
     <p class="hint">${t("바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소")}</p>
     <section class="moktak-panel">
@@ -41,9 +53,25 @@ async function main(): Promise<void> {
   const statusLabel = document.querySelector<HTMLParagraphElement>(
     "#moktak-status",
   );
-  if (!viewport || !strikeButton || !autoplayButton || !statusLabel) {
+  const presenceLabel = document.querySelector<HTMLSpanElement>(
+    "#presence-label",
+  );
+  if (
+    !viewport ||
+    !strikeButton ||
+    !autoplayButton ||
+    !statusLabel ||
+    !presenceLabel
+  ) {
     throw new Error("expected UI elements are missing");
   }
+
+  createPresenceClient({
+    url: import.meta.env.VITE_PRESENCE_URL ?? DEFAULT_PRESENCE_URL,
+    onStatus: (status) => {
+      presenceLabel.textContent = presenceStatusText(status);
+    },
+  });
 
   const moktakAudio = new Audio(MOKTAK_SOUND_URL);
 

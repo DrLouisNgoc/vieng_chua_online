@@ -42,3 +42,15 @@
   Tests + typecheck green. Next: Milestone 3 (owner-run backend — mainly a
   live player-count/presence service, since moktak itself is client-local
   and needs no server round-trip).
+- 2026-11-02: Milestone 3 built. New `server/` project (Node + TypeScript +
+  `ws`, run via `tsx`): `presenceRoom.ts` (pure join/leave/count logic,
+  TDD'd first) wrapped by `server.ts` (WebSocketServer, broadcasts
+  `{"type":"presence","count":N}` on every connect/disconnect). Client got
+  `app/src/presence.ts` (TDD'd with a fake WebSocket: connecting/online/
+  offline states, auto-reconnect with backoff) wired into `main.ts`,
+  replacing the old hardcoded "1/100" with the real header count. Live
+  end-to-end check: ran the server, opened 3 real browser tabs of the
+  client, watched the header count go to "3 người đang viếng chùa" for
+  real, confirmed by screenshot. Milestone 3 marked done in its spec. Next:
+  Milestone 4 (private cloud deployment) — remember this needs the owner's
+  explicit go-ahead before actually deploying anything (red-tier action).

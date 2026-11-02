@@ -8,13 +8,14 @@ backend server the owner runs themselves, deployed privately so the owner can
 reach it remotely. Never shared/published/monetized. Full PRD:
 docs/product/vieng-chua-online.prd.md.
 
-## Status: Milestone 2 (Vietnamese client) done. Milestone 3 (owner backend) next.
-`app/` is a working Vite + TypeScript + Three.js + vitest project.
-From `app/`: `npm run dev` serves a 3D temple scene (reused buddha/
-bodhisattva/pine/monk models) with full Vietnamese UI and a working moktak
-panel. `app/public/sansatemple/` (gitignored, decision 0006) must be
-populated first — run `scripts/fetch-sansatemple-assets.sh` from the repo
-root if it's empty or missing.
+## Status: Milestone 3 (presence server) done. Milestone 4 (private deploy) next.
+Two projects now: `app/` (Vite + TS + Three.js client) and `server/` (Node +
+TS + `ws` presence server). To run locally: `npm run dev` in `server/`
+first (default `ws://localhost:8787`), then `npm run dev` in `app/`. The
+client shows a live "N người đang viếng chùa" count from the real server —
+try two browser tabs to see it change. `app/public/sansatemple/`
+(gitignored, decision 0006) must be populated first — run
+`scripts/fetch-sansatemple-assets.sh` from the repo root if it's empty.
 
 ## Decisions made (see docs/memory/decisions/) — read these before re-deciding anything
 1. **0001** — Personal use only, never shared/published/monetized.
@@ -77,20 +78,42 @@ root if it's empty or missing.
   controller logic make this low-risk, but a manual click-test by the owner
   is worth doing on first run.
 
+## Milestone 3 results (presence server — read before touching server/)
+- `server/src/presenceRoom.ts` + `.test.ts` — pure join/leave/count logic,
+  TDD'd first, no socket dependency.
+- `server/src/server.ts` — `ws`'s `WebSocketServer`, broadcasts
+  `{"type":"presence","count":N}` to every connected client whenever
+  someone joins/leaves. Run with `npm run dev` (watch mode) or `npm start`.
+  Port from `PORT` env var, default 8787.
+- `app/src/presence.ts` + `.test.ts` — client-side WebSocket wrapper:
+  connecting/online/offline status callback, auto-reconnect with backoff,
+  TDD'd with a fake `WebSocket` + fake timers. Wired into `main.ts`,
+  replacing the old hardcoded "1/100".
+- Live-verified end-to-end (not just unit tests): ran the real server,
+  opened 3 real browser tabs of the client, watched the header actually
+  read "3 người đang viếng chùa", confirmed by screenshot.
+- **Not checked**: the offline/reconnect UI path was only exercised with
+  fake timers in `presence.test.ts`, not by actually killing the running
+  server while a tab was open.
+- Deliberately out of scope per the spec: avatar position sync, rendering
+  other visitors in the 3D scene, rooms/instances — this is just a
+  player-count service. See docs/specs/milestone-3-presence-server/spec.md.
+
 ## What's NOT done yet (pick up here)
-- Milestone 3 (owner-run backend) not started. Per protocol-notes.md,
-  moktak itself needs no server round-trip — Milestone 3 is really just a
-  minimal presence/player-count service, not the full message vocabulary.
 - Milestone 4 (private cloud deploy) not started — remember deployment
-  itself needs the owner's explicit go-ahead (red-tier action).
+  itself needs the owner's explicit go-ahead (red-tier action). Need to
+  pick a hosting provider for both `app/` (static) and `server/` (needs a
+  long-running WebSocket-capable host, not pure static hosting) — not
+  chosen yet.
 - Open questions still unresolved (docs/memory/open-questions.md and the
   PRD's own Open Questions): access control for the private deployment,
   hosting provider choice, the future public-donation-account idea (not
   scoped).
-- A throwaway Chrome instance (debug port 9333) and the Vite dev server
-  (port 5184, auto-picked since 5183 was busy) may still be running from
-  this session — harmless, reuse or restart them next session rather than
-  force-killing broadly.
+- Still running from this session, harmless to reuse or restart rather
+  than force-killing broadly: a throwaway Chrome debug instance (port
+  9333, several tabs open — each an active presence connection, so the
+  live count reflects however many of those tabs are still open), the Vite
+  dev server (port 5184), and the presence server (port 8787).
 
 ## Constraints to respect going forward
 - Never bypass any DRM/anti-copy protection on sansatemple.com; only use
