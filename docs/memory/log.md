@@ -54,3 +54,9 @@
   real, confirmed by screenshot. Milestone 3 marked done in its spec. Next:
   Milestone 4 (private cloud deployment) — remember this needs the owner's
   explicit go-ahead before actually deploying anything (red-tier action).
+- 2026-11-02: Owner asked about current UI state, then said to stop the
+  session here. Nothing further changed; git is clean (all work through
+  Milestone 3 committed). Session closed. Resume with Milestone 4
+  (hosting provider choice + access control, then owner's go-ahead to
+  deploy) or UI polish/missing original interactions, per owner's next
+  request.
