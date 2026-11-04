@@ -26,8 +26,39 @@ order, rather than rewriting the original spec.
    384 cushions in rows with a centre aisle (InstancedMesh).
 7. Moktak autoplay removed, then the whole moktak HUD panel removed. The
    in-scene moktak sprite still strikes on click.
+8. Architecture pass (2026-11-04, owner: "tập trung vào kiến trúc cho
+   đẹp"): Vietnamese curved roofs with upturned "đầu đao" corners
+   (`curved-roof.ts`, pure + tested) on the hall (two tiers + ridge with
+   curled ends and flaming pearl), hut and bell tower; tam quan gate with
+   "SƠN TỰ" plaque; ochre perimeter wall; bell tower with bronze bell
+   (walkable under); terracotta-tiled courtyard (procedural canvas
+   texture); bronze incense urn; wooden meditation hut; koi swimming in
+   the lotus pond; broadleaf trees and bamboo groves (instanced). Camera
+   max zoom 16 -> 30, and the camera is pulled in front of buildings
+   (hall, gate, wall, bell tower, hut) that would block the view.
+   Decision 0009 now allows licensed third-party assets; none added yet.
+9. Yard resized twice and paved (2026-11-04): first front x10 / sides x5,
+   then "giảm diện tích ... nhỏ đi 2 lần" -> front yard 130, side yards
+   53, back 15 (yard area half of the x10/x5 version; tested). Small pines
+   moved outside the wall in rows. Whole yard inside the wall brick-paved.
+   Lotus pond is now a stone-curbed rectangle beside the hall's right side
+   (koi swim ellipses). Hall raised on a 9-step stair with stepped
+   balustrades; ceiling raised by the same amount so the Buddha still
+   fits; platform edges blocked so the hall is entered by the stairs.
+   Shift runs; the avatar eases up/down steps.
 
 ## Rulings (decided alone — say if wrong)
+- Ruling: "chiều dài x10, chiều rộng x5" applied to the yard gaps between
+  hall and wall (front 21 -> 210, sides 17 -> 85), back gap unchanged —
+  why: owner named the space between wall and hall — cost if wrong: change
+  FRONT_YARD/SIDE_YARD/BACK_YARD in temple-layout.ts.
+- Ruling: "diện tích nhỏ đi 2 lần" read as half the yard **area** (both
+  gaps x0.62: front 130, sides 53), not each gap halved (105 / 42.5) —
+  why: the owner said "diện tích" (area) — cost if wrong: the same three
+  constants.
+- Ruling: a 9-step stair = platform height 9 x 0.3, interior height kept
+  by raising the ceiling equally — why: otherwise the 12-tall Buddha would
+  pierce the ceiling — cost if wrong: STEP_RISE / INTERIOR_HEIGHT.
 - Ruling: "gấp 10 lần" read as 10x floor **area** (76x54), not 10x each side
   (240x170) — why: 240 units would take over a minute to cross on foot —
   cost if wrong: re-scale HALL in temple-layout.ts (all hall geometry and
@@ -70,9 +101,19 @@ order, rather than rewriting the original spec.
   (two runs each, Intel UHD, Playwright-driven Chrome). Main cost not yet
   found — candidates: sun shadow pass over the whole 90-unit area (pine
   foliage), MSAA at full resolution, pixel ratio. Measure before changing.
-- **Camera occlusion**: the camera can sit behind a stone pillar or wall
-  and lose sight of the avatar. Fix idea: raycast target->camera and pull
-  the camera in front of the first hit.
+- Camera occlusion: fixed for buildings (raycast to `cameraBlockers`).
+  Small props (urn, pillars, trees) may still hide the avatar, by choice.
+- After the architecture pass the yard measured 31 fps once and 12 fps
+  once (different views, same machine); after the paving/stairs pass
+  22-26 fps (one run, two views). Frame rate still unresolved and noisy;
+  needs a proper profile.
+- A bug from this pass was caught only in the browser, not by tests: pond
+  constants declared after the builder's `return` hit the temporal dead
+  zone and the grounds failed to build. Lesson: grounds builders have no
+  smoke test; a Node test that calls buildTempleGrounds with a stub
+  loader would have caught it.
+- Not checked: the hall's new two-tier roof seen from outside at a wide
+  angle (camera stays under the eave from the courtyard); 375px.
 - Not checked: 375px screenshots after the latest changes; real Unikey on
   the owner's machine (only simulated key events).
 - Bow/seat/bead interactions (original sansatemple.com features, see

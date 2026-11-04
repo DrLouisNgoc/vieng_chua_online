@@ -1,2 +1,6 @@
 # Original third-party assets: gitignored local cache, see decision 0006
 app/public/sansatemple/
+# Licensed third-party assets: gitignored, catalogued in docs/assets/third-party-assets.md (decision 0009)
+app/public/thirdparty/
+# Owner's reference screenshots (other sites/temples): look-only, never committed
+reference/

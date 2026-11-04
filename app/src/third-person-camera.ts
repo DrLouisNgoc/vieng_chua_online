@@ -16,7 +16,7 @@ export interface CameraRig {
 const MIN_PITCH = 0.05;
 const MAX_PITCH = 1.3;
 const MIN_DISTANCE = 2.5;
-const MAX_DISTANCE = 16;
+const MAX_DISTANCE = 30;
 const DRAG_YAW_PER_PX = 0.005;
 const DRAG_PITCH_PER_PX = 0.004;
 const ZOOM_PER_WHEEL_UNIT = 0.001;

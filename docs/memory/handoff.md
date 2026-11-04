@@ -16,30 +16,47 @@ every scope change, ruling, fixed bug and open problem.
 What the app does now:
 - Onboarding card (name, gender, robe colour, parametric SVG avatar adapted
   from chuasen.com per decision 0007) -> "Vào chùa".
-- 3D grounds: 76x54 main hall (ceiling 16, Shakyamuni 12 tall on gold lotus
+- 3D grounds (all procedural, decision 0008): 76x54 main hall raised on a
+  9-step stair with balustrades, two-tier Vietnamese curved roof with "đầu
+  đao" corners, ridge and flaming pearl; Shakyamuni 12 tall on a gold lotus
   pedestal with halo + warm lights, two bodhisattvas, 384 cushions with a
-  centre aisle), stone pillars, stone path, meditation hut, lotus pond,
-  banyan tree with seats, pines. Collisions + platform heights.
+  centre aisle. Yard inside an ochre perimeter wall (front 130, sides 53,
+  back 15), entirely brick-paved; tam quan gate with "SƠN TỰ" plaque; stone
+  path lined with stone pillars and a tree avenue; incense urn; bell tower
+  with bronze bell; wooden meditation hut; rectangular lotus pond with koi
+  beside the hall; banyan with seats; bamboo along the wall; small pines
+  outside the wall. Collisions + ground heights for all of it.
 - WASD camera-relative movement, Shift to run, drag to rotate the camera
-  (keeps its angle), wheel to zoom; skeletal walk animation on monk.glb's
-  own rig. Clicking the in-scene moktak sprite plays the sound.
+  (keeps its angle), wheel to zoom (2.5-30), camera kept out of buildings;
+  skeletal walk animation on monk.glb's own rig; avatar eases up stairs.
+  Clicking the in-scene moktak sprite plays the sound (the moktak HUD panel
+  was removed at the owner's request).
 - Presence count from the owner's server in the header.
 
 ## Run it
 `npm run dev` in `server/` (ws://localhost:8787), then `npm run dev` in
 `app/` (http://localhost:5173). `app/public/sansatemple/` must be populated
 (gitignored, decision 0006): `scripts/fetch-sansatemple-assets.sh`.
-Tests: `npm test` in app/ (61 pass), `npx tsc --noEmit -p .` clean.
+Tests: `npm test` in app/ (81 pass), `npx tsc --noEmit -p .` clean.
 
 ## Code map (app/src)
-- `temple-layout.ts` — pure plan: HALL, STATUES, seats, colliders,
-  `groundHeightAt`. Change sizes here; geometry/lights derive from it.
-- `temple-grounds.ts` — meshes + interior lights, using sansatemple PBR
-  materials.
+- `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
+  size constants FRONT_YARD/SIDE_YARD/BACK_YARD), GATE, POND, trees, seats,
+  colliders, `groundHeightAt`. Change sizes here; geometry/lights derive
+  from it.
+- `temple-grounds.ts` — meshes + interior lights + koi animation
+  (`update`), and `cameraBlockers` (buildings the camera must stay out of);
+  uses sansatemple PBR materials and procedural canvas textures (bricks,
+  plaque).
 - `scene.ts` — renderer, sky/fog/sun, model loading, input, camera, walk
   animation, render loop.
 - `third-person-camera.ts`, `movement.ts`, `collision.ts`, `walk-cycle.ts`,
-  `key-state.ts`, `onboarding.ts`, `avatar-svg.ts` — pure, unit-tested.
+  `key-state.ts`, `onboarding.ts`, `avatar-svg.ts`, `curved-roof.ts` —
+  pure, unit-tested.
+- Third-party assets (decision 0009): files go in `app/public/thirdparty/`
+  (gitignored), each listed in `docs/assets/third-party-assets.md` first.
+  Owner said they will provide a Mixamo character + animations, audio and
+  reference screenshots (`reference/`, gitignored); none provided yet.
 
 ## Decisions (docs/memory/decisions/) — read before re-deciding
 0001 personal use only · 0002 Electron (superseded) · 0003 keep original
@@ -47,7 +64,8 @@ assets, translate text · 0004 own backend · 0005 web app · 0006 assets are a
 gitignored cache · 0007 chuasen.com as narrow UX reference · 0008
 procedural grounds; **chuasen.com source is referenced** (avatar SVG,
 variant CSS mechanism, character-screen layout) **but not copied
-wholesale** (owner asked for a full copy repeatedly; declined).
+wholesale** (owner asked for a full copy repeatedly; declined) · 0009
+licensed third-party assets allowed (catalogued, gitignored; none yet).
 
 ## Gotchas learned
 - GLTFLoader strips "." from node names: bone "thigh.L" is "thighL".
@@ -60,15 +78,24 @@ wholesale** (owner asked for a full copy repeatedly; declined).
   (`channel: 'chrome'`, `--use-angle=d3d11`). Playwright lives only in the
   session scratchpad, not in the repo.
 - Claude-in-Chrome extension has not connected in these sessions.
+- In `buildTempleGrounds`, builders are function declarations called before
+  `return`; any `const` they use must sit above that call (or at module
+  level), or it hits the temporal dead zone at runtime. No test builds the
+  grounds, so this only shows in the browser.
+- On Windows the Bash tool's `python` can hang (Store stub); use `node`.
 
 ## Next (pick up here)
-1. Frame rate 11-15 fps on Intel UHD — measure what costs most before
-   changing anything (shadow pass, MSAA, pixel ratio).
-2. Camera occlusion behind pillars/walls.
-3. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
+1. Confirm with the owner the two yard rulings in status.md ("x10/x5" on
+   the gaps; "nhỏ đi 2 lần" = half the area).
+2. Frame rate 11-40 fps depending on view, on Intel UHD — profile what
+   costs most before changing anything (shadow pass, MSAA, pixel ratio).
+3. Add a smoke test that builds the grounds with a stub texture loader.
+4. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
    beads (original sansatemple features, need server messages), sweeping
    the yard (new, not original).
-4. Later: Milestone 5 private deploy (red tier). Recommendation given, not
+5. When the owner drops files in `app/public/thirdparty/` (Mixamo character
+   + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
+6. Later: Milestone 5 private deploy (red tier). Recommendation given, not
    confirmed: Tailscale + one small VPS.
 
 ## Constraints

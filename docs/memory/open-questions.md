@@ -33,6 +33,11 @@ docs/product/vieng-chua-online.prd.md
   hall — acceptable to the owner? Main cost not identified yet.
 - Is the 76x54 hall what "gấp 10 lần" meant (10x area), or 10x each side?
   See status.md ruling.
+- Yard size: "nhỏ đi 2 lần" read as half the area (front 130, sides 53);
+  the alternative is halving each gap (105 / 42.5). Not confirmed.
+- Third-party assets (decision 0009): owner said they would provide a
+  Mixamo character + animations, audio and reference screenshots; none
+  provided yet. Architecture: owner chose procedural (no purchase).
 - Deferred past MVP per the PRD: save-progress storage design, scene/content
   customization, custom meditation audio — no tech decisions needed until
   those milestones are picked up.

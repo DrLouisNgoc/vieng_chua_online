@@ -89,3 +89,12 @@
   pass. Open: 11-15 fps on Intel UHD, camera occlusion. Committed on main
   as dcef80d at the owner's request (not pushed). Details:
   docs/specs/milestone-4-movement-character-screen/status.md.
+- 2026-11-04 (later): Owner approved new licensed third-party assets
+  (decision 0009; drop folders + manifest created, nothing provided yet).
+  Architecture pass: curved "đầu đao" roofs (curved-roof.ts, tested), tam
+  quan gate, perimeter wall, bell tower, urn, wooden hut, koi, broadleaf
+  trees, bamboo, camera kept out of buildings. Yard resized (x10/x5, then
+  half the area: front 130, sides 53), fully brick-paved, pines moved
+  outside the wall, rectangular lotus pond beside the hall, hall raised on
+  9 steps. One runtime-only bug (TDZ const in the grounds builder) caught
+  in the browser. 81 tests pass; fps 22-40 depending on view.

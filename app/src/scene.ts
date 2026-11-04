@@ -54,8 +54,8 @@ const MOKTAK_PULSE_MS = 150;
 const KEYBOARD_LOOK_AHEAD = 5;
 const HORIZON_COLOR = 0xe8dcc4;
 const SKY_TOP_COLOR = "#9cbcd6";
-const GROUND_SIZE = 400;
-const GROUND_TEXTURE_REPEAT = 80;
+const GROUND_SIZE = 800;
+const GROUND_TEXTURE_REPEAT = 160;
 const SHADOW_HALF_EXTENT = 45;
 const RUN_MULTIPLIER = 2.2;
 const RUN_KEYS = ["ShiftLeft", "ShiftRight"];
@@ -63,6 +63,9 @@ const ALTAR_TOP = HALL.platformHeight + HALL.altarHeight;
 const TURN_SPEED = 10; // radians per second the avatar turns to face its walk direction
 const CAMERA_LOOK_HEIGHT = 1.3;
 const CAMERA_SMOOTHING = 12;
+const CAMERA_WALL_GAP = 0.4;
+const STEP_SMOOTHING = 14;
+const CAMERA_MIN_CLEARANCE = 1.2;
 const START_HEADING = Math.PI; // facing the main hall (-z)
 
 function createSkyTexture(): CanvasTexture {
@@ -111,13 +114,14 @@ export async function createTempleScene(
 ): Promise<TempleScene> {
   const scene = new Scene();
   scene.background = createSkyTexture();
-  scene.fog = new Fog(HORIZON_COLOR, 45, 170);
+  // far enough that the hall still shows from the gate, 210 units away
+  scene.fog = new Fog(HORIZON_COLOR, 90, 340);
 
   const camera = new PerspectiveCamera(
     45,
     container.clientWidth / container.clientHeight,
     0.1,
-    400,
+    800,
   );
 
   const renderer = new WebGLRenderer({ antialias: true });
@@ -207,7 +211,7 @@ export async function createTempleScene(
     addModel("pine.glb", new Vector3(firstPine.x, 0, firstPine.z), 4),
     buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
   ]);
-  scene.add(grounds);
+  scene.add(grounds.group);
   for (const spot of otherPines) {
     const tree = pine.clone();
     tree.position.x += spot.x - firstPine.x;
@@ -268,7 +272,8 @@ export async function createTempleScene(
     new SpriteMaterial({ map: moktakTexture, transparent: true }),
   );
   moktakSprite.scale.set(MOKTAK_BASE_SCALE, MOKTAK_BASE_SCALE, 1);
-  moktakSprite.position.set(0.9, 0.9, 1.5);
+  // beside the start point, clear of the hall stairs
+  moktakSprite.position.set(AVATAR_START.x + 3.2, 0.95, AVATAR_START.z - 0.6);
   scene.add(moktakSprite);
 
   let pulseUntil = 0;
@@ -390,13 +395,35 @@ export async function createTempleScene(
   }
 
   const cameraTarget = new Vector3();
+  const cameraRay = new Raycaster();
+  const toCamera = new Vector3();
+  // Pull the camera in front of any building between it and the avatar, so
+  // it never ends up inside a roof or wall.
+  function unblockedCameraPosition(desired: { x: number; y: number; z: number }) {
+    toCamera.set(desired.x - cameraTarget.x, desired.y - cameraTarget.y, desired.z - cameraTarget.z);
+    const distance = toCamera.length();
+    if (distance < 1e-6) return desired;
+    toCamera.divideScalar(distance);
+    cameraRay.set(cameraTarget, toCamera);
+    cameraRay.far = distance;
+    const hit = cameraRay.intersectObjects(grounds.cameraBlockers, true)[0];
+    if (!hit) return desired;
+    const safe = Math.max(CAMERA_MIN_CLEARANCE, hit.distance - CAMERA_WALL_GAP);
+    return {
+      x: cameraTarget.x + toCamera.x * safe,
+      y: cameraTarget.y + toCamera.y * safe,
+      z: cameraTarget.z + toCamera.z * safe,
+    };
+  }
   function updateCamera(deltaSeconds: number, snap = false): void {
     cameraTarget.set(
       avatar.position.x,
       avatar.position.y + CAMERA_LOOK_HEIGHT,
       avatar.position.z,
     );
-    const desired = desiredCameraPosition(cameraTarget, START_HEADING, rig);
+    const desired = unblockedCameraPosition(
+      desiredCameraPosition(cameraTarget, START_HEADING, rig),
+    );
     const blend = snap ? 1 : 1 - Math.exp(-CAMERA_SMOOTHING * deltaSeconds);
     camera.position.x += (desired.x - camera.position.x) * blend;
     camera.position.y += (desired.y - camera.position.y) * blend;
@@ -420,7 +447,9 @@ export async function createTempleScene(
     const pos = movement.update(deltaSeconds * pace);
     avatar.position.x = pos.x;
     avatar.position.z = pos.z;
-    avatar.position.y = avatarGroundY + groundHeightAt(pos);
+    // ease toward the floor height so stairs read as climbing, not teleporting
+    const floorY = avatarGroundY + groundHeightAt(pos);
+    avatar.position.y += (floorY - avatar.position.y) * Math.min(1, deltaSeconds * STEP_SMOOTHING);
     // +PI: monk.glb's own modeled "front" faces the opposite of the
     // +Z-facing heading convention.
     avatar.rotation.y = heading + Math.PI;
@@ -443,6 +472,7 @@ export async function createTempleScene(
     sun.target.position.set(pos.x, 0, pos.z);
     // far enough up-sun that the tall hall roof sits inside the shadow frustum
     sun.position.set(pos.x + 28, 49, pos.z + 21);
+    grounds.update(deltaSeconds);
     updateCamera(deltaSeconds);
     const pulsing = nowMs < pulseUntil;
     const scale = pulsing ? MOKTAK_PULSE_SCALE : 1;
