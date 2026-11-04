@@ -7,9 +7,9 @@ owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
 ## Status (2026-11-04)
-Milestones 1-3 done and committed. **Milestone 4 in progress, all
-uncommitted on `main`** (should be moved to a branch + PR before
-committing — global rule). Read
+Milestones 1-3 done and committed. **Milestone 4 in progress**, committed
+directly on `main` as dcef80d at the owner's explicit request (not pushed;
+the global rule is branch + PR — ask which the owner wants next time). Read
 docs/specs/milestone-4-movement-character-screen/status.md first: it lists
 every scope change, ruling, fixed bug and open problem.
 
@@ -62,14 +62,13 @@ wholesale** (owner asked for a full copy repeatedly; declined).
 - Claude-in-Chrome extension has not connected in these sessions.
 
 ## Next (pick up here)
-1. Commit Milestone 4 work on a branch (ask the owner first).
-2. Frame rate 11-15 fps on Intel UHD — measure what costs most before
+1. Frame rate 11-15 fps on Intel UHD — measure what costs most before
    changing anything (shadow pass, MSAA, pixel ratio).
-3. Camera occlusion behind pillars/walls.
-4. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
+2. Camera occlusion behind pillars/walls.
+3. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
    beads (original sansatemple features, need server messages), sweeping
    the yard (new, not original).
-5. Later: Milestone 5 private deploy (red tier). Recommendation given, not
+4. Later: Milestone 5 private deploy (red tier). Recommendation given, not
    confirmed: Tailscale + one small VPS.
 
 ## Constraints

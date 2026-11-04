@@ -79,5 +79,6 @@ order, rather than rewriting the original spec.
   milestone-1 protocol-notes.md) not started; owner asked for "ngồi viếng",
   "tràng hạt", "quét sân" (the last is not an original feature).
 
-*Status: in progress — nothing committed yet (all work is uncommitted on
-`main`; per the global rules it should go on a branch + PR).*
+*Status: in progress — work so far committed directly on `main` as
+dcef80d (2026-11-04), at the owner's explicit request, instead of the
+global branch + PR rule. Not pushed.*

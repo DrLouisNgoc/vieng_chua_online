@@ -86,5 +86,6 @@
   PBR textures, main hall grown to 76x54 with 384 seats, moktak panel
   removed. Fixed: hidden-attribute override, bone names without ".", rest
   pose overwrite, reversed facing, zoom asymmetry, IME stuck keys. 61 tests
-  pass. Open: 11-15 fps on Intel UHD, camera occlusion. All uncommitted on
-  main. Details: docs/specs/milestone-4-movement-character-screen/status.md.
+  pass. Open: 11-15 fps on Intel UHD, camera occlusion. Committed on main
+  as dcef80d at the owner's request (not pushed). Details:
+  docs/specs/milestone-4-movement-character-screen/status.md.
