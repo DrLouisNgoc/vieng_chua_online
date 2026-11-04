@@ -1,12 +1,9 @@
 :root {
   --color-ink: oklch(22% 0.03 70);
   --color-parchment: oklch(93% 0.02 85);
-  --color-temple-green: oklch(52% 0.07 150);
-  --color-temple-green-deep: oklch(38% 0.06 150);
   --color-gold: oklch(72% 0.1 80);
 
   --space-hud: clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem);
-  --radius-panel: 1.1rem;
 
   --duration-fast: 150ms;
   --duration-normal: 280ms;
@@ -62,9 +59,13 @@ body {
   left: var(--space-hud);
   padding: 0.5rem 1rem;
   border-radius: 999px;
-  background: oklch(98% 0.01 85 / 0.72);
+  background:
+    linear-gradient(165deg, oklch(99% 0.015 85 / 0.85), oklch(93% 0.02 80 / 0.68));
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 14px oklch(22% 0.03 70 / 0.18);
+  box-shadow:
+    0 2px 14px oklch(22% 0.03 70 / 0.18),
+    inset 0 1px oklch(100% 0 0 / 0.5);
+  border: 1px solid oklch(100% 0 0 / 0.35);
 }
 
 .room-label {
@@ -88,64 +89,241 @@ body {
   white-space: nowrap;
 }
 
-.moktak-panel {
+@media (max-width: 480px) {
+  .hint {
+    white-space: normal;
+    width: max-content;
+    max-width: calc(100vw - 2 * var(--space-hud));
+    text-align: center;
+  }
+}
+
+/* Onboarding (character screen) */
+
+.onboarding {
   position: absolute;
-  right: var(--space-hud);
-  bottom: var(--space-hud);
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-hud);
+  background:
+    radial-gradient(120% 55% at 50% -10%, oklch(55% 0.09 70 / 0.4), transparent 60%),
+    var(--color-ink);
+}
+
+.onboarding[hidden] {
+  display: none;
+}
+
+.onboarding__card {
+  width: min(22rem, 100%);
+  max-height: calc(100vh - 2 * var(--space-hud));
+  overflow-y: auto;
+  padding: 1.75rem;
+  border-radius: 1.4rem;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.5rem;
-  width: min(15rem, calc(100vw - 2 * var(--space-hud)));
-  padding: 1rem;
-  border-radius: var(--radius-panel);
-  background: oklch(98% 0.01 85 / 0.85);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.25);
+  gap: 1rem;
+  background: linear-gradient(165deg, oklch(32% 0.05 70 / 0.95), oklch(16% 0.03 70 / 0.97));
+  box-shadow:
+    0 24px 60px oklch(10% 0.02 70 / 0.55),
+    inset 0 1px oklch(95% 0.02 85 / 0.1);
+  border: 1px solid oklch(80% 0.08 80 / 0.2);
+  color: var(--color-parchment);
 }
 
-.moktak-panel button {
+.onboarding__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-gold);
+}
+
+.onboarding__lead {
+  margin: -0.5rem 0 0;
+  font-size: 0.82rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.onboarding__preview {
+  display: flex;
+  justify-content: center;
+}
+
+.onboarding__field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.onboarding__input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid oklch(80% 0.05 80 / 0.25);
+  background: oklch(20% 0.02 70 / 0.6);
+  color: inherit;
   font: inherit;
-  font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0.6rem 1rem;
-  border-radius: 0.7rem;
-  border: 1px solid oklch(22% 0.03 70 / 0.1);
-  color: oklch(98% 0.01 85);
-  background: var(--color-temple-green);
+}
+
+.onboarding__input:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 1px;
+}
+
+.onboarding__toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.onboarding__toggle button {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid oklch(80% 0.05 80 / 0.25);
+  background: transparent;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
-  transition:
-    transform var(--duration-fast) var(--ease-out-expo),
-    background var(--duration-fast) var(--ease-out-expo);
+  transition: background var(--duration-fast) var(--ease-out-expo);
 }
 
-.moktak-panel button:hover {
-  background: var(--color-temple-green-deep);
+.onboarding__toggle button[aria-pressed="true"] {
+  background: var(--color-gold);
+  color: var(--color-ink);
+  border-color: var(--color-gold);
+  font-weight: 600;
 }
 
-.moktak-panel button:active {
+.onboarding__swatches {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.onboarding__swatch {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.onboarding__swatch[aria-pressed="true"] {
+  border-color: var(--color-gold);
+  transform: scale(1.12);
+}
+
+.onboarding__enter {
+  margin-top: 0.25rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.7rem;
+  border: none;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-ink);
+  background: var(--color-gold);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.onboarding__enter:active {
   transform: scale(0.97);
 }
 
-.moktak-panel button:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+/* Parametric avatar SVG — see avatar-svg.ts for provenance. Colors below
+   are this project's own palette (onboarding.ts's ROBE_COLORS), applied
+   through CSS custom properties set per-element in main.ts. */
+
+.va-figure {
+  width: 7.5rem;
+  height: auto;
 }
 
-#moktak-autoplay {
-  background: transparent;
-  color: var(--color-ink);
-  border-color: var(--color-temple-green);
+.va-figure .va-skin { fill: #f3d2b0; }
+.va-figure .va-skin-dark { fill: #e2b891; }
+.va-figure .va-scalp { fill: #5d5870; fill-opacity: 0.3; }
+.va-figure .va-stubble { fill: #33221a; opacity: 0.14; }
+.va-figure .va-hair { fill: #3a2517; }
+.va-figure .va-hair-line {
+  fill: none;
+  stroke: #6b4a33;
+  stroke-width: 1.4px;
+  stroke-linecap: round;
+  stroke-opacity: 0.8;
+}
+.va-figure .va-tie { fill: var(--color-gold); }
+.va-figure .va-brow {
+  fill: none;
+  stroke: #5d4433;
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+}
+.va-figure .va-eyes {
+  fill: none;
+  stroke: #3a2517;
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+.va-figure .va-mouth {
+  fill: none;
+  stroke: #8a4a3a;
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+}
+.va-figure .va-blush { fill: #e8907a; opacity: 0.35; }
+.va-figure .va-shoe { fill: #2f2118; }
+.va-figure .va-line {
+  fill: none;
+  stroke: #c79a72;
+  stroke-width: 1.2px;
+  stroke-linecap: round;
+}
+.va-figure .va-ground { fill: #000; fill-opacity: 0.32; }
+.va-figure .va-ring {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-opacity: 0.28;
+  stroke-width: 1px;
 }
 
-#moktak-autoplay:hover {
-  background: oklch(52% 0.07 150 / 0.1);
+.va-figure .va-robe,
+.va-figure .va-sleeve,
+.va-figure .va-lapel {
+  fill: var(--avatar-robe, #3f6e9c);
+}
+.va-figure .va-pants,
+.va-figure .va-collar,
+.va-figure .va-closure,
+.va-figure .va-buttons circle,
+.va-figure .va-yem {
+  fill: var(--avatar-robe-shade, #2d5378);
+}
+.va-figure .va-trim {
+  fill: none;
+  stroke: var(--avatar-robe-trim, #9cc0e0);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.va-figure .va-fold,
+.va-figure .va-hem {
+  fill: none;
+  stroke: var(--avatar-robe-shade, #2d5378);
+  stroke-width: 1.2px;
+  stroke-linecap: round;
+  opacity: 0.6;
 }
 
-.moktak-status {
-  margin: 0;
-  min-height: 1.1em;
-  font-size: 0.78rem;
-  color: var(--color-ink);
-  opacity: 0.75;
+.va-figure[data-look="nam"] .va-nu,
+.va-figure[data-look="nu"] .va-nam {
+  display: none;
 }

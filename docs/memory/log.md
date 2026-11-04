@@ -60,3 +60,31 @@
   (hosting provider choice + access control, then owner's go-ahead to
   deploy) or UI polish/missing original interactions, per owner's next
   request.
+- 2026-11-03: New session. Gave owner advice on Milestone 4's two open
+  questions (not yet confirmed): Tailscale for access control, a single
+  small VPS for hosting both `app/` and `server/`. Owner then asked to
+  check UI/interactions instead. Claude-in-Chrome extension wasn't
+  connected, so installed Playwright (throwaway, in OS temp scratchpad, not
+  a project dependency) and drove the running app with it. Confirmed the
+  moktak click → sound + pulse animation works (milestone 2's "not
+  checked" item, now checked). Found a real bug via screenshot diff: the
+  Vietnamese hint text promised "click ground to move" but no such feature
+  exists (out of scope per milestone 2 spec) — fixed by dropping that
+  clause from `app/src/i18n.ts` and the milestone 2 spec's string table.
+  A 375px screenshot then surfaced a second bug: the hint pill overlapped
+  the bottom-right moktak panel on narrow viewports; fixed with a
+  max-width:480px media query in `app/src/style.css`. Verified both fixes
+  with before/after screenshots at 375px and 1440px. Tests green (12/12).
+  Milestone 4 still not started.
+- 2026-11-03/04: Owner compared the app to chuasen.com and wanted it
+  "like them". Interviewed: keep sansatemple as the base, borrow UX
+  (decision 0007); extracted chuasen's avatar SVG via REA + direct fetch.
+  Owner then asked repeatedly to copy chuasen's whole source — declined
+  (decision 0008). Built Milestone 4 (renumbered; deploy is now 5):
+  onboarding card, keyboard movement, skeletal walk on monk.glb's rig,
+  third-person camera, lighting, procedural temple grounds from sansatemple
+  PBR textures, main hall grown to 76x54 with 384 seats, moktak panel
+  removed. Fixed: hidden-attribute override, bone names without ".", rest
+  pose overwrite, reversed facing, zoom asymmetry, IME stuck keys. 61 tests
+  pass. Open: 11-15 fps on Intel UHD, camera occlusion. All uncommitted on
+  main. Details: docs/specs/milestone-4-movement-character-screen/status.md.

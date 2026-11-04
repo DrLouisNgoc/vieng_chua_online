@@ -2,6 +2,8 @@ import "./style.css";
 import { createTempleScene } from "./scene";
 import { createMoktakController } from "./moktak";
 import { createPresenceClient, type PresenceStatus } from "./presence";
+import { createOnboardingController, ROBE_COLORS, type Gender } from "./onboarding";
+import { renderAvatarSvg } from "./avatar-svg";
 import { t } from "./i18n";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
@@ -26,45 +28,128 @@ function renderShell(): void {
     throw new Error("#app root element is missing");
   }
 
+  const swatches = ROBE_COLORS.map(
+    (color, index) =>
+      `<button type="button" class="onboarding__swatch" data-color-index="${index}" style="background:${color.base}" aria-pressed="${index === 0}" aria-label="Màu áo ${index + 1}"></button>`,
+  ).join("");
+
   app.innerHTML = `
     <div id="viewport"></div>
-    <header class="hud-top">
-      <span class="room-label">${t("산사")} · <span id="presence-label"></span></span>
+    <header class="hud-top" hidden>
+      <span class="room-label">${t("산사")} · <span id="visitor-name"></span> · <span id="presence-label"></span></span>
     </header>
-    <p class="hint">${t("바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소")}</p>
-    <section class="moktak-panel">
-      <button id="moktak-strike" type="button">${t("목탁 두드리기")}</button>
-      <button id="moktak-autoplay" type="button">${t("자동재생")}</button>
-      <p id="moktak-status" class="moktak-status" aria-live="polite"></p>
-    </section>
+    <p class="hint" hidden>${t("바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소")}</p>
+
+    <div class="onboarding" id="onboarding">
+      <form class="onboarding__card" id="onboarding-form" autocomplete="off">
+        <h1 class="onboarding__title">Vào chùa</h1>
+        <p class="onboarding__lead">Chọn nhanh một nhân vật rồi bước vào sân chùa.</p>
+        <div class="onboarding__preview" id="onboarding-preview"></div>
+        <div class="onboarding__field">
+          <label for="onboarding-name">Pháp danh</label>
+          <input id="onboarding-name" class="onboarding__input" type="text" maxlength="24" autocomplete="off" />
+        </div>
+        <div class="onboarding__field">
+          <label>Giới tính</label>
+          <div class="onboarding__toggle" id="onboarding-gender">
+            <button type="button" data-gender="nam" aria-pressed="true">Nam</button>
+            <button type="button" data-gender="nu" aria-pressed="false">Nữ</button>
+          </div>
+        </div>
+        <div class="onboarding__field">
+          <label>Màu áo</label>
+          <div class="onboarding__swatches" id="onboarding-swatches">${swatches}</div>
+        </div>
+        <button type="submit" class="onboarding__enter" id="onboarding-enter">Vào chùa</button>
+      </form>
+    </div>
   `;
+}
+
+function updateAvatarPreview(
+  container: HTMLElement,
+  gender: Gender,
+  colorIndex: number,
+): void {
+  container.innerHTML = renderAvatarSvg(gender);
+  const color = ROBE_COLORS[colorIndex];
+  const figure = container.querySelector<SVGElement>(".va-figure");
+  if (figure && color) {
+    figure.style.setProperty("--avatar-robe", color.base);
+    figure.style.setProperty("--avatar-robe-shade", color.shade);
+    figure.style.setProperty("--avatar-robe-trim", color.trim);
+  }
 }
 
 async function main(): Promise<void> {
   renderShell();
 
   const viewport = document.querySelector<HTMLDivElement>("#viewport");
-  const strikeButton = document.querySelector<HTMLButtonElement>(
-    "#moktak-strike",
-  );
-  const autoplayButton = document.querySelector<HTMLButtonElement>(
-    "#moktak-autoplay",
-  );
-  const statusLabel = document.querySelector<HTMLParagraphElement>(
-    "#moktak-status",
-  );
+  const hudTop = document.querySelector<HTMLElement>(".hud-top");
+  const hint = document.querySelector<HTMLElement>(".hint");
   const presenceLabel = document.querySelector<HTMLSpanElement>(
     "#presence-label",
   );
+  const visitorNameLabel = document.querySelector<HTMLSpanElement>(
+    "#visitor-name",
+  );
+  const onboarding = document.querySelector<HTMLElement>("#onboarding");
+  const onboardingForm = document.querySelector<HTMLFormElement>(
+    "#onboarding-form",
+  );
+  const onboardingPreview = document.querySelector<HTMLElement>(
+    "#onboarding-preview",
+  );
+  const onboardingNameInput = document.querySelector<HTMLInputElement>(
+    "#onboarding-name",
+  );
+  const onboardingGender = document.querySelector<HTMLElement>(
+    "#onboarding-gender",
+  );
+  const onboardingSwatches = document.querySelector<HTMLElement>(
+    "#onboarding-swatches",
+  );
   if (
     !viewport ||
-    !strikeButton ||
-    !autoplayButton ||
-    !statusLabel ||
-    !presenceLabel
+    !hudTop ||
+    !hint ||
+    !presenceLabel ||
+    !visitorNameLabel ||
+    !onboarding ||
+    !onboardingForm ||
+    !onboardingPreview ||
+    !onboardingNameInput ||
+    !onboardingGender ||
+    !onboardingSwatches
   ) {
     throw new Error("expected UI elements are missing");
   }
+
+  // Start loading the 3D scene immediately, in parallel with onboarding —
+  // only sansatemple.com's own monk.glb is used in-scene regardless of the
+  // name/gender/color picked here (decision 0003: original 3D assets stay
+  // as-is; the picker only customizes the 2D SVG preview).
+  const moktakAudio = new Audio(MOKTAK_SOUND_URL);
+  const playMoktakSound = (): void => {
+    moktakAudio.currentTime = 0;
+    moktakAudio.play().catch((error: unknown) => {
+      console.warn("Moktak sound could not play:", error);
+    });
+  };
+
+  let moktakController: ReturnType<typeof createMoktakController> | null =
+    null;
+  const scenePromise = createTempleScene(viewport, {
+    onMoktakClick: () => moktakController?.strike(),
+  }).then((temple) => {
+    moktakController = createMoktakController({
+      onStrike: () => {
+        playMoktakSound();
+        temple.pulseMoktak();
+      },
+    });
+    return temple;
+  });
 
   createPresenceClient({
     url: import.meta.env.VITE_PRESENCE_URL ?? DEFAULT_PRESENCE_URL,
@@ -73,37 +158,51 @@ async function main(): Promise<void> {
     },
   });
 
-  const moktakAudio = new Audio(MOKTAK_SOUND_URL);
 
-  const playMoktakSound = (): void => {
-    moktakAudio.currentTime = 0;
-    moktakAudio.play().catch(() => {
-      statusLabel.textContent = t(
-        "목탁 소리를 준비하지 못했어요. 다시 눌러주세요.",
-      );
-    });
-  };
+  // Onboarding (character screen)
+  const onb = createOnboardingController();
+  onboardingNameInput.value = onb.state.name;
+  updateAvatarPreview(onboardingPreview, onb.state.gender, onb.state.colorIndex);
 
-  const temple = await createTempleScene(viewport, {
-    onMoktakClick: () => moktakController.strike(),
+  onboardingNameInput.addEventListener("input", () => {
+    onb.setName(onboardingNameInput.value);
   });
 
-  const moktakController = createMoktakController({
-    onStrike: () => {
-      playMoktakSound();
-      temple.pulseMoktak();
-    },
+  onboardingGender.addEventListener("click", (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
+      "button[data-gender]",
+    );
+    const gender = button?.dataset.gender;
+    if (gender !== "nam" && gender !== "nu") return;
+    onb.setGender(gender);
+    for (const b of onboardingGender.querySelectorAll("button")) {
+      b.setAttribute("aria-pressed", String(b === button));
+    }
+    updateAvatarPreview(onboardingPreview, onb.state.gender, onb.state.colorIndex);
   });
 
-  strikeButton.addEventListener("click", () => moktakController.strike());
-  autoplayButton.addEventListener("click", () => {
-    moktakController.toggleAutoplay();
-    autoplayButton.textContent = moktakController.isAutoplay
-      ? t("일시정지")
-      : t("자동재생");
-    statusLabel.textContent = moktakController.isAutoplay
-      ? t("목탁 자동재생을 시작했어요.")
-      : t("목탁 자동재생을 멈췄어요.");
+  onboardingSwatches.addEventListener("click", (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
+      "button[data-color-index]",
+    );
+    const index = Number(button?.dataset.colorIndex);
+    if (button === null || Number.isNaN(index)) return;
+    onb.setColorIndex(index);
+    for (const b of onboardingSwatches.querySelectorAll("button")) {
+      b.setAttribute("aria-pressed", String(b === button));
+    }
+    updateAvatarPreview(onboardingPreview, onb.state.gender, onb.state.colorIndex);
+  });
+
+  onboardingForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!onb.isValid) return;
+
+    visitorNameLabel.textContent = onb.state.name;
+    onboarding.setAttribute("hidden", "");
+    hudTop.removeAttribute("hidden");
+    hint.removeAttribute("hidden");
+    void scenePromise;
   });
 }
 

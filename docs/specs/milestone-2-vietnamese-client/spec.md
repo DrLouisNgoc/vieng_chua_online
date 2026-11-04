@@ -54,7 +54,7 @@ movement/multiplayer, save/progress, custom scenes/audio, any deployment.
 | 목탁 소리를 준비하지 못했어요. 다시 눌러주세요. | Chưa chuẩn bị được tiếng mõ. Hãy thử lại. |
 | 소리 켜기 | Bật âm thanh |
 | 소리 끄기 | Tắt âm thanh |
-| 바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소 | Nhấp vào nền để di chuyển · Kéo để nhìn quanh · Lăn chuột để phóng to/thu nhỏ |
+| 바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소 | Kéo để nhìn quanh · Lăn chuột để phóng to/thu nhỏ (tạm bỏ "click nền để di chuyển" ngày 2026-11-03 vì chưa xây; khôi phục lại trong Milestone 4 khi di chuyển thật sự được xây) |
 | 방문객 보기 (placeholder count label) | người đang viếng chùa |
 
 ## Acceptance

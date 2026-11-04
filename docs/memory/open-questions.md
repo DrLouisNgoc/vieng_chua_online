@@ -16,20 +16,23 @@ docs/product/vieng-chua-online.prd.md
   inside the private app) rather than silently stretching decision 0001.
   No action needed now — flagged for whenever this feature is picked up.
 
-- Which single interaction (절하기 / 목탁 / 염주) to build first for the
-  MVP — Milestone 1 recon recommends 목탁 (moktak), since it's client-local
-  (no server protocol needed beyond presence) and its assets/strings are
-  fully identified. See docs/specs/milestone-1-asset-protocol-recon/
-  protocol-notes.md. Still needs the owner's confirmation.
+- **Resolved**: first MVP interaction was 목탁 (moktak), built in
+  Milestone 2. Next interactions the owner asked for (2026-11-04): sit/
+  meditate on a cushion, bow, prayer beads (original sansatemple features,
+  need server messages per protocol-notes.md), and sweeping the yard (new,
+  not an original feature). Order not chosen yet.
 - Access control for the privately-deployed server — a URL alone isn't
-  access control. Needs a decision before Milestone 4 (deploy).
-- Where extracted original assets live during dev — committed to the repo
-  (simple, but bloats history with third-party binary assets) vs. kept
-  local-only/gitignored. Decided for now (see spec.md): Milestone 1's
-  downloaded assets stayed in the session scratchpad, untracked, not
-  committed — still need a final decision before Milestone 2 needs assets
-  inside the actual project.
+  access control. Needs a decision before Milestone 5 (deploy). Claude
+  recommended Tailscale; owner has not confirmed.
+- **Resolved** (decision 0006): extracted assets are a gitignored local
+  cache.
 - Hosting provider/cost for the private cloud deployment — not chosen.
+  Claude recommended one small VPS (Hetzner / Oracle free tier) behind
+  Tailscale; owner has not confirmed.
+- Frame rate 11-15 fps on the owner's machine class (Intel UHD) in the big
+  hall — acceptable to the owner? Main cost not identified yet.
+- Is the 76x54 hall what "gấp 10 lần" meant (10x area), or 10x each side?
+  See status.md ruling.
 - Deferred past MVP per the PRD: save-progress storage design, scene/content
   customization, custom meditation audio — no tech decisions needed until
   those milestones are picked up.
