@@ -101,13 +101,20 @@ order, rather than rewriting the original spec.
   (two runs each, Intel UHD, Playwright-driven Chrome). Main cost not yet
   found — candidates: sun shadow pass over the whole 90-unit area (pine
   foliage), MSAA at full resolution, pixel ratio. Measure before changing.
+  **Profile 2026-11-05**: the scene holds 11.3M triangles, 10.7M of them
+  in the 27 pines (pine.glb, ~395k tris each, 3 meshes, all cast shadows);
+  ~2.4M tris and ~417 draw calls drawn per frame (colour + shadow pass).
+  DPR is 1. Comparative fps runs were unreliable: Chrome throttled the
+  window to ~1 fps whenever it was not on screen, even with the
+  background-throttling flags. Single valid runs: base 26-28, pine
+  shadows off 27-34, all shadows off 38-40, no MSAA 31-36.
 - Camera occlusion: fixed for buildings (raycast to `cameraBlockers`).
   Small props (urn, pillars, trees) may still hide the avatar, by choice.
 - After the architecture pass the yard measured 31 fps once and 12 fps
   once (different views, same machine); after the paving/stairs pass
   22-26 fps (one run, two views). Frame rate still unresolved and noisy;
   needs a proper profile.
-- A bug from this pass was caught only in the browser, not by tests: pond
+- (Fixed 2026-11-05: smoke test temple-grounds.test.ts.) A bug from this pass was caught only in the browser, not by tests: pond
   constants declared after the builder's `return` hit the temporal dead
   zone and the grounds failed to build. Lesson: grounds builders have no
   smoke test; a Node test that calls buildTempleGrounds with a stub
