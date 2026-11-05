@@ -64,6 +64,9 @@ least one original interaction end-to-end through that backend.
 | 2 | Vietnamese client (single interaction, no live multiplayer yet) | Owner can load the 3D scene with Vietnamese UI in a browser, locally | done | docs/specs/milestone-2-vietnamese-client/spec.md |
 | 3 | Owner-run backend (presence + the one MVP interaction) | Client talks to the owner's own server for live player count and the chosen interaction | done | docs/specs/milestone-3-presence-server/spec.md |
 | 4 | Movement & character screen (chuasen.com-inspired UX, decision 0007) | Click-to-move avatar in the scene; a pre-entry name/character screen with a parametric SVG avatar; deeper-feeling UI | pending | docs/specs/milestone-4-movement-character-screen/spec.md |
+| 5 | In-temple interactions, local (owner interview 2026-11-05) | Sit on a cushion, palms-joined greeting, bow, 108-bead counter, sweeping leaves with a broom; only on the visitor's own machine | spec | docs/specs/milestone-5-interactions/spec.md |
+| 6 | Other visitors visible | Other visitors' avatars, movement and Milestone 5 actions synced through the owner's server | not started | — |
+| 7 | Private deploy | Owner-only deployment (red tier, needs go-ahead) | not started | — |
 | 5 | Private cloud deployment | Owner can reach the running app remotely, from their own devices only | pending | — |
 
 ## Open Questions

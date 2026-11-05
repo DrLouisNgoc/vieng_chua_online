@@ -93,17 +93,21 @@ licensed third-party assets allowed (catalogued, gitignored; none yet).
 - The start position is in front of the hall stairs, facing the hall.
 
 ## Next (pick up here)
+0. **Milestone 5 (interactions)**: spec written on branch
+   `spec/milestone-5-interactions`, waiting for the owner's approval
+   (gated). Read docs/specs/milestone-5-interactions/spec.md + status.md.
+   Then design -> plan -> build (TDD). Owner summary in Vietnamese:
+   docs/for-owner/milestone-5-tom-tat.md.
 1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
    gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
 2. Frame rate: pines fixed (see status.md). Still ~22-40 fps, noisy.
    Next candidates, measure first: merge/instance the ~970 small meshes
    (draw calls), light count, MSAA. Needs an idle machine to measure.
-3. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
-   beads (original sansatemple features, need server messages), sweeping
-   the yard (new, not original).
+3. Milestone 6: other visitors visible (needed so others see the
+   Milestone 5 actions; owner decision D2).
 4. When the owner drops files in `app/public/thirdparty/` (Mixamo character
    + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
-5. Later: Milestone 5 private deploy (red tier). Recommendation given, not
+5. Later: Milestone 7 private deploy (red tier). Recommendation given, not
    confirmed: Tailscale + one small VPS.
 
 ## Constraints

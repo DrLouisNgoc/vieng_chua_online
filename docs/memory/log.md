@@ -101,3 +101,5 @@
 - 2026-11-05: branch test/grounds-smoke. Smoke test for buildTempleGrounds
   (catches TDZ). Profiled frame rate: 27 pines held 95% of triangles;
   simplified them to 10% at load (11.3M -> 1.6M tris). 87 tests pass.
+- 2026-11-05: merged grounds-smoke into main. Interviewed owner for
+  Milestone 5 (interactions, local first; sync = Milestone 6); spec written.
