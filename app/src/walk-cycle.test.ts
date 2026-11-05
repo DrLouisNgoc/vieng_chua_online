@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeWalkPose, IDLE_POSE } from "./walk-cycle";
+import { computeWalkPose } from "./walk-cycle";
 
 describe("computeWalkPose", () => {
   it("returns the neutral pose at time zero", () => {
@@ -26,16 +26,5 @@ describe("computeWalkPose", () => {
     const a = computeWalkPose(0.37);
     const b = computeWalkPose(0.37 + period);
     expect(b.thighL).toBeCloseTo(a.thighL, 5);
-  });
-
-  it("IDLE_POSE is the all-zero neutral pose", () => {
-    expect(IDLE_POSE).toEqual({
-      thighL: 0,
-      thighR: 0,
-      shinL: 0,
-      shinR: 0,
-      upperArmL: 0,
-      upperArmR: 0,
-    });
   });
 });

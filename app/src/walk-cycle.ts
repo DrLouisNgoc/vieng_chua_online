@@ -12,15 +12,6 @@ const THIGH_SWING = 0.5;
 const SHIN_SWING = 0.4;
 const ARM_SWING = 0.4;
 
-export const IDLE_POSE: WalkPose = {
-  thighL: 0,
-  thighR: 0,
-  shinL: 0,
-  shinR: 0,
-  upperArmL: 0,
-  upperArmR: 0,
-};
-
 export function computeWalkPose(elapsedSeconds: number): WalkPose {
   const phase = elapsedSeconds * STEP_FREQUENCY;
   const strideL = Math.sin(phase);
