@@ -94,3 +94,14 @@ describe("createMovementController", () => {
     expect(pos).toEqual({ x: 5, z: 5 });
   });
 });
+
+describe("placeAt", () => {
+  it("snaps to the point and stops walking", () => {
+    const controller = createMovementController({ start: { x: 0, z: 0 } });
+    controller.moveTo({ x: 10, z: 0 });
+    controller.placeAt({ x: 3, z: -4 });
+    expect(controller.position).toEqual({ x: 3, z: -4 });
+    expect(controller.isWalking).toBe(false);
+    expect(controller.update(1)).toEqual({ x: 3, z: -4 });
+  });
+});

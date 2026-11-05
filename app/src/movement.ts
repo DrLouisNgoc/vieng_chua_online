@@ -15,6 +15,8 @@ export interface MovementController {
   readonly facingAngle: number;
   moveTo: (target: Point) => void;
   stop: () => void;
+  // Snap to a point (e.g. onto a cushion) and stop walking.
+  placeAt: (point: Point) => void;
   update: (deltaSeconds: number) => Point;
 }
 
@@ -67,6 +69,11 @@ export function createMovementController(
     target = null;
   }
 
+  function placeAt(point: Point): void {
+    position = { ...point };
+    target = null;
+  }
+
   return {
     get position() {
       return position;
@@ -79,6 +86,7 @@ export function createMovementController(
     },
     moveTo,
     stop,
+    placeAt,
     update,
   };
 }
