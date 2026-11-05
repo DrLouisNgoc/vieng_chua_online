@@ -6,10 +6,11 @@ A personal Vietnamese-localized web clone of https://sansatemple.com — a 3D
 owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
-## Status (2026-11-04)
-Milestones 1-3 done and committed. **Milestone 4 in progress**, committed
-directly on `main` as dcef80d at the owner's explicit request (not pushed;
-the global rule is branch + PR — ask which the owner wants next time). Read
+## Status (2026-11-05)
+Milestones 1-3 done and committed. **Milestone 4 in progress**, on `main`
+up to 59664ab. Work since then is on branch **`test/grounds-smoke`** (not
+pushed, not merged; merging needs the owner's go-ahead): grounds smoke
+test, frame-rate profile, pine simplification. Read
 docs/specs/milestone-4-movement-character-screen/status.md first: it lists
 every scope change, ruling, fixed bug and open problem.
 
@@ -37,7 +38,7 @@ What the app does now:
 `npm run dev` in `server/` (ws://localhost:8787), then `npm run dev` in
 `app/` (http://localhost:5173). `app/public/sansatemple/` must be populated
 (gitignored, decision 0006): `scripts/fetch-sansatemple-assets.sh`.
-Tests: `npm test` in app/ (81 pass), `npx tsc --noEmit -p .` clean.
+Tests: `npm test` in app/ (87 pass), `npx tsc --noEmit -p .` clean.
 
 ## Code map (app/src)
 - `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
@@ -51,8 +52,9 @@ Tests: `npm test` in app/ (81 pass), `npx tsc --noEmit -p .` clean.
 - `scene.ts` — renderer, sky/fog/sun, model loading, input, camera, walk
   animation, render loop.
 - `third-person-camera.ts`, `movement.ts`, `collision.ts`, `walk-cycle.ts`,
-  `key-state.ts`, `onboarding.ts`, `avatar-svg.ts`, `curved-roof.ts` —
-  pure, unit-tested.
+  `key-state.ts`, `onboarding.ts`, `avatar-svg.ts`, `curved-roof.ts`,
+  `simplify-geometry.ts` (meshoptimizer, used on pine.glb) — unit-tested.
+  `temple-grounds.test.ts` builds the whole grounds in Node.
 - Third-party assets (decision 0009): files go in `app/public/thirdparty/`
   (gitignored), each listed in `docs/assets/third-party-assets.md` first.
   Owner said they will provide a Mixamo character + animations, audio and
@@ -83,19 +85,27 @@ licensed third-party assets allowed (catalogued, gitignored; none yet).
   level), or it hits the temporal dead zone at runtime. No test builds the
   grounds, so this only shows in the browser.
 - On Windows the Bash tool's `python` can hang (Store stub); use `node`.
+- Headed Chrome under Playwright gets rAF-throttled to ~1 fps when its
+  window is not on screen, even with --disable-background* flags. For
+  timing, render 60 frames synchronously (`renderer.render` + 1px
+  `readPixels`) via a temporary `window.__perf` hook; never commit it.
+- Count triangles per mesh before guessing at render costs: one imported
+  model (pine.glb) was 95% of the scene.
+- The start position is in front of the hall stairs, facing the hall.
 
 ## Next (pick up here)
-1. Confirm with the owner the two yard rulings in status.md ("x10/x5" on
-   the gaps; "nhỏ đi 2 lần" = half the area).
-2. Frame rate 11-40 fps depending on view, on Intel UHD — profile what
-   costs most before changing anything (shadow pass, MSAA, pixel ratio).
-3. Add a smoke test that builds the grounds with a stub texture loader.
-4. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
+1. Owner: approve merging `test/grounds-smoke` into main (PR or local
+   merge), and confirm the two yard rulings in status.md ("x10/x5" on the
+   gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
+2. Frame rate: pines fixed (see status.md). Still ~22-40 fps, noisy.
+   Next candidates, measure first: merge/instance the ~970 small meshes
+   (draw calls), light count, MSAA. Needs an idle machine to measure.
+3. Owner-requested interactions: sit/meditate on a cushion, bow, prayer
    beads (original sansatemple features, need server messages), sweeping
    the yard (new, not original).
-5. When the owner drops files in `app/public/thirdparty/` (Mixamo character
+4. When the owner drops files in `app/public/thirdparty/` (Mixamo character
    + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
-6. Later: Milestone 5 private deploy (red tier). Recommendation given, not
+5. Later: Milestone 5 private deploy (red tier). Recommendation given, not
    confirmed: Tailscale + one small VPS.
 
 ## Constraints
