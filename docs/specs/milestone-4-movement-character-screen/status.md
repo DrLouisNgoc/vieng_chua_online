@@ -77,6 +77,10 @@ order, rather than rewriting the original spec.
 - Ruling: removed 6 hall glow lights and switched to PCF (not PCF-soft)
   shadows for performance — why: frame rate was 10-13 fps — cost if wrong:
   hall a little dimmer; only a small gain was measured (see below).
+- Ruling: pines simplified at load to 10% of their triangles (PINE_DETAIL
+  in scene.ts), not 5% — why: 5% left visible gaps and floating twigs at
+  6 units; 10% looks the same from the yard — cost if wrong: change
+  PINE_DETAIL (1 = original).
 
 ## Bugs found and fixed
 - Onboarding "Vào chùa" did nothing visible: `.onboarding { display:flex }`
@@ -101,13 +105,29 @@ order, rather than rewriting the original spec.
   (two runs each, Intel UHD, Playwright-driven Chrome). Main cost not yet
   found — candidates: sun shadow pass over the whole 90-unit area (pine
   foliage), MSAA at full resolution, pixel ratio. Measure before changing.
+  **Profile 2026-11-05**: the scene holds 11.3M triangles, 10.7M of them
+  in the 27 pines (pine.glb, ~395k tris each, 3 meshes, all cast shadows);
+  ~2.4M tris and ~417 draw calls drawn per frame (colour + shadow pass).
+  DPR is 1. Comparative fps runs were unreliable: Chrome throttled the
+  window to ~1 fps whenever it was not on screen, even with the
+  background-throttling flags. Single valid runs: base 26-28, pine
+  shadows off 27-34, all shadows off 38-40, no MSAA 31-36.
+  **Fix 2026-11-05**: pines simplified to 10% (simplify-geometry.ts):
+  scene 11.3M -> 1.6M tris, drawn per frame 2.46M -> 1.02M, ~415 calls
+  unchanged. Timed with 60 synchronous renders + readPixels (immune to
+  rAF throttling), two alternating runs each, machine not idle: after
+  28-45 ms/frame, before 34-48 ms. After the fix, shadows-off and frozen
+  shadow map measured within the noise (25-42 ms), so shadows are no
+  longer the clear cost. Remaining cost not isolated; next candidates:
+  ~160 colour-pass draw calls (971 meshes, many small spheres/cylinders
+  that could be merged or instanced), 6 lights on PBR materials, MSAA.
 - Camera occlusion: fixed for buildings (raycast to `cameraBlockers`).
   Small props (urn, pillars, trees) may still hide the avatar, by choice.
 - After the architecture pass the yard measured 31 fps once and 12 fps
   once (different views, same machine); after the paving/stairs pass
   22-26 fps (one run, two views). Frame rate still unresolved and noisy;
   needs a proper profile.
-- A bug from this pass was caught only in the browser, not by tests: pond
+- (Fixed 2026-11-05: smoke test temple-grounds.test.ts.) A bug from this pass was caught only in the browser, not by tests: pond
   constants declared after the builder's `return` hit the temporal dead
   zone and the grounds failed to build. Lesson: grounds builders have no
   smoke test; a Node test that calls buildTempleGrounds with a stub

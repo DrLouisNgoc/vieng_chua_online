@@ -98,3 +98,6 @@
   outside the wall, rectangular lotus pond beside the hall, hall raised on
   9 steps. One runtime-only bug (TDZ const in the grounds builder) caught
   in the browser. 81 tests pass; fps 22-40 depending on view.
+- 2026-11-05: branch test/grounds-smoke. Smoke test for buildTempleGrounds
+  (catches TDZ). Profiled frame rate: 27 pines held 95% of triangles;
+  simplified them to 10% at load (11.3M -> 1.6M tris). 87 tests pass.
