@@ -30,6 +30,7 @@ import { computeWalkPose, IDLE_POSE } from "./walk-cycle";
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { buildTempleGrounds } from "./temple-grounds";
+import { simplifyGeometry } from "./simplify-geometry";
 import {
   DEFAULT_RIG,
   applyDrag,
@@ -83,6 +84,22 @@ function createSkyTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+const PINE_DETAIL = 0.1;
+
+async function simplifyMeshes(object: Object3D, ratio: number): Promise<void> {
+  const meshes: Mesh[] = [];
+  object.traverse((child) => {
+    if (child instanceof Mesh) meshes.push(child);
+  });
+  await Promise.all(
+    // No dispose() of the original: the simplified copy shares its vertex
+    // buffers, and disposing would free them on the GPU.
+    meshes.map(async (mesh) => {
+      mesh.geometry = await simplifyGeometry(mesh.geometry, ratio);
+    }),
+  );
 }
 
 function enableShadows(object: Object3D): void {
@@ -212,6 +229,10 @@ export async function createTempleScene(
     buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
   ]);
   scene.add(grounds.group);
+  // pine.glb is ~395k triangles per tree (95% of the scene). The pines stand
+  // outside the wall; at 10% they look the same from the yard and only a
+  // little thinner up close. Clones below share the simplified geometry.
+  await simplifyMeshes(pine, PINE_DETAIL);
   for (const spot of otherPines) {
     const tree = pine.clone();
     tree.position.x += spot.x - firstPine.x;
