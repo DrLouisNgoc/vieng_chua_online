@@ -1,6 +1,6 @@
 # Milestone 5 status
 
-Phase: **design written, waiting for the owner's approval** (gated).
+Phase: **plan written** (design approved 2026-11-05).
 Spec approved by the owner 2026-11-05.
 
 ## Log
