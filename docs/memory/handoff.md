@@ -7,10 +7,9 @@ owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
 ## Status (2026-11-05)
-Milestones 1-3 done and committed. **Milestone 4 in progress**, on `main`
-up to 59664ab. Work since then is on branch **`test/grounds-smoke`** (not
-pushed, not merged; merging needs the owner's go-ahead): grounds smoke
-test, frame-rate profile, pine simplification. Read
+Milestones 1-3 done and committed. **Milestone 4 in progress**, all merged
+into local `main` (no remote exists): latest work was the grounds smoke
+test, frame-rate profile and pine simplification (merge 4340ed7). Read
 docs/specs/milestone-4-movement-character-screen/status.md first: it lists
 every scope change, ruling, fixed bug and open problem.
 
@@ -94,8 +93,7 @@ licensed third-party assets allowed (catalogued, gitignored; none yet).
 - The start position is in front of the hall stairs, facing the hall.
 
 ## Next (pick up here)
-1. Owner: approve merging `test/grounds-smoke` into main (PR or local
-   merge), and confirm the two yard rulings in status.md ("x10/x5" on the
+1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
    gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
 2. Frame rate: pines fixed (see status.md). Still ~22-40 fps, noisy.
    Next candidates, measure first: merge/instance the ~970 small meshes
