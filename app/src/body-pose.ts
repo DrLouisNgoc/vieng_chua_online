@@ -112,6 +112,57 @@ export const BOW_SEATED: BodyPose = {
   hipsDrop: 0.55,
 };
 
+// Counting beads: both hands in front of the chest, head a little down.
+const BEADS_ARMS: BodyPose["bones"] = {
+  upper_armL: { x: 0.45, y: -0.4 },
+  upper_armR: { x: 0.45, y: 0.4 },
+  forearmL: { x: 1.3, y: -0.7 },
+  forearmR: { x: 1.2, y: 0.8 },
+  head: { x: -0.25 },
+};
+
+export const BEADS: BodyPose = { bones: BEADS_ARMS, hipsDrop: 0 };
+
+export const BEADS_SEATED: BodyPose = {
+  bones: { ...SEATED.bones, ...BEADS_ARMS },
+  hipsDrop: SEATED.hipsDrop,
+};
+
+// Both hands on the broom handle, held low in front.
+export const BROOM_IDLE: BodyPose = {
+  bones: {
+    upper_armL: { x: 0.6, y: -0.35 },
+    upper_armR: { x: 0.45, y: 0.2 },
+    forearmL: { x: 0.8, y: -0.5 },
+    forearmR: { x: 0.7, y: 0.3 },
+  },
+  hipsDrop: 0,
+};
+
+const SWEEP_FREQUENCY = 4; // radians per second
+const SWEEP_SWING = 0.35;
+
+// Walking with the broom: legs walk, arms swing the broom side to side.
+export function sweepPose(elapsedSeconds: number): BodyPose {
+  const swing = Math.sin(elapsedSeconds * SWEEP_FREQUENCY) * SWEEP_SWING;
+  const legs = walkPose(elapsedSeconds).bones;
+  const arms = BROOM_IDLE.bones;
+  return {
+    bones: {
+      thighL: legs.thighL,
+      thighR: legs.thighR,
+      shinL: legs.shinL,
+      shinR: legs.shinR,
+      upper_armL: { ...arms.upper_armL, y: (arms.upper_armL?.y ?? 0) + swing },
+      upper_armR: { ...arms.upper_armR, y: (arms.upper_armR?.y ?? 0) + swing },
+      forearmL: arms.forearmL,
+      forearmR: arms.forearmR,
+      chest: { y: swing * 0.5 },
+    },
+    hipsDrop: 0,
+  };
+}
+
 function lerp(a: number, b: number, k: number): number {
   return a + (b - a) * k;
 }
