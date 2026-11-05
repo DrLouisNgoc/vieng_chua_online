@@ -3,6 +3,7 @@ import {
   Box3,
   CanvasTexture,
   DirectionalLight,
+  Euler,
   Fog,
   HemisphereLight,
   Mesh,
@@ -26,7 +27,14 @@ import {
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "meshoptimizer";
 import { createMovementController } from "./movement";
-import { computeWalkPose, IDLE_POSE } from "./walk-cycle";
+import {
+  BONE_NAMES,
+  IDLE,
+  walkPose,
+  type BodyPose,
+  type BoneName,
+  type BoneRotation,
+} from "./body-pose";
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { buildTempleGrounds } from "./temple-grounds";
@@ -249,41 +257,48 @@ export async function createTempleScene(
   // GLTFLoader strips "." from node names (it reserves "." as the
   // animation-track path separator), so the original rig's "thigh.L" etc.
   // load as "thighL".
-  const avatarBones = {
-    thighL: avatar.getObjectByName("thighL"),
-    thighR: avatar.getObjectByName("thighR"),
-    shinL: avatar.getObjectByName("shinL"),
-    shinR: avatar.getObjectByName("shinR"),
-    upperArmL: avatar.getObjectByName("upper_armL"),
-    upperArmR: avatar.getObjectByName("upper_armR"),
-  };
+  const avatarBones = new Map<BoneName, Object3D>();
   const restQuaternions = new Map<Object3D, Quaternion>();
-  for (const bone of Object.values(avatarBones)) {
-    if (bone) restQuaternions.set(bone, bone.quaternion.clone());
+  for (const name of BONE_NAMES) {
+    const bone = avatar.getObjectByName(name);
+    if (!bone) continue;
+    avatarBones.set(name, bone);
+    restQuaternions.set(bone, bone.quaternion.clone());
   }
   let walkClockSeconds = 0;
 
-  // Swing a bone about the avatar's own side-to-side axis, as an offset from
-  // its rest pose. Expressing the axis in the bone's parent frame makes this
+  // Rotate a bone about the avatar's own axes, as an offset from its rest
+  // pose. Converting the rotation into the bone's parent frame makes this
   // independent of how each bone's local axes were rolled in the rig.
-  const sideAxis = new Vector3(1, 0, 0);
   const avatarWorldQuat = new Quaternion();
-  const parentWorldQuat = new Quaternion();
-  const axisInParent = new Vector3();
+  const avatarToParent = new Quaternion();
+  const parentToAvatar = new Quaternion();
   const offset = new Quaternion();
-  function swingBone(bone: Object3D | undefined, angle: number): void {
-    const rest = bone ? restQuaternions.get(bone) : undefined;
-    if (!bone || !rest || !bone.parent) return;
+  const offsetEuler = new Euler(0, 0, 0, "YXZ");
+  function rotateBone(bone: Object3D, rotation: BoneRotation): void {
+    const rest = restQuaternions.get(bone);
+    if (!rest || !bone.parent) return;
     avatar.getWorldQuaternion(avatarWorldQuat);
-    bone.parent.getWorldQuaternion(parentWorldQuat);
-    axisInParent
-      .copy(sideAxis)
-      .applyQuaternion(avatarWorldQuat)
-      .applyQuaternion(parentWorldQuat.invert())
-      .normalize();
-    offset.setFromAxisAngle(axisInParent, angle);
+    bone.parent.getWorldQuaternion(avatarToParent);
+    avatarToParent.invert().multiply(avatarWorldQuat);
+    parentToAvatar.copy(avatarToParent).invert();
+    offsetEuler.set(rotation.x ?? 0, rotation.y ?? 0, rotation.z ?? 0);
+    offset
+      .setFromEuler(offsetEuler)
+      .premultiply(avatarToParent)
+      .multiply(parentToAvatar);
     bone.quaternion.copy(rest).premultiply(offset);
     bone.updateMatrixWorld(true);
+  }
+
+  // Parents first (BONE_NAMES order), so each child uses its parent's new
+  // pose; bones the pose leaves out go back to rest.
+  function applyPose(pose: BodyPose): void {
+    avatar.updateMatrixWorld(true);
+    for (const name of BONE_NAMES) {
+      const bone = avatarBones.get(name);
+      if (bone) rotateBone(bone, pose.bones[name] ?? {});
+    }
   }
 
   const moktakTexture = await textureLoader.loadAsync(
@@ -468,28 +483,19 @@ export async function createTempleScene(
     const pos = movement.update(deltaSeconds * pace);
     avatar.position.x = pos.x;
     avatar.position.z = pos.z;
-    // ease toward the floor height so stairs read as climbing, not teleporting
-    const floorY = avatarGroundY + groundHeightAt(pos);
-    avatar.position.y += (floorY - avatar.position.y) * Math.min(1, deltaSeconds * STEP_SMOOTHING);
-    // +PI: monk.glb's own modeled "front" faces the opposite of the
-    // +Z-facing heading convention.
-    avatar.rotation.y = heading + Math.PI;
     if (movement.isWalking) {
       walkClockSeconds += deltaSeconds * pace;
     } else {
       walkClockSeconds = 0;
     }
-    const pose = movement.isWalking
-      ? computeWalkPose(walkClockSeconds)
-      : IDLE_POSE;
-    avatar.updateMatrixWorld(true);
-    swingBone(avatarBones.thighL, pose.thighL);
-    swingBone(avatarBones.thighR, pose.thighR);
-    swingBone(avatarBones.upperArmL, pose.upperArmL);
-    swingBone(avatarBones.upperArmR, pose.upperArmR);
-    // Shins swing after their parent thighs so the axis uses the new thigh pose.
-    swingBone(avatarBones.shinL, -pose.shinL);
-    swingBone(avatarBones.shinR, -pose.shinR);
+    const pose = movement.isWalking ? walkPose(walkClockSeconds) : IDLE;
+    // ease toward the floor height so stairs read as climbing, not teleporting
+    const floorY = avatarGroundY + groundHeightAt(pos) - pose.hipsDrop;
+    avatar.position.y += (floorY - avatar.position.y) * Math.min(1, deltaSeconds * STEP_SMOOTHING);
+    // +PI: monk.glb's own modeled "front" faces the opposite of the
+    // +Z-facing heading convention.
+    avatar.rotation.y = heading + Math.PI;
+    applyPose(pose);
     sun.target.position.set(pos.x, 0, pos.z);
     // far enough up-sun that the tall hall roof sits inside the shadow frustum
     sun.position.set(pos.x + 28, 49, pos.z + 21);
