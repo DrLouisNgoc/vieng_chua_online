@@ -139,7 +139,7 @@ export const BROOM_IDLE: BodyPose = {
   hipsDrop: 0,
 };
 
-const SWEEP_FREQUENCY = 4; // radians per second
+export const SWEEP_FREQUENCY = 4; // radians per second
 const SWEEP_SWING = 0.35;
 
 // Walking with the broom: legs walk, arms swing the broom side to side.

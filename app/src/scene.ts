@@ -29,8 +29,6 @@ import { MeshoptDecoder } from "meshoptimizer";
 import { createMovementController } from "./movement";
 import {
   BONE_NAMES,
-  IDLE,
-  walkPose,
   type BodyPose,
   type BoneName,
   type BoneRotation,
@@ -39,6 +37,11 @@ import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { buildTempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
+import {
+  createInteractionRuntime,
+  type InteractionView,
+} from "./interaction-runtime";
+import type { InteractionAction } from "./interaction-prompts";
 import {
   DEFAULT_RIG,
   applyDrag,
@@ -126,11 +129,24 @@ const RIGHT_KEYS = ["KeyD", "ArrowRight"];
 
 export interface TempleSceneOptions {
   onMoktakClick: () => void;
+  onInteractionView?: (view: InteractionView) => void;
 }
 
 export interface TempleScene {
   pulseMoktak: () => void;
+  perform: (action: InteractionAction) => void;
   dispose: () => void;
+}
+
+// localStorage itself can throw (blocked site data); the bead total then
+// just does not persist.
+function browserStorage(): Pick<Storage, "getItem" | "setItem"> | null {
+  try {
+    return window.localStorage;
+  } catch (error: unknown) {
+    console.warn("localStorage is not available:", error);
+    return null;
+  }
 }
 
 export async function createTempleScene(
@@ -386,6 +402,7 @@ export async function createTempleScene(
   }
   function handleKeyDown(event: KeyboardEvent): void {
     if (isTypingInField(event)) return;
+    if (!event.repeat && interactions.handleKey(event.code)) return;
     keys.down(event.code);
   }
   function handleKeyUp(event: KeyboardEvent): void {
@@ -405,6 +422,18 @@ export async function createTempleScene(
   // Camera-relative WASD: the camera keeps whatever angle the player dragged
   // it to; the avatar turns to face the direction it walks.
   let heading = START_HEADING;
+  const interactions = createInteractionRuntime({
+    scene,
+    avatar,
+    movement,
+    handL: avatarBones.get("handL"),
+    handR: avatarBones.get("handR"),
+    setHeading: (next) => {
+      heading = next;
+    },
+    storage: browserStorage(),
+    onView: options.onInteractionView,
+  });
   const cameraYaw = (): number => START_HEADING + rig.yawOffset;
   function applyKeyboardMovement(deltaSeconds: number): void {
     const forward =
@@ -414,6 +443,7 @@ export async function createTempleScene(
     const direction = moveDirection(cameraYaw(), forward, right);
 
     if (direction) {
+      interactions.startMoving();
       heading = turnTowards(
         heading,
         Math.atan2(direction.x, direction.z),
@@ -426,6 +456,7 @@ export async function createTempleScene(
       keyboardDriving = true;
     } else if (keyboardDriving) {
       movement.stop();
+      interactions.stopMoving();
       keyboardDriving = false;
     }
   }
@@ -488,7 +519,7 @@ export async function createTempleScene(
     } else {
       walkClockSeconds = 0;
     }
-    const pose = movement.isWalking ? walkPose(walkClockSeconds) : IDLE;
+    const pose = interactions.update(deltaSeconds, walkClockSeconds);
     // ease toward the floor height so stairs read as climbing, not teleporting
     const floorY = avatarGroundY + groundHeightAt(pos) - pose.hipsDrop;
     avatar.position.y += (floorY - avatar.position.y) * Math.min(1, deltaSeconds * STEP_SMOOTHING);
@@ -496,6 +527,7 @@ export async function createTempleScene(
     // +Z-facing heading convention.
     avatar.rotation.y = heading + Math.PI;
     applyPose(pose);
+    interactions.placeProps(walkClockSeconds);
     sun.target.position.set(pos.x, 0, pos.z);
     // far enough up-sun that the tall hall roof sits inside the shadow frustum
     sun.position.set(pos.x + 28, 49, pos.z + 21);
@@ -534,5 +566,5 @@ export async function createTempleScene(
     container.removeChild(renderer.domElement);
   }
 
-  return { pulseMoktak, dispose };
+  return { pulseMoktak, perform: interactions.perform, dispose };
 }

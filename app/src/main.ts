@@ -1,10 +1,11 @@
 import "./style.css";
-import { createTempleScene } from "./scene";
+import { createTempleScene, type TempleScene } from "./scene";
 import { createMoktakController } from "./moktak";
 import { createPresenceClient, type PresenceStatus } from "./presence";
 import { createOnboardingController, ROBE_COLORS, type Gender } from "./onboarding";
 import { renderAvatarSvg } from "./avatar-svg";
 import { t } from "./i18n";
+import { createInteractionHud } from "./interaction-hud";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
 const DEFAULT_PRESENCE_URL = "ws://localhost:8787";
@@ -38,6 +39,7 @@ function renderShell(): void {
     <header class="hud-top" hidden>
       <span class="room-label">${t("산사")} · <span id="visitor-name"></span> · <span id="presence-label"></span></span>
     </header>
+    <div class="interaction-hud" id="interaction-hud" hidden></div>
     <p class="hint" hidden>${t("바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소")}</p>
 
     <div class="onboarding" id="onboarding">
@@ -87,6 +89,7 @@ async function main(): Promise<void> {
   const viewport = document.querySelector<HTMLDivElement>("#viewport");
   const hudTop = document.querySelector<HTMLElement>(".hud-top");
   const hint = document.querySelector<HTMLElement>(".hint");
+  const interactionRoot = document.querySelector<HTMLElement>("#interaction-hud");
   const presenceLabel = document.querySelector<HTMLSpanElement>(
     "#presence-label",
   );
@@ -113,6 +116,7 @@ async function main(): Promise<void> {
     !viewport ||
     !hudTop ||
     !hint ||
+    !interactionRoot ||
     !presenceLabel ||
     !visitorNameLabel ||
     !onboarding ||
@@ -139,9 +143,15 @@ async function main(): Promise<void> {
 
   let moktakController: ReturnType<typeof createMoktakController> | null =
     null;
+  let performInteraction: ((action: Parameters<TempleScene["perform"]>[0]) => void) | null = null;
+  const interactionHud = createInteractionHud(interactionRoot, (action) =>
+    performInteraction?.(action),
+  );
   const scenePromise = createTempleScene(viewport, {
     onMoktakClick: () => moktakController?.strike(),
+    onInteractionView: (view) => interactionHud.render(view),
   }).then((temple) => {
+    performInteraction = temple.perform;
     moktakController = createMoktakController({
       onStrike: () => {
         playMoktakSound();
@@ -202,6 +212,7 @@ async function main(): Promise<void> {
     onboarding.setAttribute("hidden", "");
     hudTop.removeAttribute("hidden");
     hint.removeAttribute("hidden");
+    interactionHud.show();
     void scenePromise;
   });
 }
