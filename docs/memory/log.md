@@ -105,3 +105,5 @@
   Milestone 5 (interactions, local first; sync = Milestone 6); spec written.
 - 2026-11-05: gate mode auto. Milestone 5 built: sit/greet/bow/beads/
   broom+leaves, local only; 153 tests; no measurable render cost.
+- 2026-11-07: finished Milestone 5 merge. Milestone 6 (visitors visible,
+  robe tint decision 0010) built and merged; app 178 + server 44 tests.
