@@ -37,7 +37,7 @@ What the app does now:
 `npm run dev` in `server/` (ws://localhost:8787; presence + visitor sync, server/src/protocol.ts), then `npm run dev` in
 `app/` (http://localhost:5173). `app/public/sansatemple/` must be populated
 (gitignored, decision 0006): `scripts/fetch-sansatemple-assets.sh`.
-Tests: `npm test` in app/ (178 pass) and server/ (44 pass); `npx tsc --noEmit -p .` clean in both.
+Tests: `npm test` in app/ (211 pass) and server/ (44 pass); `npx tsc --noEmit -p .` clean in both.
 
 ## Code map (app/src)
 - `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
@@ -98,6 +98,11 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
 - Count triangles per mesh before guessing at render costs: one imported
   model (pine.glb) was 95% of the scene.
 - The start position is in front of the hall stairs, facing the hall.
+- chuasen.com closed on 2026-11-06; only old notes remain as reference.
+- `?gio=HH` previews any hour of the day/night cycle.
+- Playwright clicks can stall on "stable" checks when Chrome throttles a
+  covered window: pass --disable-backgrounding-occluded-windows,
+  --disable-renderer-backgrounding, --disable-background-timer-throttling.
 - Two-visitor browser checks: two Playwright contexts in one headed
   Chrome; for render timing, keep a second window open in both arms of
   the comparison (it competes for the GPU).
@@ -118,7 +123,11 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
    docs/specs/milestone-5-interactions/status.md (evidence, rulings, open
    problems). Milestone 6 (other visitors visible) is also done; read
    docs/specs/milestone-6-visitors/status.md (criterion 7 render cost is
-   inconclusive). Next: Milestone 7 private deploy (red tier, ask first).
+   inconclusive). Milestone 7 (day/night, lanterns, chanting, moktak autoplay, sound) is
+   done too: docs/specs/milestone-7-atmosphere-practice/status.md. The owner
+   still has to download 3 CC0 sound files (docs/assets/third-party-assets.md)
+   and proofread the Tâm Kinh text (app/src/chant-texts.ts). Next:
+   Milestone 8 private deploy (red tier, ask first).
    **Gate mode is now auto** (AGENTS.md).
 1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
    gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
@@ -129,7 +138,7 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
    real machines; owner to judge the per-visitor broom (E3) in practice.
 4. When the owner drops files in `app/public/thirdparty/` (Mixamo character
    + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
-5. Later: Milestone 7 private deploy (red tier). Recommendation given, not
+5. Later: Milestone 8 private deploy (red tier). Recommendation given, not
    confirmed: Tailscale + one small VPS.
 
 ## Constraints
