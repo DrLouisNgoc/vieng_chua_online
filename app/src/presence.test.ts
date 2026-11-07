@@ -10,6 +10,7 @@ class FakeWebSocket {
   onmessage: ((event: { data: string }) => void) | null = null;
   onerror: (() => void) | null = null;
   closed = false;
+  sent: string[] = [];
   url: string;
 
   constructor(url: string) {
@@ -26,8 +27,13 @@ class FakeWebSocket {
     this.onmessage?.({ data: JSON.stringify(data) });
   }
 
+  send(data: string): void {
+    this.sent.push(data);
+  }
+
   close(): void {
     this.closed = true;
+    this.readyState = 3;
     this.onclose?.();
   }
 }
@@ -101,5 +107,109 @@ describe("createPresenceClient", () => {
     const socket = FakeWebSocket.instances[0];
     socket.open();
     expect(() => socket.onmessage?.({ data: "not json" })).not.toThrow();
+  });
+});
+
+const state = {
+  x: 1,
+  z: 2,
+  heading: 0,
+  activity: "idle" as const,
+  seatIndex: null,
+  holdingBroom: false,
+  beadsVisible: false,
+  beadTotal: 0,
+};
+
+function sentTypes(socket: FakeWebSocket): string[] {
+  return socket.sent.map((data) => (JSON.parse(data) as { type: string }).type);
+}
+
+describe("visitor messages", () => {
+  let now = 0;
+  beforeEach(() => {
+    FakeWebSocket.instances = [];
+    now = 0;
+    vi.useFakeTimers();
+    vi.stubGlobal("WebSocket", FakeWebSocket);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  function client(extra: Record<string, unknown> = {}) {
+    return createPresenceClient({
+      url: "ws://x",
+      onStatus: vi.fn(),
+      reconnectDelayMs: 1000,
+      now: () => now,
+      ...extra,
+    });
+  }
+
+  it("sends join once open, and states only after joining", () => {
+    const c = client();
+    const socket = FakeWebSocket.instances[0];
+    c.sendState(state);
+    c.join("An", 2);
+    expect(socket.sent).toEqual([]);
+    socket.open();
+    c.sendState(state);
+    expect(sentTypes(socket)).toEqual(["join", "state"]);
+    expect(JSON.parse(socket.sent[0])).toEqual({ type: "join", name: "An", colorIndex: 2 });
+  });
+
+  it("throttles states and skips unchanged ones", () => {
+    const c = client();
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    c.join("An", 0);
+    c.sendState(state);
+    now = 50;
+    c.sendState({ ...state, x: 5 });
+    now = 200;
+    c.sendState({ ...state, x: 5 });
+    now = 400;
+    c.sendState({ ...state, x: 5 });
+    expect(sentTypes(socket)).toEqual(["join", "state", "state"]);
+  });
+
+  it("re-joins and re-sends the state after a reconnect", () => {
+    const c = client();
+    const first = FakeWebSocket.instances[0];
+    first.open();
+    c.join("An", 0);
+    c.sendState(state);
+    first.close();
+    vi.advanceTimersByTime(1000);
+    const second = FakeWebSocket.instances[1];
+    second.open();
+    c.sendState(state);
+    expect(sentTypes(second)).toEqual(["join", "state"]);
+  });
+
+  it("reports other visitors without itself, and seat refusals", () => {
+    const onVisitors = vi.fn();
+    const onSeatRefused = vi.fn();
+    client({ onVisitors, onSeatRefused });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    const view = { name: "A", colorIndex: 0, ...state };
+    socket.message({ type: "welcome", id: "me" });
+    socket.message({ type: "visitors", visitors: [{ id: "me", ...view }, { id: "other", ...view }] });
+    expect(onVisitors).toHaveBeenLastCalledWith([{ id: "other", ...view }]);
+    socket.message({ type: "seat-refused", seatIndex: 4 });
+    expect(onSeatRefused).toHaveBeenCalledWith(4);
+  });
+
+  it("forgets other visitors when the connection drops", () => {
+    const onVisitors = vi.fn();
+    client({ onVisitors });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    socket.close();
+    expect(onVisitors).toHaveBeenLastCalledWith([]);
   });
 });
