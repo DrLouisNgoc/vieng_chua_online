@@ -175,6 +175,19 @@ export const MEDITATION_SEATS: Point[] = [
   { x: BANYAN.x, z: BANYAN.z - BANYAN.seatRadius },
 ];
 
+// Milestone 5 interactions (values: design.md rulings).
+export const SEAT_REACH = 1.2;
+export const BROOM_REACH = 1.5;
+// Beside the stone path, just before the tree avenue.
+export const BROOM_SPOT: Point = { x: -7, z: 24 };
+// Strip of hall floor between the altar front and the nearest cushion row.
+export const STATUE_ZONE: Box = { minX: -12, maxX: 12, minZ: -45, maxZ: -41.5 };
+// Leaves fall under these trees: the avenue along the path and the banyan.
+export const LEAF_SOURCES: Point[] = [
+  ...BROADLEAF_TREES.filter((tree) => Math.abs(tree.x) === 10),
+  { x: BANYAN.x, z: BANYAN.z },
+];
+
 export const WORLD_LIMIT = 300;
 
 function around(center: Point, half: number): Box {

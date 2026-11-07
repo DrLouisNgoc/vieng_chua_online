@@ -103,3 +103,5 @@
   simplified them to 10% at load (11.3M -> 1.6M tris). 87 tests pass.
 - 2026-11-05: merged grounds-smoke into main. Interviewed owner for
   Milestone 5 (interactions, local first; sync = Milestone 6); spec written.
+- 2026-11-05: gate mode auto. Milestone 5 built: sit/greet/bow/beads/
+  broom+leaves, local only; 153 tests; no measurable render cost.

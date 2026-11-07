@@ -23,3 +23,12 @@ Dâng hương, hiển thị người khác, đồng hồ thiền, nhạc, điể
 ## Cách kiểm tra khi xong
 Xem mục "Acceptance criteria" trong spec: 8 điểm, có ảnh chụp ở màn hình
 điện thoại (375 px) và máy tính (1440 px).
+
+## Kết quả (05/11/2026): đã xong
+- E: Ngồi thiền (gần bồ đoàn) / Lạy Phật (khi ngồi hoặc đứng trước tượng)
+  / Cầm chổi, Dựng chổi (ở chỗ dựng chổi, cạnh lối đá trước hàng cây).
+- Q: Chắp tay. B: Lần hạt (hiện "Hạt N/108 · tổng T", tổng được lưu).
+- Đi bằng WASD là đứng dậy và cất tràng hạt.
+- Có nút bấm cho mọi phím, xếp một hàng trên màn hình điện thoại.
+- Không làm chậm khung hình (đo trước/sau, mỗi bên 2 lần).
+- Những gì mình tự quyết và những chỗ chưa ổn: xem status.md (tiếng Anh).
