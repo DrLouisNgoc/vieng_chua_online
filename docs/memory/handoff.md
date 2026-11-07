@@ -53,6 +53,12 @@ Tests: `npm test` in app/ (87 pass), `npx tsc --noEmit -p .` clean.
 - `third-person-camera.ts`, `movement.ts`, `collision.ts`, `walk-cycle.ts`,
   `key-state.ts`, `onboarding.ts`, `avatar-svg.ts`, `curved-roof.ts`,
   `simplify-geometry.ts` (meshoptimizer, used on pine.glb) — unit-tested.
+  Milestone 5: `body-pose.ts` (all bones, avatar-frame rotations),
+  `pose-for-activity.ts`, `interaction-state.ts` (snapshot ready for
+  Milestone 6), `interaction-targets.ts`, `interaction-prompts.ts`,
+  `bead-counter.ts`, `leaf-field.ts` — pure, unit-tested;
+  `interaction-runtime.ts` (wiring), `interaction-props.ts` (meshes),
+  `interaction-hud.ts` (DOM).
   `temple-grounds.test.ts` builds the whole grounds in Node.
 - Third-party assets (decision 0009): files go in `app/public/thirdparty/`
   (gitignored), each listed in `docs/assets/third-party-assets.md` first.
@@ -91,13 +97,21 @@ licensed third-party assets allowed (catalogued, gitignored; none yet).
 - Count triangles per mesh before guessing at render costs: one imported
   model (pine.glb) was 95% of the scene.
 - The start position is in front of the hall stairs, facing the hall.
+- Bone rotation axes on monk.glb (avatar frame, Euler YXZ): x>0 swings a
+  limb forward / bends the elbow forward, spine x<0 bends forward; for the
+  left arm z>0 moves it inward and y (applied last) swings a
+  forward-pointing forearm sideways, y<0 = inward. Probe one axis at a
+  time with screenshots before tuning a pose.
+- For browser checks, a temporary `window.__verify.placeAt(x, z)` hook
+  (movement.placeAt) teleports the avatar; never commit it.
 
 ## Next (pick up here)
-0. **Milestone 5 (interactions)**: spec written on branch
-   `spec/milestone-5-interactions`, waiting for the owner's approval
-   (gated). Read docs/specs/milestone-5-interactions/spec.md + status.md.
-   Then design -> plan -> build (TDD). Owner summary in Vietnamese:
-   docs/for-owner/milestone-5-tom-tat.md.
+0. **Milestone 5 (interactions) is done** and merged into local main:
+   sit (E near a cushion), greet (Q), bow (E seated / in front of the
+   altar), beads (B, total in localStorage), broom + leaves. Read
+   docs/specs/milestone-5-interactions/status.md (evidence, rulings, open
+   problems). Next is Milestone 6 (other visitors visible).
+   **Gate mode is now auto** (AGENTS.md).
 1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
    gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
 2. Frame rate: pines fixed (see status.md). Still ~22-40 fps, noisy.
