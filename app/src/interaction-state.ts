@@ -3,7 +3,14 @@
 // mirrors the original's per-visitor `pose` + `beads` fields, so Milestone 6
 // can send it to the server as is.
 
-export type Activity = "idle" | "walking" | "seated" | "greeting" | "bowing" | "beads";
+export type Activity =
+  | "idle"
+  | "walking"
+  | "seated"
+  | "greeting"
+  | "bowing"
+  | "beads"
+  | "chanting";
 
 export interface InteractionSnapshot {
   activity: Activity;
@@ -23,6 +30,9 @@ export interface InteractionState {
   bow: (inStatueZone: boolean) => boolean;
   turnBead: () => boolean;
   toggleBroom: () => boolean;
+  // Chanting (Milestone 7) lasts until moving or stopChant.
+  chant: () => boolean;
+  stopChant: () => void;
   // The server refused the cushion: stand up where we are.
   standUp: () => void;
   tick: (deltaSeconds: number) => void;
@@ -104,6 +114,14 @@ export function createInteractionState(): InteractionState {
       holdingBroom = !holdingBroom;
       enter("idle");
       return true;
+    },
+    chant() {
+      if (holdingBroom || !isAtRest()) return false;
+      enter("chanting");
+      return true;
+    },
+    stopChant() {
+      if (activity === "chanting") enter(restingActivity());
     },
     standUp() {
       if (seatIndex === null) return;

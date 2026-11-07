@@ -1,19 +1,21 @@
 import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
-import { BANYAN, BROOM_REACH, HALL, SEAT_REACH } from "./temple-layout";
+import { BANYAN, BELL_REACH, BROOM_REACH, HALL, SEAT_REACH } from "./temple-layout";
 
 export interface TargetLayout {
   seats: readonly Point[];
   broomSpot: Point;
   statueZone: Box;
-  // Seats taken by other visitors (Milestone 6); empty for now.
+  bell?: Point;
+  // Seats taken by other visitors (Milestone 6).
   occupied?: ReadonlySet<number>;
 }
 
 export interface Targets {
   seatIndex: number | null;
   nearBroom: boolean;
+  nearBell: boolean;
   inStatueZone: boolean;
 }
 
@@ -35,6 +37,7 @@ export function findTargets(position: Point, layout: TargetLayout): Targets {
   return {
     seatIndex,
     nearBroom: distance(position, layout.broomSpot) <= BROOM_REACH,
+    nearBell: layout.bell !== undefined && distance(position, layout.bell) <= BELL_REACH,
     inStatueZone: isInside(position, layout.statueZone),
   };
 }

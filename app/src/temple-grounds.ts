@@ -38,7 +38,11 @@ import {
   BROADLEAF_TREES,
   GATE,
   HALL,
+  HALL_LANTERNS,
   HUT,
+  LANTERN_LIGHTS,
+  LANTERN_POSTS,
+  LANTERN_POST_HEIGHT,
   MEDITATION_SEATS,
   PATH,
   PAVING_HEIGHT,
@@ -69,6 +73,8 @@ export interface TempleGrounds {
   // (urn, pillars, trees) are deliberately not included.
   cameraBlockers: Object3D[];
   update: (deltaSeconds: number) => void;
+  // 0 = day, 1 = full night: lantern glow and lantern lights.
+  setNight: (level: number) => void;
 }
 
 const PALETTE = {
@@ -95,9 +101,15 @@ const PALETTE = {
   spot: 0xffd38a,
   lamp: 0xffc469,
   plaque: 0x8e1f17,
+  lantern: 0xb3261e,
+  lanternGlow: 0xff4a1c,
+  lanternLight: 0xffb070,
   koi: [0xf07a28, 0xf2efe6, 0xd8402a, 0xf4b13a, 0xf07a28, 0xf2efe6, 0xe85a20],
 } as const;
 
+const LANTERN_GLOW = 0.9;
+const LANTERN_LIGHT_INTENSITY = 10;
+const LANTERN_LIGHT_REACH = 10;
 const POND_CURB_HEIGHT = 0.45;
 const POND_CURB_WIDTH = 0.6;
 const POND_WATER_Y = 0.32;
@@ -212,6 +224,8 @@ export async function buildTempleGrounds(
   grounds.add(buildBroadleafTrees());
   grounds.add(buildBamboo());
   grounds.add(buildSeats());
+  const lanterns = buildLanterns();
+  grounds.add(lanterns.group);
 
   return {
     group: grounds,
@@ -219,6 +233,7 @@ export async function buildTempleGrounds(
     update: (deltaSeconds) => {
       for (const update of updaters) update(deltaSeconds);
     },
+    setNight: lanterns.setNight,
   };
 
   // ---- roof helpers -------------------------------------------------------
@@ -1046,6 +1061,73 @@ export async function buildTempleGrounds(
 
   // Hundreds of cushions: one InstancedMesh per part keeps this to two draw
   // calls instead of two per seat.
+  // Red paper lanterns (Milestone 7): on posts beside the path and hung on
+  // the hall's front pillars. Instanced (a few draw calls for all of them);
+  // only LANTERN_LIGHTS are real lights, the rest glow by emissive.
+  function buildLanterns(): { group: Group; setNight: (level: number) => void } {
+    const group = new Group();
+    const paper = new MeshStandardMaterial({
+      color: PALETTE.lantern,
+      emissive: PALETTE.lanternGlow,
+      emissiveIntensity: 0,
+      roughness: 0.7,
+    });
+    const goldTrim = new MeshStandardMaterial({ color: PALETTE.gold, roughness: 0.4, metalness: 0.6 });
+    const wood = new MeshStandardMaterial({ color: PALETTE.bark, roughness: 0.9 });
+
+    const lanternSpots = [
+      ...LANTERN_POSTS.map((post) => ({ x: post.x, y: LANTERN_POST_HEIGHT + 0.36, z: post.z })),
+      ...HALL_LANTERNS,
+    ];
+    const body = new SphereGeometry(0.28, 16, 12);
+    body.scale(1, 1.25, 1);
+    const cap = new CylinderGeometry(0.13, 0.13, 0.07, 12);
+    const bodies = new InstancedMesh(body, paper, lanternSpots.length);
+    const caps = new InstancedMesh(cap, goldTrim, lanternSpots.length * 2);
+    const posts = new InstancedMesh(
+      new CylinderGeometry(0.07, 0.09, LANTERN_POST_HEIGHT, 8),
+      wood,
+      LANTERN_POSTS.length,
+    );
+    const place = new Object3D();
+    lanternSpots.forEach((spot, index) => {
+      place.position.set(spot.x, spot.y, spot.z);
+      place.updateMatrix();
+      bodies.setMatrixAt(index, place.matrix);
+      for (const [offset, slot] of [
+        [0.37, index * 2],
+        [-0.37, index * 2 + 1],
+      ] as const) {
+        place.position.set(spot.x, spot.y + offset, spot.z);
+        place.updateMatrix();
+        caps.setMatrixAt(slot, place.matrix);
+      }
+    });
+    LANTERN_POSTS.forEach((post, index) => {
+      place.position.set(post.x, LANTERN_POST_HEIGHT / 2, post.z);
+      place.updateMatrix();
+      posts.setMatrixAt(index, place.matrix);
+    });
+    posts.castShadow = true;
+    posts.receiveShadow = true;
+    group.add(bodies, caps, posts);
+
+    const lights = LANTERN_LIGHTS.map((spot) => {
+      const light = new PointLight(PALETTE.lanternLight, 0, LANTERN_LIGHT_REACH, 2);
+      light.position.set(spot.x, spot.y, spot.z);
+      group.add(light);
+      return light;
+    });
+
+    return {
+      group,
+      setNight(level) {
+        paper.emissiveIntensity = level * LANTERN_GLOW;
+        for (const light of lights) light.intensity = level * LANTERN_LIGHT_INTENSITY;
+      },
+    };
+  }
+
   function buildSeats(): Group {
     const seats = new Group();
     seats.name = "cho-ngoi-thien";

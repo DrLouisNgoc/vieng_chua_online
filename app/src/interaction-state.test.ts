@@ -213,6 +213,46 @@ describe("interaction state", () => {
     });
   });
 
+  describe("chanting", () => {
+    it("chants standing until moving", () => {
+      const state = createInteractionState();
+      expect(state.chant()).toBe(true);
+      expect(state.snapshot.activity).toBe("chanting");
+      state.tick(100);
+      expect(state.snapshot.activity).toBe("chanting");
+      state.startMoving();
+      expect(state.snapshot.activity).toBe("walking");
+    });
+
+    it("keeps the seat while chanting seated, and stopChant returns to it", () => {
+      const state = seatedState(3);
+      state.turnBead();
+      expect(state.chant()).toBe(true);
+      expect(state.snapshot).toMatchObject({ activity: "chanting", seatIndex: 3, beadsVisible: false });
+      state.stopChant();
+      expect(state.snapshot).toMatchObject({ activity: "seated", seatIndex: 3 });
+    });
+
+    it("refuses while walking, acting or holding the broom", () => {
+      const walking = createInteractionState();
+      walking.startMoving();
+      expect(walking.chant()).toBe(false);
+      const greeting = createInteractionState();
+      greeting.greet();
+      expect(greeting.chant()).toBe(false);
+      const sweeping = createInteractionState();
+      sweeping.toggleBroom();
+      expect(sweeping.chant()).toBe(false);
+    });
+
+    it("stopChant does nothing when not chanting", () => {
+      const state = createInteractionState();
+      state.turnBead();
+      state.stopChant();
+      expect(state.snapshot.activity).toBe("beads");
+    });
+  });
+
   it("reports seconds spent in the current activity", () => {
     const state = createInteractionState();
     state.greet();

@@ -109,3 +109,6 @@
   robe tint decision 0010) built and merged; app 178 + server 44 tests.
 - 2026-11-07: owner feedback: seated pose too wide; retuned to a compact
   cross-legged (kiết già) pose with hands in the lap; 179 app tests.
+- 2026-11-07: chuasen.com found closed. Milestone 7 built: day/night by local
+  clock, lanterns, chanting (3 texts) with counts, moktak autoplay, optional
+  CC0 sounds (owner to download); 211 app tests.

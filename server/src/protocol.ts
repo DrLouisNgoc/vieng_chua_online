@@ -9,7 +9,15 @@ export const SEAT_COUNT = 388;
 // Must match WORLD_LIMIT in app/src/temple-layout.ts.
 export const WORLD_LIMIT = 300;
 
-export const ACTIVITIES = ["idle", "walking", "seated", "greeting", "bowing", "beads"] as const;
+export const ACTIVITIES = [
+  "idle",
+  "walking",
+  "seated",
+  "greeting",
+  "bowing",
+  "beads",
+  "chanting",
+] as const;
 export type Activity = (typeof ACTIVITIES)[number];
 
 export interface JoinMessage {

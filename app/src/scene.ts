@@ -26,6 +26,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "meshoptimizer";
 import { createMovementController } from "./movement";
 import { createAvatarRig } from "./avatar-rig";
+import { localHour, skyAt } from "./sky-cycle";
+import { browserStorage } from "./browser-storage";
 import { tintRobe } from "./avatar-look";
 import { ROBE_COLORS } from "./onboarding";
 import { createRemoteVisitors } from "./remote-visitors";
@@ -62,8 +64,6 @@ const MOKTAK_BASE_SCALE = 0.8;
 const MOKTAK_PULSE_SCALE = 1.15;
 const MOKTAK_PULSE_MS = 150;
 const KEYBOARD_LOOK_AHEAD = 5;
-const HORIZON_COLOR = 0xe8dcc4;
-const SKY_TOP_COLOR = "#9cbcd6";
 const GROUND_SIZE = 800;
 const GROUND_TEXTURE_REPEAT = 160;
 const SHADOW_HALF_EXTENT = 45;
@@ -77,19 +77,30 @@ const CAMERA_WALL_GAP = 0.4;
 const STEP_SMOOTHING = 14;
 const CAMERA_MIN_CLEARANCE = 1.2;
 const START_HEADING = Math.PI; // facing the main hall (-z)
+// Distance of the sun/moon light from the avatar (the old offset 28, 49, 21).
+const SUN_DISTANCE = 60;
+const SKY_CHECK_MS = 1000;
+
+function hex(color: number): string {
+  return `#${color.toString(16).padStart(6, "0")}`;
+}
+
+function paintSky(texture: CanvasTexture, top: number, horizon: number): void {
+  const canvas = texture.image as HTMLCanvasElement;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, hex(top));
+  gradient.addColorStop(1, hex(horizon));
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  texture.needsUpdate = true;
+}
 
 function createSkyTexture(): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 2;
   canvas.height = 256;
-  const ctx = canvas.getContext("2d");
-  if (ctx) {
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, SKY_TOP_COLOR);
-    gradient.addColorStop(1, `#${HORIZON_COLOR.toString(16)}`);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
@@ -130,6 +141,8 @@ export interface TempleSceneOptions {
   onInteractionView?: (view: InteractionView) => void;
   // Called every frame with the visitor's own state; the sender throttles.
   onLocalState?: (state: OutgoingState) => void;
+  onFrame?: (deltaSeconds: number) => void;
+  onRingBell?: () => void;
 }
 
 export interface TempleScene {
@@ -138,28 +151,23 @@ export interface TempleScene {
   setRobeColor: (colorIndex: number) => void;
   setVisitors: (visitors: readonly VisitorView[]) => void;
   refuseSeat: () => void;
+  startChanting: () => boolean;
+  stopChanting: () => void;
+  isChanting: () => boolean;
   dispose: () => void;
 }
 
-// localStorage itself can throw (blocked site data); the bead total then
-// just does not persist.
-function browserStorage(): Pick<Storage, "getItem" | "setItem"> | null {
-  try {
-    return window.localStorage;
-  } catch (error: unknown) {
-    console.warn("localStorage is not available:", error);
-    return null;
-  }
-}
 
 export async function createTempleScene(
   container: HTMLElement,
   options: TempleSceneOptions,
 ): Promise<TempleScene> {
   const scene = new Scene();
-  scene.background = createSkyTexture();
+  const skyTexture = createSkyTexture();
+  scene.background = skyTexture;
   // far enough that the hall still shows from the gate, 210 units away
-  scene.fog = new Fog(HORIZON_COLOR, 90, 340);
+  const fog = new Fog(0xe8dcc4, 90, 340);
+  scene.fog = fog;
 
   const camera = new PerspectiveCamera(
     45,
@@ -177,7 +185,8 @@ export async function createTempleScene(
   renderer.shadowMap.type = PCFShadowMap;
   container.appendChild(renderer.domElement);
 
-  scene.add(new HemisphereLight(0xdfeaf5, 0x6b5a3e, 0.9));
+  const hemi = new HemisphereLight(0xdfeaf5, 0x6b5a3e, 0.9);
+  scene.add(hemi);
   const sun = new DirectionalLight(0xffe8c4, 2.2);
   sun.position.set(8, 14, 6);
   sun.castShadow = true;
@@ -400,6 +409,7 @@ export async function createTempleScene(
     },
     storage: browserStorage(),
     onView: options.onInteractionView,
+    onRingBell: options.onRingBell,
   });
   const cameraYaw = (): number => START_HEADING + rig.yawOffset;
   function applyKeyboardMovement(deltaSeconds: number): void {
@@ -468,6 +478,31 @@ export async function createTempleScene(
   avatar.rotation.y = heading + Math.PI;
   updateCamera(0, true);
 
+  // Real local time (owner decision F1); "?gio=21" previews another hour.
+  const forcedHour = Number.parseFloat(new URLSearchParams(location.search).get("gio") ?? "");
+  const skyDirection = { x: 0, y: 1, z: 0 };
+  let lastSkyMinute = -1;
+  let lastSkyCheckMs = -Infinity;
+  function applySky(nowMs: number): void {
+    if (nowMs - lastSkyCheckMs < SKY_CHECK_MS) return;
+    lastSkyCheckMs = nowMs;
+    const hour = Number.isFinite(forcedHour) ? forcedHour : localHour(new Date());
+    const minute = Math.floor(hour * 60);
+    if (minute === lastSkyMinute) return;
+    lastSkyMinute = minute;
+    const sky = skyAt(hour);
+    Object.assign(skyDirection, sky.sunDirection);
+    sun.color.setHex(sky.sunColor);
+    sun.intensity = sky.sunIntensity;
+    hemi.color.setHex(sky.hemiSky);
+    hemi.groundColor.setHex(sky.hemiGround);
+    hemi.intensity = sky.hemiIntensity;
+    fog.color.setHex(sky.fog);
+    renderer.toneMappingExposure = sky.exposure;
+    paintSky(skyTexture, sky.skyTop, sky.skyHorizon);
+    grounds.setNight(sky.night);
+  }
+
   let frameHandle = 0;
   let lastFrameMs = performance.now();
   function renderLoop(): void {
@@ -506,12 +541,18 @@ export async function createTempleScene(
       beadsVisible: snapshot.beadsVisible,
       beadTotal: interactions.beadTotal,
     });
+    applySky(nowMs);
     sun.target.position.set(pos.x, 0, pos.z);
     // far enough up-sun that the tall hall roof sits inside the shadow frustum
-    sun.position.set(pos.x + 28, 49, pos.z + 21);
+    sun.position.set(
+      pos.x + skyDirection.x * SUN_DISTANCE,
+      skyDirection.y * SUN_DISTANCE,
+      pos.z + skyDirection.z * SUN_DISTANCE,
+    );
     grounds.update(deltaSeconds);
     updateCamera(deltaSeconds);
     remoteVisitors.update(deltaSeconds, camera.position);
+    options.onFrame?.(deltaSeconds);
     const pulsing = nowMs < pulseUntil;
     const scale = pulsing ? MOKTAK_PULSE_SCALE : 1;
     moktakSprite.scale.set(
@@ -554,6 +595,9 @@ export async function createTempleScene(
     },
     setVisitors: (visitors) => remoteVisitors.sync(visitors),
     refuseSeat: () => interactions.standUp(),
+    startChanting: () => interactions.startChanting(),
+    stopChanting: () => interactions.stopChanting(),
+    isChanting: () => interactions.snapshot.activity === "chanting",
     dispose,
   };
 }

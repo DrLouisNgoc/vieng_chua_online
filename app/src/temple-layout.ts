@@ -96,12 +96,38 @@ export const PATH = { fromZ: GATE.z + 4, toZ: COURTYARD.maxZ, width: 1.6 } as co
 export const URN = { x: 0, z: 13.5, radius: 0.9 } as const;
 
 export const BELL_TOWER = { x: 30, z: 30, half: 2.6, platformHeight: 0.4, pillarOffset: 1.9 } as const;
+// Close enough to the bell tower to ring the bell (Milestone 7).
+export const BELL_REACH = BELL_TOWER.half + 1.5;
 
 // Pairs of stone pillars lining the path.
 export const STONE_PILLARS: Point[] = [7.5, 11, 40, 80, 115].flatMap((z) => [
   { x: -2.2, z },
   { x: 2.2, z },
 ]);
+
+// Milestone 7: stone lantern posts beside the path, clear of the pillar
+// pairs (z 40/80/115) and the tree avenue (x ±10).
+export const LANTERN_POSTS: Point[] = [20, 30, 50, 60, 70, 90, 100, 108].flatMap((z) => [
+  { x: -3.2, z },
+  { x: 3.2, z },
+]);
+export const LANTERN_POST_HEIGHT = 1.6;
+
+// A paper lantern hung on the yard side of each front pillar of the hall.
+export const HALL_LANTERNS = HALL.frontPillarXs.map((x) => ({
+  x,
+  z: HALL.frontPillarZ + 0.9,
+  y: HALL.platformHeight + 4.2,
+}));
+
+// The only real lights (the rest glow by emissive): two either side of the
+// top of the stairs (lighting the start point), two at the first path posts.
+export const LANTERN_LIGHTS = [
+  { x: -5.5, y: HALL.platformHeight + 3, z: HALL.frontPillarZ + 2.5 },
+  { x: 5.5, y: HALL.platformHeight + 3, z: HALL.frontPillarZ + 2.5 },
+  { x: -3.2, y: 1.8, z: 20 },
+  { x: 3.2, y: 1.8, z: 20 },
+];
 
 export const HUT = { x: -40, z: 60, size: 3.2 } as const;
 
@@ -252,6 +278,7 @@ export const COLLIDERS: Box[] = [
   ...HALL.frontPillarXs.map((x) => around({ x, z: HALL.frontPillarZ }, 0.7)),
   ...HALL.innerPillars.map((p) => around(p, 0.7)),
   ...STONE_PILLARS.map((p) => around(p, 0.35)),
+  ...LANTERN_POSTS.map((p) => around(p, 0.3)),
   around(HUT, HUT.size / 2),
   POND,
   around(BANYAN, 1.4),

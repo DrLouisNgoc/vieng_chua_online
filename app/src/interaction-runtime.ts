@@ -21,6 +21,7 @@ import { createLeafField } from "./leaf-field";
 import type { MovementController } from "./movement";
 import { poseForActivity } from "./pose-for-activity";
 import {
+  BELL_TOWER,
   BROOM_SPOT,
   LEAF_SOURCES,
   MEDITATION_SEATS,
@@ -47,6 +48,7 @@ export interface InteractionRuntimeDeps {
   setHeading: (heading: number) => void;
   storage: Pick<Storage, "getItem" | "setItem"> | null;
   onView?: (view: InteractionView) => void;
+  onRingBell?: () => void;
 }
 
 export interface InteractionRuntime {
@@ -61,6 +63,8 @@ export interface InteractionRuntime {
   placeProps: (walkSeconds: number) => void;
   // The server refused our cushion.
   standUp: () => void;
+  startChanting: () => boolean;
+  stopChanting: () => void;
   readonly snapshot: InteractionSnapshot;
   readonly beadTotal: number;
 }
@@ -78,7 +82,12 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
   const state = createInteractionState();
   const beads = createBeadCounter(createStorageBeadStore(deps.storage ?? noStorage, BEAD_TOTAL_KEY));
   const leafField = createLeafField({ sources: LEAF_SOURCES, cap: LEAF_CAP, initial: LEAF_INITIAL });
-  const targetLayout = { seats: MEDITATION_SEATS, broomSpot: BROOM_SPOT, statueZone: STATUE_ZONE };
+  const targetLayout = {
+    seats: MEDITATION_SEATS,
+    broomSpot: BROOM_SPOT,
+    statueZone: STATUE_ZONE,
+    bell: BELL_TOWER,
+  };
 
   const held = createHeldProps(scene);
   const { broom, beadString } = held;
@@ -135,6 +144,9 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
         break;
       case "greet":
         state.greet();
+        break;
+      case "ringBell":
+        deps.onRingBell?.();
         break;
       case "bead":
         if (state.turnBead()) {
@@ -208,6 +220,15 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
     },
     standUp() {
       state.standUp();
+      publishView();
+    },
+    startChanting() {
+      const started = state.chant();
+      publishView();
+      return started;
+    },
+    stopChanting() {
+      state.stopChant();
       publishView();
     },
     get snapshot() {
