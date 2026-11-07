@@ -9,6 +9,11 @@ Spec, design and plan approved by the owner 2026-11-05.
 - 2026-11-05: owner chose "build all 11 steps" and gate mode auto.
 - 2026-11-05: built on branch build/milestone-5-interactions (plan steps
   1-11); reviewed own diff (removed dead IDLE_POSE).
+- 2026-11-07: owner: the seated pose spread the knees too wide ("rạng
+  hết háng, phải ngồi kiết già"). SEATED retuned: knees 0.25 apart
+  (was 0.55), shins crossed (y ±0.7), hands together in the lap; checked
+  from front/top/side and on a hall cushion (seated, beads, greet, bow).
+  A test now guards knee spread and crossed shins.
 
 ## Acceptance criteria (spec.md) — evidence
 Browser runs drive the real app (Playwright + system Chrome) with a

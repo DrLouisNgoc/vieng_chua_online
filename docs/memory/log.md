@@ -107,3 +107,5 @@
   broom+leaves, local only; 153 tests; no measurable render cost.
 - 2026-11-07: finished Milestone 5 merge. Milestone 6 (visitors visible,
   robe tint decision 0010) built and merged; app 178 + server 44 tests.
+- 2026-11-07: owner feedback: seated pose too wide; retuned to a compact
+  cross-legged (kiết già) pose with hands in the lap; 179 app tests.

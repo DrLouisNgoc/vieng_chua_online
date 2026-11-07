@@ -56,18 +56,19 @@ export function walkPose(elapsedSeconds: number): BodyPose {
   };
 }
 
-// Cross-legged on a cushion: thighs forward and splayed, shins folded back
-// in, hands resting in the lap.
+// Kiết già on a cushion (owner, 2026-11-07: the earlier wide-open knees
+// looked wrong): thighs forward and only slightly apart, shins folded back
+// and crossed in front, hands together in the lap.
 export const SEATED: BodyPose = {
   bones: {
-    thighL: { x: 1.45, z: -0.55 },
-    thighR: { x: 1.45, z: 0.55 },
-    shinL: { x: -2.3 },
-    shinR: { x: -2.3 },
-    upper_armL: { x: 0.35, z: -0.15 },
-    upper_armR: { x: 0.35, z: 0.15 },
-    forearmL: { x: 0.9, y: -0.5 },
-    forearmR: { x: 0.9, y: 0.5 },
+    thighL: { x: 1.5, z: -0.25 },
+    thighR: { x: 1.5, z: 0.25 },
+    shinL: { x: -2.45, y: 0.7 },
+    shinR: { x: -2.45, y: -0.7 },
+    upper_armL: { x: 0.3, z: 0.05 },
+    upper_armR: { x: 0.3, z: -0.05 },
+    forearmL: { x: 1.15, y: -1.3 },
+    forearmR: { x: 1.15, y: 1.3 },
   },
   hipsDrop: 0.55,
 };
