@@ -197,6 +197,22 @@ describe("interaction state", () => {
     });
   });
 
+  describe("standUp (seat refused by the server)", () => {
+    it("stands a seated visitor up where they are", () => {
+      const state = seatedState(5);
+      state.turnBead();
+      state.standUp();
+      expect(state.snapshot).toMatchObject({ activity: "idle", seatIndex: null, beadsVisible: false });
+    });
+
+    it("leaves a standing visitor alone", () => {
+      const state = createInteractionState();
+      state.toggleBroom();
+      state.standUp();
+      expect(state.snapshot).toMatchObject({ activity: "idle", holdingBroom: true });
+    });
+  });
+
   it("reports seconds spent in the current activity", () => {
     const state = createInteractionState();
     state.greet();

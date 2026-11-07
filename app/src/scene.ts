@@ -26,6 +26,11 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "meshoptimizer";
 import { createMovementController } from "./movement";
 import { createAvatarRig } from "./avatar-rig";
+import { tintRobe } from "./avatar-look";
+import { ROBE_COLORS } from "./onboarding";
+import { createRemoteVisitors } from "./remote-visitors";
+import type { OutgoingState, VisitorView } from "./visitor-protocol";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { buildTempleGrounds } from "./temple-grounds";
@@ -123,11 +128,16 @@ const RIGHT_KEYS = ["KeyD", "ArrowRight"];
 export interface TempleSceneOptions {
   onMoktakClick: () => void;
   onInteractionView?: (view: InteractionView) => void;
+  // Called every frame with the visitor's own state; the sender throttles.
+  onLocalState?: (state: OutgoingState) => void;
 }
 
 export interface TempleScene {
   pulseMoktak: () => void;
   perform: (action: InteractionAction) => void;
+  setRobeColor: (colorIndex: number) => void;
+  setVisitors: (visitors: readonly VisitorView[]) => void;
+  refuseSeat: () => void;
   dispose: () => void;
 }
 
@@ -246,6 +256,8 @@ export async function createTempleScene(
     buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
   ]);
   scene.add(grounds.group);
+  // Other visitors are cloned from this unposed copy (posing changes bones).
+  const visitorTemplate = cloneSkinned(avatar);
   // pine.glb is ~395k triangles per tree (95% of the scene). The pines stand
   // outside the wall; at 10% they look the same from the yard and only a
   // little thinner up close. Clones below share the simplified geometry.
@@ -264,6 +276,12 @@ export async function createTempleScene(
     constrain: (from, to) => resolveMove(from, to, COLLIDERS),
   });
   const avatarRig = createAvatarRig(avatar);
+  const remoteVisitors = createRemoteVisitors({
+    scene,
+    template: visitorTemplate,
+    groundY: avatarGroundY,
+    robeColors: ROBE_COLORS,
+  });
   let walkClockSeconds = 0;
 
   const moktakTexture = await textureLoader.loadAsync(
@@ -375,8 +393,8 @@ export async function createTempleScene(
     scene,
     avatar,
     movement,
-    handL: avatarRig.bone("handL"),
-    handR: avatarRig.bone("handR"),
+    rig: avatarRig,
+    occupiedSeats: () => remoteVisitors.occupiedSeats(),
     setHeading: (next) => {
       heading = next;
     },
@@ -477,11 +495,23 @@ export async function createTempleScene(
     avatar.rotation.y = heading + Math.PI;
     avatarRig.applyPose(pose);
     interactions.placeProps(walkClockSeconds);
+    const snapshot = interactions.snapshot;
+    options.onLocalState?.({
+      x: pos.x,
+      z: pos.z,
+      heading,
+      activity: snapshot.activity,
+      seatIndex: snapshot.seatIndex,
+      holdingBroom: snapshot.holdingBroom,
+      beadsVisible: snapshot.beadsVisible,
+      beadTotal: interactions.beadTotal,
+    });
     sun.target.position.set(pos.x, 0, pos.z);
     // far enough up-sun that the tall hall roof sits inside the shadow frustum
     sun.position.set(pos.x + 28, 49, pos.z + 21);
     grounds.update(deltaSeconds);
     updateCamera(deltaSeconds);
+    remoteVisitors.update(deltaSeconds, camera.position);
     const pulsing = nowMs < pulseUntil;
     const scale = pulsing ? MOKTAK_PULSE_SCALE : 1;
     moktakSprite.scale.set(
@@ -515,5 +545,15 @@ export async function createTempleScene(
     container.removeChild(renderer.domElement);
   }
 
-  return { pulseMoktak, perform: interactions.perform, dispose };
+  return {
+    pulseMoktak,
+    perform: interactions.perform,
+    setRobeColor: (colorIndex) => {
+      const color = ROBE_COLORS[colorIndex] ?? ROBE_COLORS[0];
+      if (color) tintRobe(avatar, color.base);
+    },
+    setVisitors: (visitors) => remoteVisitors.sync(visitors),
+    refuseSeat: () => interactions.standUp(),
+    dispose,
+  };
 }

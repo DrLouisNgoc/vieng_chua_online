@@ -144,29 +144,37 @@ async function main(): Promise<void> {
   let moktakController: ReturnType<typeof createMoktakController> | null =
     null;
   let performInteraction: ((action: Parameters<TempleScene["perform"]>[0]) => void) | null = null;
+  let temple: TempleScene | null = null;
+  const presence = createPresenceClient({
+    url: import.meta.env.VITE_PRESENCE_URL ?? DEFAULT_PRESENCE_URL,
+    onStatus: (status) => {
+      presenceLabel.textContent = presenceStatusText(status);
+    },
+    onVisitors: (visitors) => temple?.setVisitors(visitors),
+    onSeatRefused: () => temple?.refuseSeat(),
+  });
+  let entered = false;
   const interactionHud = createInteractionHud(interactionRoot, (action) =>
     performInteraction?.(action),
   );
   const scenePromise = createTempleScene(viewport, {
     onMoktakClick: () => moktakController?.strike(),
     onInteractionView: (view) => interactionHud.render(view),
-  }).then((temple) => {
-    performInteraction = temple.perform;
+    onLocalState: (state) => {
+      if (entered) presence.sendState(state);
+    },
+  }).then((loaded) => {
+    temple = loaded;
+    performInteraction = loaded.perform;
     moktakController = createMoktakController({
       onStrike: () => {
         playMoktakSound();
-        temple.pulseMoktak();
+        loaded.pulseMoktak();
       },
     });
-    return temple;
+    return loaded;
   });
 
-  createPresenceClient({
-    url: import.meta.env.VITE_PRESENCE_URL ?? DEFAULT_PRESENCE_URL,
-    onStatus: (status) => {
-      presenceLabel.textContent = presenceStatusText(status);
-    },
-  });
 
 
   // Onboarding (character screen)
@@ -213,7 +221,10 @@ async function main(): Promise<void> {
     hudTop.removeAttribute("hidden");
     hint.removeAttribute("hidden");
     interactionHud.show();
-    void scenePromise;
+    entered = true;
+    presence.join(onb.state.name, onb.state.colorIndex);
+    const colorIndex = onb.state.colorIndex;
+    void scenePromise.then((loaded) => loaded.setRobeColor(colorIndex));
   });
 }
 

@@ -1,11 +1,13 @@
-import { Group, Vector3, type Object3D, type Scene } from "three";
-import { blendPose, SWEEP_FREQUENCY, type BodyPose } from "./body-pose";
+import type { Object3D, Scene } from "three";
+import { blendPose, type BodyPose } from "./body-pose";
+import type { AvatarRig } from "./avatar-rig";
+import { createHeldProps, placeHeldProps } from "./held-props";
 import {
   BEAD_TOTAL_KEY,
   createBeadCounter,
   createStorageBeadStore,
 } from "./bead-counter";
-import { createInteractionState } from "./interaction-state";
+import { createInteractionState, type InteractionSnapshot } from "./interaction-state";
 import { findTargets, seatHeading, type Targets } from "./interaction-targets";
 import {
   beadCounterText,
@@ -14,14 +16,7 @@ import {
   type InteractionKey,
   type Prompt,
 } from "./interaction-prompts";
-import {
-  createBeadString,
-  createBroom,
-  createLeafMesh,
-  placeBroomBetween,
-  syncLeafMesh,
-  turnBeadString,
-} from "./interaction-props";
+import { createLeafMesh, syncLeafMesh, turnBeadString } from "./interaction-props";
 import { createLeafField } from "./leaf-field";
 import type { MovementController } from "./movement";
 import { poseForActivity } from "./pose-for-activity";
@@ -46,8 +41,9 @@ export interface InteractionRuntimeDeps {
   scene: Scene;
   avatar: Object3D;
   movement: MovementController;
-  handL: Object3D | undefined;
-  handR: Object3D | undefined;
+  rig: AvatarRig;
+  // Cushions other visitors sit on (Milestone 6).
+  occupiedSeats?: () => ReadonlySet<number>;
   setHeading: (heading: number) => void;
   storage: Pick<Storage, "getItem" | "setItem"> | null;
   onView?: (view: InteractionView) => void;
@@ -63,13 +59,15 @@ export interface InteractionRuntime {
   update: (deltaSeconds: number, walkSeconds: number) => BodyPose;
   // After the pose is applied: place the broom and beads at the hands.
   placeProps: (walkSeconds: number) => void;
+  // The server refused our cushion.
+  standUp: () => void;
+  readonly snapshot: InteractionSnapshot;
+  readonly beadTotal: number;
 }
 
 const KEY_CODES: Record<string, InteractionKey> = { KeyE: "E", KeyQ: "Q", KeyB: "B" };
 const POSE_BLEND_SECONDS = 0.25;
 const SWEEP_RADIUS = 1.0;
-const BROOM_REACH_AHEAD = 0.75;
-const BROOM_SWING_WIDTH = 0.35;
 const LEAF_CAP = 160;
 const LEAF_INITIAL = 90;
 
@@ -82,12 +80,10 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
   const leafField = createLeafField({ sources: LEAF_SOURCES, cap: LEAF_CAP, initial: LEAF_INITIAL });
   const targetLayout = { seats: MEDITATION_SEATS, broomSpot: BROOM_SPOT, statueZone: STATUE_ZONE };
 
-  const broom = createBroom();
+  const held = createHeldProps(scene);
+  const { broom, beadString } = held;
   const leafMesh = createLeafMesh(LEAF_CAP);
-  const beadHolder = new Group();
-  const beadString = createBeadString();
-  beadHolder.add(beadString);
-  scene.add(broom, leafMesh, beadHolder);
+  scene.add(leafMesh);
   syncLeafMesh(leafMesh, leafField.leaves, groundHeightAt);
   standBroomAtSpot();
 
@@ -150,10 +146,6 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
     publishView();
   }
 
-  const handLPos = new Vector3();
-  const handRPos = new Vector3();
-  const foot = new Vector3();
-
   return {
     perform,
     handleKey(code) {
@@ -172,7 +164,10 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
     update(deltaSeconds, walkSeconds) {
       state.tick(deltaSeconds);
       const snapshot = state.snapshot;
-      targets = findTargets(movement.position, targetLayout);
+      targets = findTargets(movement.position, {
+        ...targetLayout,
+        occupied: deps.occupiedSeats?.(),
+      });
 
       const changed = leafField.update(deltaSeconds);
       const swept =
@@ -199,33 +194,27 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
     },
     placeProps(walkSeconds) {
       const snapshot = state.snapshot;
-      beadHolder.visible = snapshot.beadsVisible && !!deps.handL && !!deps.handR;
-      beadString.visible = beadHolder.visible;
-      if (beadHolder.visible && deps.handL && deps.handR) {
-        deps.handL.getWorldPosition(handLPos);
-        deps.handR.getWorldPosition(handRPos);
-        beadHolder.position.addVectors(handLPos, handRPos).multiplyScalar(0.5);
-        beadHolder.rotation.set(0, avatar.rotation.y, 0);
-      }
-
-      if (snapshot.holdingBroom && deps.handR) {
-        // avatar.rotation.y is heading + PI; the walk heading is the opposite
-        const heading = avatar.rotation.y - Math.PI;
-        const swing =
-          snapshot.activity === "walking"
-            ? Math.sin(walkSeconds * SWEEP_FREQUENCY) * BROOM_SWING_WIDTH
-            : 0;
-        const forwardX = Math.sin(heading);
-        const forwardZ = Math.cos(heading);
-        foot.set(
-          avatar.position.x + forwardX * BROOM_REACH_AHEAD + forwardZ * swing,
-          0,
-          avatar.position.z + forwardZ * BROOM_REACH_AHEAD - forwardX * swing,
-        );
-        foot.y = groundHeightAt({ x: foot.x, z: foot.z });
-        deps.handR.getWorldPosition(handRPos);
-        placeBroomBetween(broom, foot, handRPos);
-      }
+      placeHeldProps(
+        held,
+        avatar,
+        deps.rig,
+        {
+          holdingBroom: snapshot.holdingBroom,
+          beadsVisible: snapshot.beadsVisible,
+          walking: snapshot.activity === "walking",
+        },
+        walkSeconds,
+      );
+    },
+    standUp() {
+      state.standUp();
+      publishView();
+    },
+    get snapshot() {
+      return state.snapshot;
+    },
+    get beadTotal() {
+      return beads.total;
     },
   };
 }
