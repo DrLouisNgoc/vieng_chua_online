@@ -6,6 +6,11 @@ import { createOnboardingController, ROBE_COLORS, type Gender } from "./onboardi
 import { renderAvatarSvg } from "./avatar-svg";
 import { t } from "./i18n";
 import { createInteractionHud } from "./interaction-hud";
+import { createAmbience } from "./ambience";
+import { createStorageBeadStore } from "./bead-counter";
+import { browserStorage } from "./browser-storage";
+import { createPractice } from "./practice";
+import { createPracticePanel } from "./practice-panel";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
 const DEFAULT_PRESENCE_URL = "ws://localhost:8787";
@@ -40,6 +45,7 @@ function renderShell(): void {
       <span class="room-label">${t("산사")} · <span id="visitor-name"></span> · <span id="presence-label"></span></span>
     </header>
     <div class="interaction-hud" id="interaction-hud" hidden></div>
+    <div class="practice" id="practice" hidden></div>
     <p class="hint" hidden>${t("바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소")}</p>
 
     <div class="onboarding" id="onboarding">
@@ -90,6 +96,7 @@ async function main(): Promise<void> {
   const hudTop = document.querySelector<HTMLElement>(".hud-top");
   const hint = document.querySelector<HTMLElement>(".hint");
   const interactionRoot = document.querySelector<HTMLElement>("#interaction-hud");
+  const practiceRoot = document.querySelector<HTMLElement>("#practice");
   const presenceLabel = document.querySelector<HTMLSpanElement>(
     "#presence-label",
   );
@@ -117,6 +124,7 @@ async function main(): Promise<void> {
     !hudTop ||
     !hint ||
     !interactionRoot ||
+    !practiceRoot ||
     !presenceLabel ||
     !visitorNameLabel ||
     !onboarding ||
@@ -129,10 +137,8 @@ async function main(): Promise<void> {
     throw new Error("expected UI elements are missing");
   }
 
-  // Start loading the 3D scene immediately, in parallel with onboarding —
-  // only sansatemple.com's own monk.glb is used in-scene regardless of the
-  // name/gender/color picked here (decision 0003: original 3D assets stay
-  // as-is; the picker only customizes the 2D SVG preview).
+  // Start loading the 3D scene immediately, in parallel with onboarding.
+  // The robe colour picked here also tints the 3D avatar (decision 0010).
   const moktakAudio = new Audio(MOKTAK_SOUND_URL);
   const playMoktakSound = (): void => {
     moktakAudio.currentTime = 0;
@@ -157,12 +163,43 @@ async function main(): Promise<void> {
   const interactionHud = createInteractionHud(interactionRoot, (action) =>
     performInteraction?.(action),
   );
+
+  // "Tu tập" (Milestone 7): chanting, moktak autoplay, background sound.
+  const ambience = createAmbience();
+  const storage = browserStorage() ?? { getItem: () => null, setItem: () => {} };
+  const practice = createPractice({
+    strike: () => moktakController?.strike(),
+    startChanting: () => temple?.startChanting() ?? false,
+    stopChanting: () => temple?.stopChanting(),
+    isChanting: () => temple?.isChanting() ?? false,
+    storeFor: (id) => createStorageBeadStore(storage, `vieng-chua.chant.${id}`),
+    onSessionChange: () => ambience.strikeBowl(),
+  });
+  const practicePanel = createPracticePanel(practiceRoot, {
+    selectChant: (id) => practice.selectChant(id),
+    toggleChant: () => practice.toggleChant(),
+    toggleAutoplay: () => practice.toggleAutoplay(),
+    toggleAmbience: () => ambience.setAmbienceOn(!ambience.ambienceOn),
+  });
+  let lastPracticeKey = "";
+  function renderPractice(): void {
+    const key = JSON.stringify([practice.view, ambience.ambienceOn]);
+    if (key === lastPracticeKey) return;
+    lastPracticeKey = key;
+    practicePanel.render(practice.view, ambience.ambienceOn);
+  }
+  renderPractice();
   const scenePromise = createTempleScene(viewport, {
     onMoktakClick: () => moktakController?.strike(),
     onInteractionView: (view) => interactionHud.render(view),
     onLocalState: (state) => {
       if (entered) presence.sendState(state);
     },
+    onFrame: (deltaSeconds) => {
+      practice.update(deltaSeconds);
+      renderPractice();
+    },
+    onRingBell: () => ambience.ringBell(),
   }).then((loaded) => {
     temple = loaded;
     performInteraction = loaded.perform;
@@ -221,6 +258,7 @@ async function main(): Promise<void> {
     hudTop.removeAttribute("hidden");
     hint.removeAttribute("hidden");
     interactionHud.show();
+    practicePanel.show();
     entered = true;
     presence.join(onb.state.name, onb.state.colorIndex);
     const colorIndex = onb.state.colorIndex;

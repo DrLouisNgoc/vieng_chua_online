@@ -410,3 +410,111 @@ body {
 .va-figure[data-look="nu"] .va-nam {
   display: none;
 }
+
+/* "Tu tập" panel (Milestone 7) */
+.practice {
+  position: absolute;
+  top: var(--space-hud);
+  right: var(--space-hud);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: calc(100vw - 2 * var(--space-hud));
+}
+
+.practice[hidden],
+.practice__panel[hidden],
+.practice__line[hidden] {
+  display: none;
+}
+
+.practice__toggle,
+.practice__start,
+.practice__switch {
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  background: oklch(93% 0.02 85 / 0.92);
+  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  border-radius: 999px;
+  box-shadow:
+    0 1px 2px oklch(22% 0.03 70 / 0.25),
+    0 6px 16px oklch(22% 0.03 70 / 0.18);
+  cursor: pointer;
+}
+
+.practice__toggle[aria-expanded="true"],
+.practice__start[aria-pressed="true"],
+.practice__switch[aria-pressed="true"] {
+  background: var(--color-gold);
+}
+
+.practice__switch:disabled,
+.practice__picker:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.practice__toggle:focus-visible,
+.practice__start:focus-visible,
+.practice__switch:focus-visible,
+.practice__picker:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.practice__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: min(20rem, calc(100vw - 2 * var(--space-hud)));
+  padding: 0.9rem;
+  color: var(--color-parchment);
+  background: oklch(22% 0.03 70 / 0.82);
+  border: 1px solid oklch(72% 0.1 80 / 0.45);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.35);
+}
+
+.practice__picker {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-parchment);
+  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  border-radius: 0.6rem;
+}
+
+.practice__line {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.practice__done {
+  opacity: 0.55;
+}
+
+.practice__now {
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+.practice__count {
+  margin: 0;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+/* narrow screens: the header pill takes the top row, so drop below it */
+@media (max-width: 560px) {
+  .practice {
+    top: calc(var(--space-hud) + 3.2rem);
+  }
+}

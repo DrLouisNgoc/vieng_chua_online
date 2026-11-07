@@ -27,6 +27,7 @@ import { MeshoptDecoder } from "meshoptimizer";
 import { createMovementController } from "./movement";
 import { createAvatarRig } from "./avatar-rig";
 import { localHour, skyAt } from "./sky-cycle";
+import { browserStorage } from "./browser-storage";
 import { tintRobe } from "./avatar-look";
 import { ROBE_COLORS } from "./onboarding";
 import { createRemoteVisitors } from "./remote-visitors";
@@ -140,6 +141,8 @@ export interface TempleSceneOptions {
   onInteractionView?: (view: InteractionView) => void;
   // Called every frame with the visitor's own state; the sender throttles.
   onLocalState?: (state: OutgoingState) => void;
+  onFrame?: (deltaSeconds: number) => void;
+  onRingBell?: () => void;
 }
 
 export interface TempleScene {
@@ -148,19 +151,12 @@ export interface TempleScene {
   setRobeColor: (colorIndex: number) => void;
   setVisitors: (visitors: readonly VisitorView[]) => void;
   refuseSeat: () => void;
+  startChanting: () => boolean;
+  stopChanting: () => void;
+  isChanting: () => boolean;
   dispose: () => void;
 }
 
-// localStorage itself can throw (blocked site data); the bead total then
-// just does not persist.
-function browserStorage(): Pick<Storage, "getItem" | "setItem"> | null {
-  try {
-    return window.localStorage;
-  } catch (error: unknown) {
-    console.warn("localStorage is not available:", error);
-    return null;
-  }
-}
 
 export async function createTempleScene(
   container: HTMLElement,
@@ -413,6 +409,7 @@ export async function createTempleScene(
     },
     storage: browserStorage(),
     onView: options.onInteractionView,
+    onRingBell: options.onRingBell,
   });
   const cameraYaw = (): number => START_HEADING + rig.yawOffset;
   function applyKeyboardMovement(deltaSeconds: number): void {
@@ -555,6 +552,7 @@ export async function createTempleScene(
     grounds.update(deltaSeconds);
     updateCamera(deltaSeconds);
     remoteVisitors.update(deltaSeconds, camera.position);
+    options.onFrame?.(deltaSeconds);
     const pulsing = nowMs < pulseUntil;
     const scale = pulsing ? MOKTAK_PULSE_SCALE : 1;
     moktakSprite.scale.set(
@@ -597,6 +595,9 @@ export async function createTempleScene(
     },
     setVisitors: (visitors) => remoteVisitors.sync(visitors),
     refuseSeat: () => interactions.standUp(),
+    startChanting: () => interactions.startChanting(),
+    stopChanting: () => interactions.stopChanting(),
+    isChanting: () => interactions.snapshot.activity === "chanting",
     dispose,
   };
 }
