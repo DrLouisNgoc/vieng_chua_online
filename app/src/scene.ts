@@ -3,7 +3,6 @@ import {
   Box3,
   CanvasTexture,
   DirectionalLight,
-  Euler,
   Fog,
   HemisphereLight,
   Mesh,
@@ -12,7 +11,6 @@ import {
   PCFShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
-  Quaternion,
   Raycaster,
   RepeatWrapping,
   SRGBColorSpace,
@@ -27,12 +25,7 @@ import {
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "meshoptimizer";
 import { createMovementController } from "./movement";
-import {
-  BONE_NAMES,
-  type BodyPose,
-  type BoneName,
-  type BoneRotation,
-} from "./body-pose";
+import { createAvatarRig } from "./avatar-rig";
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { buildTempleGrounds } from "./temple-grounds";
@@ -270,52 +263,8 @@ export async function createTempleScene(
     start: AVATAR_START,
     constrain: (from, to) => resolveMove(from, to, COLLIDERS),
   });
-  // GLTFLoader strips "." from node names (it reserves "." as the
-  // animation-track path separator), so the original rig's "thigh.L" etc.
-  // load as "thighL".
-  const avatarBones = new Map<BoneName, Object3D>();
-  const restQuaternions = new Map<Object3D, Quaternion>();
-  for (const name of BONE_NAMES) {
-    const bone = avatar.getObjectByName(name);
-    if (!bone) continue;
-    avatarBones.set(name, bone);
-    restQuaternions.set(bone, bone.quaternion.clone());
-  }
+  const avatarRig = createAvatarRig(avatar);
   let walkClockSeconds = 0;
-
-  // Rotate a bone about the avatar's own axes, as an offset from its rest
-  // pose. Converting the rotation into the bone's parent frame makes this
-  // independent of how each bone's local axes were rolled in the rig.
-  const avatarWorldQuat = new Quaternion();
-  const avatarToParent = new Quaternion();
-  const parentToAvatar = new Quaternion();
-  const offset = new Quaternion();
-  const offsetEuler = new Euler(0, 0, 0, "YXZ");
-  function rotateBone(bone: Object3D, rotation: BoneRotation): void {
-    const rest = restQuaternions.get(bone);
-    if (!rest || !bone.parent) return;
-    avatar.getWorldQuaternion(avatarWorldQuat);
-    bone.parent.getWorldQuaternion(avatarToParent);
-    avatarToParent.invert().multiply(avatarWorldQuat);
-    parentToAvatar.copy(avatarToParent).invert();
-    offsetEuler.set(rotation.x ?? 0, rotation.y ?? 0, rotation.z ?? 0);
-    offset
-      .setFromEuler(offsetEuler)
-      .premultiply(avatarToParent)
-      .multiply(parentToAvatar);
-    bone.quaternion.copy(rest).premultiply(offset);
-    bone.updateMatrixWorld(true);
-  }
-
-  // Parents first (BONE_NAMES order), so each child uses its parent's new
-  // pose; bones the pose leaves out go back to rest.
-  function applyPose(pose: BodyPose): void {
-    avatar.updateMatrixWorld(true);
-    for (const name of BONE_NAMES) {
-      const bone = avatarBones.get(name);
-      if (bone) rotateBone(bone, pose.bones[name] ?? {});
-    }
-  }
 
   const moktakTexture = await textureLoader.loadAsync(
     `${ASSET_ROOT}/images/moktak.webp`,
@@ -426,8 +375,8 @@ export async function createTempleScene(
     scene,
     avatar,
     movement,
-    handL: avatarBones.get("handL"),
-    handR: avatarBones.get("handR"),
+    handL: avatarRig.bone("handL"),
+    handR: avatarRig.bone("handR"),
     setHeading: (next) => {
       heading = next;
     },
@@ -526,7 +475,7 @@ export async function createTempleScene(
     // +PI: monk.glb's own modeled "front" faces the opposite of the
     // +Z-facing heading convention.
     avatar.rotation.y = heading + Math.PI;
-    applyPose(pose);
+    avatarRig.applyPose(pose);
     interactions.placeProps(walkClockSeconds);
     sun.target.position.set(pos.x, 0, pos.z);
     // far enough up-sun that the tall hall roof sits inside the shadow frustum
