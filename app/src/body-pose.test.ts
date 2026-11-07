@@ -77,6 +77,16 @@ describe("named poses", () => {
     expect(order("shinR")).toBeLessThan(order("footR"));
   });
 
+  it("sits cross-legged (kiết già): knees close, shins crossed", () => {
+    // owner, 2026-11-07: the wide-open knees looked wrong
+    expect(Math.abs(SEATED.bones.thighL?.z ?? 0)).toBeLessThanOrEqual(0.3);
+    expect(Math.abs(SEATED.bones.thighR?.z ?? 0)).toBeLessThanOrEqual(0.3);
+    const shinL = SEATED.bones.shinL?.y ?? 0;
+    const shinR = SEATED.bones.shinR?.y ?? 0;
+    expect(shinL).toBeGreaterThan(0.3);
+    expect(shinR).toBeLessThan(-0.3);
+  });
+
   it("lowers the body when seated", () => {
     expect(SEATED.hipsDrop).toBeGreaterThan(0);
     expect(BOW_SEATED.hipsDrop).toBeGreaterThan(0);
