@@ -23,6 +23,8 @@ export interface InteractionState {
   bow: (inStatueZone: boolean) => boolean;
   turnBead: () => boolean;
   toggleBroom: () => boolean;
+  // The server refused the cushion: stand up where we are.
+  standUp: () => void;
   tick: (deltaSeconds: number) => void;
 }
 
@@ -102,6 +104,11 @@ export function createInteractionState(): InteractionState {
       holdingBroom = !holdingBroom;
       enter("idle");
       return true;
+    },
+    standUp() {
+      if (seatIndex === null) return;
+      seatIndex = null;
+      enter("idle");
     },
     tick(deltaSeconds) {
       activitySeconds += deltaSeconds;

@@ -8,7 +8,8 @@
   backend server, 0005 web app not Electron, 0006 assets are a gitignored
   local cache, 0007 chuasen.com as a narrowly-scoped secondary UX reference,
   0008 procedural temple grounds / chuasen.com source referenced, not
-  copied wholesale, 0009 licensed third-party assets allowed.
+  copied wholesale, 0009 licensed third-party assets allowed, 0010 runtime robe tint
+  (amends 0003).
 - [../assets/third-party-assets.md](../assets/third-party-assets.md) —
   source and licence of every third-party asset file.
 - [../specs/milestone-4-movement-character-screen/status.md](../specs/milestone-4-movement-character-screen/status.md)

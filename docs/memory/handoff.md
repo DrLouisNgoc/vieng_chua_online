@@ -6,7 +6,7 @@ A personal Vietnamese-localized web clone of https://sansatemple.com — a 3D
 owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
-## Status (2026-11-05)
+## Status (2026-11-07)
 Milestones 1-3 done and committed. **Milestone 4 in progress**, all merged
 into local `main` (no remote exists): latest work was the grounds smoke
 test, frame-rate profile and pine simplification (merge 4340ed7). Read
@@ -34,10 +34,10 @@ What the app does now:
 - Presence count from the owner's server in the header.
 
 ## Run it
-`npm run dev` in `server/` (ws://localhost:8787), then `npm run dev` in
+`npm run dev` in `server/` (ws://localhost:8787; presence + visitor sync, server/src/protocol.ts), then `npm run dev` in
 `app/` (http://localhost:5173). `app/public/sansatemple/` must be populated
 (gitignored, decision 0006): `scripts/fetch-sansatemple-assets.sh`.
-Tests: `npm test` in app/ (87 pass), `npx tsc --noEmit -p .` clean.
+Tests: `npm test` in app/ (178 pass) and server/ (44 pass); `npx tsc --noEmit -p .` clean in both.
 
 ## Code map (app/src)
 - `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
@@ -72,7 +72,8 @@ gitignored cache · 0007 chuasen.com as narrow UX reference · 0008
 procedural grounds; **chuasen.com source is referenced** (avatar SVG,
 variant CSS mechanism, character-screen layout) **but not copied
 wholesale** (owner asked for a full copy repeatedly; declined) · 0009
-licensed third-party assets allowed (catalogued, gitignored; none yet).
+licensed third-party assets allowed (catalogued, gitignored; none yet) ·
+0010 robe tinted at runtime per visitor (amends 0003).
 
 ## Gotchas learned
 - GLTFLoader strips "." from node names: bone "thigh.L" is "thighL".
@@ -97,6 +98,11 @@ licensed third-party assets allowed (catalogued, gitignored; none yet).
 - Count triangles per mesh before guessing at render costs: one imported
   model (pine.glb) was 95% of the scene.
 - The start position is in front of the hall stairs, facing the hall.
+- Two-visitor browser checks: two Playwright contexts in one headed
+  Chrome; for render timing, keep a second window open in both arms of
+  the comparison (it competes for the GPU).
+- Other visitors are cloned (SkeletonUtils) from an unposed copy of
+  monk.glb taken before the own avatar is first posed.
 - Bone rotation axes on monk.glb (avatar frame, Euler YXZ): x>0 swings a
   limb forward / bends the elbow forward, spine x<0 bends forward; for the
   left arm z>0 moves it inward and y (applied last) swings a
@@ -110,15 +116,17 @@ licensed third-party assets allowed (catalogued, gitignored; none yet).
    sit (E near a cushion), greet (Q), bow (E seated / in front of the
    altar), beads (B, total in localStorage), broom + leaves. Read
    docs/specs/milestone-5-interactions/status.md (evidence, rulings, open
-   problems). Next is Milestone 6 (other visitors visible).
+   problems). Milestone 6 (other visitors visible) is also done; read
+   docs/specs/milestone-6-visitors/status.md (criterion 7 render cost is
+   inconclusive). Next: Milestone 7 private deploy (red tier, ask first).
    **Gate mode is now auto** (AGENTS.md).
 1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
    gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
 2. Frame rate: pines fixed (see status.md). Still ~22-40 fps, noisy.
    Next candidates, measure first: merge/instance the ~970 small meshes
    (draw calls), light count, MSAA. Needs an idle machine to measure.
-3. Milestone 6: other visitors visible (needed so others see the
-   Milestone 5 actions; owner decision D2).
+3. Milestone 6 follow-ups: measure remote-visitor render cost on two
+   real machines; owner to judge the per-visitor broom (E3) in practice.
 4. When the owner drops files in `app/public/thirdparty/` (Mixamo character
    + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
 5. Later: Milestone 7 private deploy (red tier). Recommendation given, not
