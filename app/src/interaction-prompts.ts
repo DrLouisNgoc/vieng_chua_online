@@ -8,7 +8,8 @@ export type InteractionAction =
   | "takeBroom"
   | "leaveBroom"
   | "greet"
-  | "bead";
+  | "bead"
+  | "ringBell";
 
 export type InteractionKey = "E" | "Q" | "B";
 
@@ -27,6 +28,7 @@ export const INTERACTION_TEXT: Record<InteractionAction, string> = {
   leaveBroom: "Dựng chổi",
   greet: "Chắp tay",
   bead: "Lần hạt",
+  ringBell: "Thỉnh chuông",
 };
 
 export const ACTION_KEYS: Record<InteractionAction, InteractionKey> = {
@@ -36,13 +38,14 @@ export const ACTION_KEYS: Record<InteractionAction, InteractionKey> = {
   leaveBroom: "E",
   greet: "Q",
   bead: "B",
+  ringBell: "E",
 };
 
 export function beadCounterText(round: number, total: number): string {
   return `Hạt ${round}/${BEADS_PER_ROUND} · tổng ${total}`;
 }
 
-// E carries one context action, by priority: broom > bow > sit.
+// E carries one context action, by priority: broom > bell > bow > sit.
 function contextAction(
   snapshot: InteractionSnapshot,
   targets: Targets,
@@ -50,6 +53,7 @@ function contextAction(
   const seated = snapshot.seatIndex !== null;
   if (snapshot.holdingBroom) return targets.nearBroom ? "leaveBroom" : null;
   if (targets.nearBroom && !seated) return "takeBroom";
+  if (targets.nearBell && !seated) return "ringBell";
   if (seated || targets.inStatueZone) return "bow";
   if (targets.seatIndex !== null) return "sit";
   return null;

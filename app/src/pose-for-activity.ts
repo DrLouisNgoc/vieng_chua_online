@@ -36,6 +36,7 @@ export function poseForActivity(
     case "beads":
       return seated ? BEADS_SEATED : BEADS;
     case "greeting":
+    case "chanting":
       return seated ? GREET_SEATED : GREET;
     case "bowing": {
       // down and back up once over the bow's duration

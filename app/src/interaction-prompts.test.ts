@@ -9,7 +9,7 @@ const idle: InteractionSnapshot = {
   holdingBroom: false,
   beadsVisible: false,
 };
-const nowhere: Targets = { seatIndex: null, nearBroom: false, inStatueZone: false };
+const nowhere: Targets = { seatIndex: null, nearBroom: false, nearBell: false, inStatueZone: false };
 
 function actions(snapshot: InteractionSnapshot, targets: Targets): string[] {
   return promptsFor(snapshot, targets).map((prompt) => prompt.action);
@@ -40,7 +40,7 @@ describe("promptsFor", () => {
     expect(actions(idle, { ...nowhere, nearBroom: true, seatIndex: 1 })[0]).toBe("takeBroom");
     const holding = { ...idle, holdingBroom: true };
     expect(actions(holding, { ...nowhere, nearBroom: true })).toEqual(["leaveBroom"]);
-    expect(actions(holding, { seatIndex: 1, nearBroom: false, inStatueZone: true })).toEqual([]);
+    expect(actions(holding, { ...nowhere, seatIndex: 1, inStatueZone: true })).toEqual([]);
   });
 
   it("does not offer the broom while seated", () => {
@@ -56,6 +56,20 @@ describe("promptsFor", () => {
       { action: "bead", key: "B", label: INTERACTION_TEXT.bead },
     ]);
     expect(INTERACTION_TEXT.sit).toBe("Ngồi thiền");
+  });
+});
+
+describe("bell and chanting prompts", () => {
+  const nearBell = { ...nowhere, nearBell: true };
+
+  it("offers ringing the bell over bowing and sitting, not with the broom", () => {
+    expect(actions(idle, { ...nearBell, inStatueZone: true, seatIndex: 1 })[0]).toBe("ringBell");
+    expect(actions({ ...idle, holdingBroom: true }, nearBell)).toEqual([]);
+    expect(promptsFor(idle, nearBell)[0]).toEqual({ action: "ringBell", key: "E", label: "Thỉnh chuông" });
+  });
+
+  it("offers nothing while chanting", () => {
+    expect(actions({ ...idle, activity: "chanting" }, { ...nearBell, seatIndex: 1 })).toEqual([]);
   });
 });
 

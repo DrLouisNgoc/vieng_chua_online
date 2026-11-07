@@ -62,6 +62,15 @@ describe("poseForActivity", () => {
   });
 });
 
+describe("chanting pose", () => {
+  it("joins palms standing, and seated with crossed legs", () => {
+    expect(poseForActivity({ ...base, activity: "chanting" }, 3, 0)).toBe(GREET);
+    const seated = poseForActivity({ ...base, activity: "chanting", seatIndex: 2 }, 3, 0);
+    expect(seated.bones.thighL).toEqual(SEATED.bones.thighL);
+    expect(seated.bones.forearmL).toEqual(GREET.bones.forearmL);
+  });
+});
+
 describe("new named poses", () => {
   it.each([["BEADS", BEADS], ["BEADS_SEATED", BEADS_SEATED], ["BROOM_IDLE", BROOM_IDLE], ["sweep", sweepPose(0.4)]])(
     "%s only names bones of the rig",

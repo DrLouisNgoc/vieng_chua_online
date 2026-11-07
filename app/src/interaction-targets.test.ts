@@ -64,3 +64,13 @@ describe("seatHeading", () => {
     expect(Math.sin(heading)).toBeCloseTo(-1);
   });
 });
+
+describe("bell tower", () => {
+  it("is in reach near the tower and not far away", async () => {
+    const { BELL_TOWER, BELL_REACH } = await import("./temple-layout");
+    const near = { x: BELL_TOWER.x, z: BELL_TOWER.z + BELL_REACH - 0.1 };
+    const far = { x: BELL_TOWER.x, z: BELL_TOWER.z + BELL_REACH + 0.1 };
+    expect(findTargets(near, { ...layout, bell: BELL_TOWER }).nearBell).toBe(true);
+    expect(findTargets(far, { ...layout, bell: BELL_TOWER }).nearBell).toBe(false);
+  });
+});

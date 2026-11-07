@@ -96,6 +96,8 @@ export const PATH = { fromZ: GATE.z + 4, toZ: COURTYARD.maxZ, width: 1.6 } as co
 export const URN = { x: 0, z: 13.5, radius: 0.9 } as const;
 
 export const BELL_TOWER = { x: 30, z: 30, half: 2.6, platformHeight: 0.4, pillarOffset: 1.9 } as const;
+// Close enough to the bell tower to ring the bell (Milestone 7).
+export const BELL_REACH = BELL_TOWER.half + 1.5;
 
 // Pairs of stone pillars lining the path.
 export const STONE_PILLARS: Point[] = [7.5, 11, 40, 80, 115].flatMap((z) => [

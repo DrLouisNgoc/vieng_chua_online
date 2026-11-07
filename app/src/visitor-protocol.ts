@@ -29,7 +29,15 @@ export type ServerMessage =
 
 export const STATE_INTERVAL_MS = 100;
 
-const ACTIVITIES: readonly Activity[] = ["idle", "walking", "seated", "greeting", "bowing", "beads"];
+const ACTIVITIES: readonly Activity[] = [
+  "idle",
+  "walking",
+  "seated",
+  "greeting",
+  "bowing",
+  "beads",
+  "chanting",
+];
 
 function round(value: number): number {
   return Math.round(value * 100) / 100;
