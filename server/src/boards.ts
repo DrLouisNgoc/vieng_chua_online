@@ -184,10 +184,10 @@ export function mergeWithSeed(persisted: unknown, seeds: readonly BoardSeed[]): 
 }
 
 export const BOARD_SEEDS: BoardSeed[] = [
-  { id: "coc-co-chi-yen", title: "Cốc Cô Chi Yến", type: "text", registrable: false },
+  { id: "coc-co-chi-yen", title: "Cốc Cô Yến", type: "text", registrable: false },
   { id: "coc-anh-tuan-ha", title: "Cốc Anh Tuấn Hà", type: "text", registrable: false },
-  { id: "coc-su-phu", title: "Cốc Sư Phụ (Nguyên Tuệ)", type: "text", registrable: false },
-  { id: "coc-cua-toi", title: "Cốc Của Tôi", type: "text", registrable: false },
+  { id: "coc-su-phu", title: "Cốc Sư Nguyên Tuệ", type: "text", registrable: false },
+  { id: "coc-cua-toi", title: "Cốc Khánh", type: "text", registrable: false },
   { id: "may-chieu-chanh-dien", title: "Bài giảng Thầy Nguyên Tuệ", type: "video", registrable: false },
   { id: "coc-mo-1", title: "Cốc Thuyết Pháp 1", type: "text", registrable: true },
   { id: "coc-mo-2", title: "Cốc Thuyết Pháp 2", type: "text", registrable: true },

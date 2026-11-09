@@ -13,10 +13,10 @@ Private deploy, previously Milestone 8, is renumbered to Milestone 9.
    Milestone 4; there is no second model to swap in.
 3. **8 cốc**, laid out in a ring around the existing meditation hut
    (`HUT`, untouched) in `temple-layout.ts` (`COC_SPOTS`):
-   - 4 named, fixed: Cốc Cô Chi Yến, Cốc Anh Tuấn Hà, Cốc Sư Phụ (Nguyên
-     Tuệ), Cốc Của Tôi. No registration; the owner performs the first
-     edit on each (which sets that cốc's password) and hands the
-     password to the person it's for.
+   - 4 named, fixed: Cốc Cô Yến, Cốc Anh Tuấn Hà, Cốc Sư Nguyên Tuệ,
+     Cốc Khánh (owner's own name). No registration; the owner performs
+     the first edit on each (which sets that cốc's password) and hands
+     the password to the person it's for.
    - 4 open ("Cốc Thuyết Pháp 1-4"): start empty. Anyone can submit a
      registration (name + note); the owner approves or rejects from an
      in-app admin screen (its own password, set on first use). Approval

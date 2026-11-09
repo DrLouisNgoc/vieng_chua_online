@@ -145,14 +145,14 @@ export interface CocSpot extends Point {
 }
 export const COC_SPOTS: CocSpot[] = (
   [
-    [-1, -1, "coc-co-chi-yen", "Cốc Cô Chi Yến"],
+    [-1, -1, "coc-co-chi-yen", "Cốc Cô Yến"],
     [0, -1, "coc-mo-1", "Cốc Thuyết Pháp 1"],
     [1, -1, "coc-anh-tuan-ha", "Cốc Anh Tuấn Hà"],
     [-1, 0, "coc-mo-2", "Cốc Thuyết Pháp 2"],
     [1, 0, "coc-mo-3", "Cốc Thuyết Pháp 3"],
-    [-1, 1, "coc-su-phu", "Cốc Sư Phụ (Nguyên Tuệ)"],
+    [-1, 1, "coc-su-phu", "Cốc Sư Nguyên Tuệ"],
     [0, 1, "coc-mo-4", "Cốc Thuyết Pháp 4"],
-    [1, 1, "coc-cua-toi", "Cốc Của Tôi"],
+    [1, 1, "coc-cua-toi", "Cốc Khánh"],
   ] as const
 ).map(([gx, gz, id, title]) => ({
   id,
