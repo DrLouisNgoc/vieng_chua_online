@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createBoardsClient, youtubeVideoId } from "./boards-client";
+import { createBoardsClient, parseTalks, youtubeVideoId } from "./boards-client";
 
 describe("youtubeVideoId", () => {
   it("extracts the id from a watch URL with extra query params", () => {
@@ -12,6 +12,32 @@ describe("youtubeVideoId", () => {
 
   it("returns null for something that isn't a YouTube link", () => {
     expect(youtubeVideoId("not a link")).toBeNull();
+  });
+});
+
+describe("parseTalks", () => {
+  it("splits title and url on the first '|'", () => {
+    expect(parseTalks("Vô thường | https://youtu.be/abc123def")).toEqual([
+      { title: "Vô thường", url: "https://youtu.be/abc123def" },
+    ]);
+  });
+
+  it("falls back to the url as the title when there's no '|' (old format)", () => {
+    expect(parseTalks("https://youtu.be/abc123def")).toEqual([
+      { title: "https://youtu.be/abc123def", url: "https://youtu.be/abc123def" },
+    ]);
+  });
+
+  it("parses one talk per line, skipping blank lines", () => {
+    expect(parseTalks("A | u1\n\nB | u2\n")).toEqual([
+      { title: "A", url: "u1" },
+      { title: "B", url: "u2" },
+    ]);
+  });
+
+  it("returns [] for empty input", () => {
+    expect(parseTalks("")).toEqual([]);
+    expect(parseTalks("   \n  ")).toEqual([]);
   });
 });
 

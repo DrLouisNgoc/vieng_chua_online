@@ -1,4 +1,4 @@
-import { youtubeVideoId, type AdminPendingEntry, type BoardsClient, type BoardView } from "./boards-client";
+import { parseTalks, youtubeVideoId, type AdminPendingEntry, type BoardsClient, type BoardView } from "./boards-client";
 
 // Panel for the 9 boards (4 named cốc, 4 open "Thuyết Pháp" cốc, the hall
 // projector) plus the owner's admin approval screen. DOM-wiring only (no
@@ -55,10 +55,12 @@ export function createBoardsPanel(
   let view: View = { kind: "list" };
   let boards: BoardView[] = [];
   let message = "";
+  let selectedTalkIndex = 0;
 
   function openPanel(next: View): void {
     view = next;
     message = "";
+    selectedTalkIndex = 0;
     panel.hidden = false;
     toggle.setAttribute("aria-expanded", "true");
     void refresh();
@@ -150,7 +152,7 @@ export function createBoardsPanel(
     content.rows = 8;
     content.placeholder =
       board.type === "video"
-        ? "Mỗi dòng một link YouTube"
+        ? "Mỗi dòng một bài: Tên bài | link YouTube\nVí dụ: Vô thường | https://youtu.be/..."
         : "Viết câu nói hoặc bài pháp ở đây...";
     const password = document.createElement("input");
     password.type = "password";
@@ -178,36 +180,43 @@ export function createBoardsPanel(
     return form;
   }
 
-  function renderVideos(body: string): HTMLElement {
+  function renderVideos(board: BoardView): HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "boards__videos";
-    const urls = body
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    if (urls.length === 0) {
+    const talks = parseTalks(board.body);
+    if (talks.length === 0) {
       const p = document.createElement("p");
-      p.textContent = "Chưa có link bài giảng nào.";
+      p.textContent = "Chưa có bài giảng nào.";
       wrap.append(p);
       return wrap;
     }
-    const first = urls[0];
-    if (first) {
+    if (selectedTalkIndex >= talks.length) selectedTalkIndex = 0;
+    const current = talks[selectedTalkIndex];
+    if (current) {
       const iframe = document.createElement("iframe");
       iframe.className = "boards__video";
-      iframe.src = toEmbedUrl(first);
+      iframe.src = toEmbedUrl(current.url);
       iframe.allow = "encrypted-media; picture-in-picture";
       iframe.allowFullscreen = true;
       wrap.append(iframe);
     }
-    if (urls.length > 1) {
+    if (talks.length > 1) {
       const list = document.createElement("ul");
       list.className = "boards__video-list";
-      for (const url of urls.slice(1)) {
+      talks.forEach((talk, index) => {
         const li = document.createElement("li");
-        li.textContent = url;
+        const pick = document.createElement("button");
+        pick.type = "button";
+        pick.className = "boards__video-pick";
+        pick.textContent = talk.title;
+        if (index === selectedTalkIndex) pick.setAttribute("aria-current", "true");
+        pick.addEventListener("click", () => {
+          selectedTalkIndex = index;
+          render();
+        });
+        li.append(pick);
         list.append(li);
-      }
+      });
       wrap.append(list);
     }
     return wrap;
@@ -227,7 +236,7 @@ export function createBoardsPanel(
     if (board.registrable && board.occupantName === null) {
       if (board.pendingName === null) parts.push(renderRegisterForm(board));
     } else if (board.type === "video") {
-      parts.push(renderVideos(board.body));
+      parts.push(renderVideos(board));
       parts.push(renderEditForm(board));
     } else {
       const content = document.createElement("p");

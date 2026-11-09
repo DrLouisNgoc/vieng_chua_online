@@ -8,6 +8,29 @@ export function youtubeVideoId(url: string): string | null {
   return /(?:v=|youtu\.be\/|embed\/)([\w-]{6,})/.exec(url)?.[1] ?? null;
 }
 
+export interface Talk {
+  title: string;
+  url: string;
+}
+
+// The video board's body: one talk per line, "Tên bài | link YouTube"
+// (owner, 2026-11-09: "làm thế nào để các bài giảng nghe có hệ thống").
+// A line with no "|" (the format before this) falls back to the URL as
+// its own title.
+export function parseTalks(body: string): Talk[] {
+  return body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const bar = line.indexOf("|");
+      if (bar === -1) return { title: line, url: line };
+      const title = line.slice(0, bar).trim();
+      const url = line.slice(bar + 1).trim();
+      return { title: title || url, url };
+    });
+}
+
 export type BoardType = "text" | "video";
 
 export interface BoardView {

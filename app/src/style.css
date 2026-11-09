@@ -657,9 +657,31 @@ body {
 }
 
 .boards__video-list {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  word-break: break-all;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.boards__video-pick {
+  width: 100%;
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  color: var(--color-parchment);
+  background: transparent;
+  border: 1px solid oklch(72% 0.1 80 / 0.35);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.boards__video-pick[aria-current="true"] {
+  color: var(--color-ink);
+  background: var(--color-gold);
+  border-color: transparent;
 }
 
 .boards__pending-card {
