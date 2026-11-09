@@ -131,13 +131,15 @@ export const LANTERN_LIGHTS = [
 
 export const HUT = { x: -40, z: 60, size: 3.2 } as const;
 
-// 8 cốc around the existing meditation hut (owner, 2026-11-09): 4 named
-// (fixed occupant, content password set by the owner) + 4 open for
-// registration ("Thuyết Pháp"), approved by the owner. ids must match
-// server/src/boards.ts BOARD_SEEDS exactly. A 3x3 grid around HUT, centre
-// cell skipped (that's the original hut).
+// 8 cốc near the existing meditation hut (owner, 2026-11-09), in a single
+// row along z ("hàng dọc", owner 2026-11-09) beside it (HUT, untouched):
+// the 4 named ones (fixed occupant, content password set by the owner)
+// first, then the 4 open for registration ("Thuyết Pháp"), approved by
+// the owner. ids must match server/src/boards.ts BOARD_SEEDS exactly.
 const COC_SIZE = 2.4;
 const COC_STEP = 8;
+const COC_ROW_X = HUT.x - 10;
+const COC_ROW_Z0 = HUT.z - 3.5 * COC_STEP;
 export interface CocSpot extends Point {
   id: string;
   title: string;
@@ -145,21 +147,21 @@ export interface CocSpot extends Point {
 }
 export const COC_SPOTS: CocSpot[] = (
   [
-    [-1, -1, "coc-co-chi-yen", "Cốc Cô Yến"],
-    [0, -1, "coc-mo-1", "Cốc Thuyết Pháp 1"],
-    [1, -1, "coc-anh-tuan-ha", "Cốc Anh Tuấn Hà"],
-    [-1, 0, "coc-mo-2", "Cốc Thuyết Pháp 2"],
-    [1, 0, "coc-mo-3", "Cốc Thuyết Pháp 3"],
-    [-1, 1, "coc-su-phu", "Cốc Sư Nguyên Tuệ"],
-    [0, 1, "coc-mo-4", "Cốc Thuyết Pháp 4"],
-    [1, 1, "coc-cua-toi", "Cốc Khánh"],
+    ["coc-co-chi-yen", "Cốc Cô Yến"],
+    ["coc-anh-tuan-ha", "Cốc Anh Tuấn Hà"],
+    ["coc-su-phu", "Cốc Sư Nguyên Tuệ"],
+    ["coc-cua-toi", "Cốc Khánh"],
+    ["coc-mo-1", "Cốc Thuyết Pháp 1"],
+    ["coc-mo-2", "Cốc Thuyết Pháp 2"],
+    ["coc-mo-3", "Cốc Thuyết Pháp 3"],
+    ["coc-mo-4", "Cốc Thuyết Pháp 4"],
   ] as const
-).map(([gx, gz, id, title]) => ({
+).map(([id, title], index) => ({
   id,
   title,
   size: COC_SIZE,
-  x: HUT.x + gx * COC_STEP,
-  z: HUT.z + gz * COC_STEP,
+  x: COC_ROW_X,
+  z: COC_ROW_Z0 + index * COC_STEP,
 }));
 
 // Reach to open a cốc's board, or the hall projector, same radius.
