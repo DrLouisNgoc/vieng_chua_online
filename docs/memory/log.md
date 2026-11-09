@@ -119,3 +119,21 @@
   meshes/draw calls, -30%); frame-time effect on this machine
   inconclusive (noise bigger than the measured diff). 211 app tests,
   44 server tests, tsc clean; screenshots 375/1440.
+- 2026-11-09: Milestone 8 (not in the original plan; owner requested it
+  live, several short interview rounds). White robe swatch (default);
+  confirmed the Buddha statue is already Shakyamuni, nothing to change;
+  8 new cốc (4 named + 4 open for registration, owner-approved) around
+  the meditation hut; hall photo frame (placeholder) + projector for
+  Thầy Nguyên Tuệ's talks (YouTube links, added later by the owner);
+  public chat. New server HTTP API (boards + admin, same port as the WS
+  presence server) with salted-hash passwords, persisted to
+  server/data/boards.json (gitignored — real content). Fixed two bugs
+  found while building: the new cốc weren't in cameraBlockers (camera
+  clipped through them); the new httpServer had no 'error' listener
+  (crashed uncaught on EADDRINUSE during dev-watch restarts). app 211
+  -> 227 tests, server 44 -> 99 tests, tsc clean both; verified live in
+  the running app (register -> approve -> write content -> read it;
+  chat send/receive). Private deploy renumbered Milestone 8 -> 9. Owner
+  still to drop app/public/thirdparty/nguyen-tue.jpg and give out the
+  4 named cốc passwords themselves. See
+  docs/specs/milestone-8-coc-boards-chat/status.md.

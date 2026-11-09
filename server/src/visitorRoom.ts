@@ -12,6 +12,9 @@ export interface VisitorRoom {
   leave: (id: string) => void;
   snapshot: () => VisitorView[];
   takeDirty: () => boolean;
+  // Public chat (Milestone: cốc + chat) attributes each message to the
+  // sender's current name; undefined once they've left.
+  nameOf: (id: string) => string | undefined;
 }
 
 const START_STATE: VisitorState = {
@@ -84,6 +87,9 @@ export function createVisitorRoom(): VisitorRoom {
       const was = dirty;
       dirty = false;
       return was;
+    },
+    nameOf(id) {
+      return visitors.get(id)?.name;
     },
   };
 }

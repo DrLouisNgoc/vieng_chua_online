@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   STATE_INTERVAL_MS,
+  encodeChat,
   encodeJoin,
   encodeState,
   parseServerMessage,
@@ -43,6 +44,10 @@ describe("encode", () => {
       heading: 3.14,
     });
   });
+
+  it("encodes chat", () => {
+    expect(JSON.parse(encodeChat("Xin chào"))).toEqual({ type: "chat", text: "Xin chào" });
+  });
 });
 
 describe("parseServerMessage", () => {
@@ -66,6 +71,17 @@ describe("parseServerMessage", () => {
     expect(parseServerMessage("nope")).toBeNull();
     expect(parseServerMessage('{"type":"visitors","visitors":"x"}')).toBeNull();
     expect(parseServerMessage('{"type":"other"}')).toBeNull();
+  });
+
+  it("parses a chat message and a chat-history batch, dropping malformed entries", () => {
+    const entry = { id: "m1", name: "An", text: "Xin chào", ts: 123 };
+    expect(parseServerMessage(JSON.stringify({ type: "chat", message: entry }))).toEqual({
+      type: "chat",
+      message: entry,
+    });
+    expect(
+      parseServerMessage(JSON.stringify({ type: "chat-history", messages: [entry, { id: 5 }] })),
+    ).toEqual({ type: "chat-history", messages: [entry] });
   });
 });
 
