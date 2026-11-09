@@ -117,6 +117,12 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
   (movement.placeAt) teleports the avatar; never commit it.
 
 ## Next (pick up here)
+-1. **Moving to another machine (2026-11-09):** the owner zips this folder.
+   `_chuyen-may/` (git-excluded, holds sessions, global CLAUDE.md, rules,
+   dev-team plugin source) + `CAI-DAT.bat` installs them and runs `npm ci`.
+   Not moved: MCP rea/codegraph, browser localStorage counts. Delete
+   `_chuyen-may/` once the new machine works; it holds full chat history.
+   Still open for the owner: 3 CC0 sound files, proofread Tâm Kinh.
 0. **Milestone 5 (interactions) is done** and merged into local main:
    sit (E near a cushion), greet (Q), bow (E seated / in front of the
    altar), beads (B, total in localStorage), broom + leaves. Read
