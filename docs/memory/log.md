@@ -113,3 +113,4 @@
   clock, lanterns, chanting (3 texts) with counts, moktak autoplay, optional
   CC0 sounds (owner to download); 211 app tests.
 - 2026-11-09: root package.json + scripts/dev.mjs: `npm run dev` from the root.
+- 2026-11-09: prepared move to another machine (_chuyen-may, CAI-DAT.bat; tested on a copy).
