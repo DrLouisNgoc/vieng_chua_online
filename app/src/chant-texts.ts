@@ -6,7 +6,7 @@
 // the owner should proofread it (docs/specs/milestone-7-atmosphere-practice).
 // Modern Vietnamese translations are copyrighted and deliberately not used.
 
-export type ChantId = "adida" | "quanam" | "tamkinh";
+export type ChantId = "thichca" | "adida" | "quanam" | "tamkinh";
 
 export interface ChantText {
   id: ChantId;
@@ -22,6 +22,13 @@ function syllables(...lines: string[]): string[][] {
 }
 
 export const CHANTS: readonly ChantText[] = [
+  {
+    id: "thichca",
+    title: "Niệm Bổn Sư Thích Ca",
+    unit: "câu",
+    bpm: 100,
+    lines: syllables("Nam Mô Bổn Sư Thích Ca Mâu Ni Phật"),
+  },
   {
     id: "adida",
     title: "Niệm A Di Đà Phật",
