@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MAX_NAME_LENGTH, SEAT_COUNT, parseClientMessage } from "./protocol.js";
+import { MAX_CHAT_LENGTH, MAX_NAME_LENGTH, SEAT_COUNT, parseClientMessage } from "./protocol.js";
 
 const goodState = {
   type: "state",
@@ -30,7 +30,7 @@ describe("parseClientMessage: join", () => {
     ["empty name", { name: "   ", colorIndex: 0 }],
     ["long name", { name: "x".repeat(MAX_NAME_LENGTH + 1), colorIndex: 0 }],
     ["name not a string", { name: 5, colorIndex: 0 }],
-    ["colour out of range", { name: "A", colorIndex: 5 }],
+    ["colour out of range", { name: "A", colorIndex: 6 }],
     ["colour not an integer", { name: "A", colorIndex: 1.5 }],
   ])("rejects %s", (_label, fields) => {
     expect(parseClientMessage(raw({ type: "join", ...fields }))).toBeNull();
@@ -63,12 +63,29 @@ describe("parseClientMessage: state", () => {
   });
 });
 
+describe("parseClientMessage: chat", () => {
+  it("accepts and trims chat text", () => {
+    expect(parseClientMessage(raw({ type: "chat", text: "  Xin chào  " }))).toEqual({
+      type: "chat",
+      text: "Xin chào",
+    });
+  });
+
+  it.each([
+    ["empty text", { text: "   " }],
+    ["too long", { text: "x".repeat(MAX_CHAT_LENGTH + 1) }],
+    ["not a string", { text: 5 }],
+  ])("rejects %s", (_label, fields) => {
+    expect(parseClientMessage(raw({ type: "chat", ...fields }))).toBeNull();
+  });
+});
+
 describe("parseClientMessage: anything else", () => {
   it.each([
     ["bad JSON", "{not json"],
     ["a JSON string", raw("join")],
     ["null", "null"],
-    ["unknown type", raw({ type: "chat", text: "hi" })],
+    ["unknown type", raw({ type: "incense", text: "hi" })],
     ["an array", raw([goodState])],
   ])("rejects %s", (_label, text) => {
     expect(parseClientMessage(text)).toBeNull();

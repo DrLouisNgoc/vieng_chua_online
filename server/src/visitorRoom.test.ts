@@ -52,6 +52,14 @@ describe("visitor room", () => {
     expect(room.snapshot()).toEqual([]);
   });
 
+  it("looks up a joined visitor's current name, undefined once gone", () => {
+    const room = createVisitorRoom();
+    room.join("a", "An", 0);
+    expect(room.nameOf("a")).toBe("An");
+    room.leave("a");
+    expect(room.nameOf("a")).toBeUndefined();
+  });
+
   describe("cushions", () => {
     it("refuses a cushion another visitor sits on, keeping the visitor standing", () => {
       const room = createVisitorRoom();

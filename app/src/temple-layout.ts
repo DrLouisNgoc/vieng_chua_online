@@ -131,6 +131,44 @@ export const LANTERN_LIGHTS = [
 
 export const HUT = { x: -40, z: 60, size: 3.2 } as const;
 
+// 8 cốc around the existing meditation hut (owner, 2026-11-09): 4 named
+// (fixed occupant, content password set by the owner) + 4 open for
+// registration ("Thuyết Pháp"), approved by the owner. ids must match
+// server/src/boards.ts BOARD_SEEDS exactly. A 3x3 grid around HUT, centre
+// cell skipped (that's the original hut).
+const COC_SIZE = 2.4;
+const COC_STEP = 8;
+export interface CocSpot extends Point {
+  id: string;
+  title: string;
+  size: number;
+}
+export const COC_SPOTS: CocSpot[] = (
+  [
+    [-1, -1, "coc-co-chi-yen", "Cốc Cô Chi Yến"],
+    [0, -1, "coc-mo-1", "Cốc Thuyết Pháp 1"],
+    [1, -1, "coc-anh-tuan-ha", "Cốc Anh Tuấn Hà"],
+    [-1, 0, "coc-mo-2", "Cốc Thuyết Pháp 2"],
+    [1, 0, "coc-mo-3", "Cốc Thuyết Pháp 3"],
+    [-1, 1, "coc-su-phu", "Cốc Sư Phụ (Nguyên Tuệ)"],
+    [0, 1, "coc-mo-4", "Cốc Thuyết Pháp 4"],
+    [1, 1, "coc-cua-toi", "Cốc Của Tôi"],
+  ] as const
+).map(([gx, gz, id, title]) => ({
+  id,
+  title,
+  size: COC_SIZE,
+  x: HUT.x + gx * COC_STEP,
+  z: HUT.z + gz * COC_STEP,
+}));
+
+// Reach to open a cốc's board, or the hall projector, same radius.
+export const BOARD_REACH = 1.8;
+
+// Photo of Thầy Nguyên Tuệ + the projector that plays his talks, inside
+// the hall, clear of the seat rows (|x| <= 12.6) and the inner pillars.
+export const HALL_PROJECTOR: Point = { x: 28, z: -6 };
+
 // Rectangular lotus pond alongside the hall's right-hand side.
 export const POND = { minX: 48, maxX: 74, minZ: -44, maxZ: -10 } as const;
 
@@ -280,6 +318,8 @@ export const COLLIDERS: Box[] = [
   ...STONE_PILLARS.map((p) => around(p, 0.35)),
   ...LANTERN_POSTS.map((p) => around(p, 0.3)),
   around(HUT, HUT.size / 2),
+  ...COC_SPOTS.map((spot) => around(spot, spot.size / 2)),
+  around(HALL_PROJECTOR, 0.6),
   POND,
   around(BANYAN, 1.4),
   ...PINE_POSITIONS.map((p) => around(p, 0.4)),

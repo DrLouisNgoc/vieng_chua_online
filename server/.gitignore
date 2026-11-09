@@ -1,3 +1,7 @@
 node_modules
 dist
 *.local
+# Content boards (cốc text, projector video links): real content from real
+# people, not test fixtures. Gitignored like other owner/visitor data; back
+# it up yourself before wiping the repo.
+data/

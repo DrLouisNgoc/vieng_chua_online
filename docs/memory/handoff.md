@@ -6,12 +6,14 @@ A personal Vietnamese-localized web clone of https://sansatemple.com — a 3D
 owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
-## Status (2026-11-07)
-Milestones 1-3 done and committed. **Milestone 4 in progress**, all merged
-into local `main` (no remote exists): latest work was the grounds smoke
-test, frame-rate profile and pine simplification (merge 4340ed7). Read
-docs/specs/milestone-4-movement-character-screen/status.md first: it lists
-every scope change, ruling, fixed bug and open problem.
+## Status (2026-11-09)
+Milestones 1-7 done. Milestone 8 (cốc + bulletin boards + hall projector +
+public chat — not in the original plan, owner requested it live) built and
+merged into local `main` (no remote exists):
+docs/specs/milestone-8-coc-boards-chat/status.md. Private deploy is now
+Milestone 9. Milestone 4's own open problems (frame rate, yard ruling
+confirmation) are unrelated and still open — read
+docs/specs/milestone-4-movement-character-screen/status.md.
 
 What the app does now:
 - Onboarding card (name, gender, robe colour, parametric SVG avatar adapted
@@ -32,12 +34,19 @@ What the app does now:
   Clicking the in-scene moktak sprite plays the sound (the moktak HUD panel
   was removed at the owner's request).
 - Presence count from the owner's server in the header.
+- Day/night cycle, lanterns, chanting (3 texts), moktak autoplay (Milestone
+  7). 8 cốc around the meditation hut (4 named + 4 open for registration,
+  owner-approved) and a photo+projector for Thầy Nguyên Tuệ in the hall,
+  each a password-gated content board (Milestone 8); public chat
+  (Milestone 8). See "Next" below for what the owner still has to do.
 
 ## Run it
-`npm run dev` in the project root starts the server (ws://localhost:8787)
-and the app (http://localhost:5173) via scripts/dev.mjs. `app/public/sansatemple/` must be populated
-(gitignored, decision 0006): `scripts/fetch-sansatemple-assets.sh`.
-Tests: `npm test` in app/ (211 pass) and server/ (44 pass); `npx tsc --noEmit -p .` clean in both.
+`npm run dev` in the project root starts the server (ws + boards HTTP on
+:8787) and the app (http://localhost:5173) via scripts/dev.mjs.
+`app/public/sansatemple/` must be populated (gitignored, decision 0006):
+`scripts/fetch-sansatemple-assets.sh`. Board/chat content persists to
+`server/data/boards.json` (gitignored — real content, back it up yourself).
+Tests: `npm test` in app/ (227 pass) and server/ (99 pass); `npx tsc --noEmit -p .` clean in both.
 
 ## Code map (app/src)
 - `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
@@ -60,10 +69,26 @@ Tests: `npm test` in app/ (211 pass) and server/ (44 pass); `npx tsc --noEmit -p
   `interaction-runtime.ts` (wiring), `interaction-props.ts` (meshes),
   `interaction-hud.ts` (DOM).
   `temple-grounds.test.ts` builds the whole grounds in Node.
+  Milestone 8: `board-proximity.ts` (pure, which cốc/projector is in
+  reach), `boards-client.ts` (fetch wrapper for the server's boards API),
+  `boards-panel.ts` + `chat-panel.ts` (DOM, no unit tests, same as
+  practice-panel.ts).
 - Third-party assets (decision 0009): files go in `app/public/thirdparty/`
   (gitignored), each listed in `docs/assets/third-party-assets.md` first.
   Owner said they will provide a Mixamo character + animations, audio and
   reference screenshots (`reference/`, gitignored); none provided yet.
+  Also expected: `nguyen-tue.jpg` (Thầy Nguyên Tuệ's photo for the hall
+  frame; a placeholder shows until it's there, no code change needed).
+
+## Code map (server/src) — Milestone 8 additions
+- `boards.ts` — pure board store: list/get/edit/register/approve/reject,
+  `BOARD_SEEDS` (the 9 board ids/titles). `passwordHash.ts` (scrypt,
+  shared with `adminAuth.ts`). `boardsFile.ts` (JSON persistence,
+  read-or-null / write). `boardsHttp.ts` (the HTTP routes, no framework).
+- `chatRoom.ts` — pure 50-message ring buffer. `visitorRoom.ts` gained
+  `nameOf(id)` so a chat message can be attributed to the sender's name.
+- `server.ts` now runs an `http.Server` (boards + admin routes) with the
+  WebSocketServer attached via the `server` option, both on port 8787.
 
 ## Decisions (docs/memory/decisions/) — read before re-deciding
 0001 personal use only · 0002 Electron (superseded) · 0003 keep original
@@ -115,6 +140,12 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
   time with screenshots before tuning a pose.
 - For browser checks, a temporary `window.__verify.placeAt(x, z)` hook
   (movement.placeAt) teleports the avatar; never commit it.
+- `new WebSocketServer({ server: httpServer })`: ws does not close
+  `httpServer` when you call `wss.close()` (you must do it yourself), and
+  neither `httpServer`'s own `'error'` event nor the one `ws` re-emits on
+  `wss` has a default listener — either one throws uncaught (e.g.
+  `EADDRINUSE` on a fast dev-watch restart) unless you add `.on("error", ...)`
+  to *both* objects.
 
 ## Next (pick up here)
 -1. **Moving to another machine (2026-11-09):** the owner zips this folder.
@@ -123,31 +154,39 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
    Not moved: MCP rea/codegraph, browser localStorage counts. Delete
    `_chuyen-may/` once the new machine works; it holds full chat history.
    Still open for the owner: 3 CC0 sound files, proofread Tâm Kinh.
-0. **Milestone 5 (interactions) is done** and merged into local main:
-   sit (E near a cushion), greet (Q), bow (E seated / in front of the
-   altar), beads (B, total in localStorage), broom + leaves. Read
-   docs/specs/milestone-5-interactions/status.md (evidence, rulings, open
-   problems). Milestone 6 (other visitors visible) is also done; read
-   docs/specs/milestone-6-visitors/status.md (criterion 7 render cost is
-   inconclusive). Milestone 7 (day/night, lanterns, chanting, moktak autoplay, sound) is
-   done too: docs/specs/milestone-7-atmosphere-practice/status.md. The owner
-   still has to download 3 CC0 sound files (docs/assets/third-party-assets.md)
-   and proofread the Tâm Kinh text (app/src/chant-texts.ts). Next:
-   Milestone 8 private deploy (red tier, ask first).
-   **Gate mode is now auto** (AGENTS.md).
-1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
-   gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
+0. **Milestone 8 (cốc + boards + chat) is done**, see status.md for full
+   scope/rulings/open problems. Owner still has to, in no particular
+   order:
+   - Drop `app/public/thirdparty/nguyen-tue.jpg` (a placeholder shows
+     until then).
+   - Open each of the 4 named cốc once (as the owner, in the app),
+     write something, pick a password, and give that password to Cô Chi
+     Yến / Anh Tuấn Hà / Sư Phụ / themself — whoever it's for.
+   - Open the admin screen once ("Quản trị (chủ chùa)" in the boards
+     panel) to set the admin password, for approving the open cốc's
+     registrations later.
+   - Add the hall projector's YouTube link(s) through the same
+     password-gated edit box (one URL per line) — the first edit on
+     that board sets its password too.
+   - Download 3 CC0 sound files (docs/assets/third-party-assets.md) and
+     proofread the Tâm Kinh text (app/src/chant-texts.ts) — carried over
+     from Milestone 7, still open.
+   **Gate mode is auto** (AGENTS.md).
+1. Owner: confirm the two yard rulings in Milestone 4's status.md
+   ("x10/x5" on the gaps; "nhỏ đi 2 lần" = half the area) — asked
+   2026-11-05, no answer yet.
 2. Frame rate: pines fixed, and the ~970 small meshes are now instanced
    (790 -> 554 scene meshes/draw calls, -30%; branch
-   perf/instance-small-props, see status.md) — but the frame-time effect
-   on this machine was inconclusive (noise bigger than the diff). Still
-   ~22-40 fps, noisy. Next candidates, measure on an idle machine with a
-   GPU profiler: light count (6 on PBR materials), MSAA, pixel ratio.
+   perf/instance-small-props, see Milestone 4's status.md) — but the
+   frame-time effect on this machine was inconclusive (noise bigger than
+   the diff). Still ~22-40 fps, noisy. Next candidates, measure on an
+   idle machine with a GPU profiler: light count (6 on PBR materials),
+   MSAA, pixel ratio.
 3. Milestone 6 follow-ups: measure remote-visitor render cost on two
    real machines; owner to judge the per-visitor broom (E3) in practice.
 4. When the owner drops files in `app/public/thirdparty/` (Mixamo character
    + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
-5. Later: Milestone 8 private deploy (red tier). Recommendation given, not
+5. Later: Milestone 9 private deploy (red tier). Recommendation given, not
    confirmed: Tailscale + one small VPS.
 
 ## Constraints

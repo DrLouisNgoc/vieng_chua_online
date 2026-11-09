@@ -11,9 +11,14 @@ import { createStorageBeadStore } from "./bead-counter";
 import { browserStorage } from "./browser-storage";
 import { createPractice } from "./practice";
 import { createPracticePanel } from "./practice-panel";
+import { createBoardsClient } from "./boards-client";
+import { createBoardsPanel } from "./boards-panel";
+import { createChatPanel } from "./chat-panel";
+import { nearestBoardId } from "./board-proximity";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
 const DEFAULT_PRESENCE_URL = "ws://localhost:8787";
+const DEFAULT_BOARDS_URL = "http://localhost:8787";
 
 function presenceStatusText(status: PresenceStatus): string {
   switch (status.kind) {
@@ -46,6 +51,9 @@ function renderShell(): void {
     </header>
     <div class="interaction-hud" id="interaction-hud" hidden></div>
     <div class="practice" id="practice" hidden></div>
+    <div class="boards" id="boards" hidden></div>
+    <div class="chat" id="chat" hidden></div>
+    <p class="board-prompt" id="board-prompt" hidden></p>
     <p class="hint" hidden>${t("바닥 클릭 · 드래그로 둘러보기 · 휠로 확대/축소")}</p>
 
     <div class="onboarding" id="onboarding">
@@ -97,6 +105,9 @@ async function main(): Promise<void> {
   const hint = document.querySelector<HTMLElement>(".hint");
   const interactionRoot = document.querySelector<HTMLElement>("#interaction-hud");
   const practiceRoot = document.querySelector<HTMLElement>("#practice");
+  const boardsRoot = document.querySelector<HTMLElement>("#boards");
+  const chatRoot = document.querySelector<HTMLElement>("#chat");
+  const boardPrompt = document.querySelector<HTMLElement>("#board-prompt");
   const presenceLabel = document.querySelector<HTMLSpanElement>(
     "#presence-label",
   );
@@ -125,6 +136,9 @@ async function main(): Promise<void> {
     !hint ||
     !interactionRoot ||
     !practiceRoot ||
+    !boardsRoot ||
+    !chatRoot ||
+    !boardPrompt ||
     !presenceLabel ||
     !visitorNameLabel ||
     !onboarding ||
@@ -151,6 +165,7 @@ async function main(): Promise<void> {
     null;
   let performInteraction: ((action: Parameters<TempleScene["perform"]>[0]) => void) | null = null;
   let temple: TempleScene | null = null;
+  const chatPanel = createChatPanel(chatRoot, (text) => presence.sendChat(text));
   const presence = createPresenceClient({
     url: import.meta.env.VITE_PRESENCE_URL ?? DEFAULT_PRESENCE_URL,
     onStatus: (status) => {
@@ -158,6 +173,8 @@ async function main(): Promise<void> {
     },
     onVisitors: (visitors) => temple?.setVisitors(visitors),
     onSeatRefused: () => temple?.refuseSeat(),
+    onChat: (message) => chatPanel.addMessage(message),
+    onChatHistory: (messages) => chatPanel.setHistory(messages),
   });
   let entered = false;
   const interactionHud = createInteractionHud(interactionRoot, (action) =>
@@ -167,6 +184,12 @@ async function main(): Promise<void> {
   // "Tu tập" (Milestone 7): chanting, moktak autoplay, background sound.
   const ambience = createAmbience();
   const storage = browserStorage() ?? { getItem: () => null, setItem: () => {} };
+  // Cốc + hall projector boards (owner, 2026-11-09): read-only HTTP for
+  // everyone, password-gated edits, registration + admin approval for the
+  // 4 open cốc.
+  const boardsClient = createBoardsClient(import.meta.env.VITE_BOARDS_URL ?? DEFAULT_BOARDS_URL);
+  const boardsPanel = createBoardsPanel(boardsRoot, boardsClient, storage);
+  let nearBoardId: string | null = null;
   const practice = createPractice({
     strike: () => moktakController?.strike(),
     startChanting: () => temple?.startChanting() ?? false,
@@ -194,6 +217,9 @@ async function main(): Promise<void> {
     onInteractionView: (view) => interactionHud.render(view),
     onLocalState: (state) => {
       if (entered) presence.sendState(state);
+      nearBoardId = nearestBoardId(state);
+      boardPrompt.hidden = nearBoardId === null;
+      if (nearBoardId !== null) boardPrompt.textContent = "Nhấn E để mở cốc / bài giảng";
     },
     onFrame: (deltaSeconds) => {
       practice.update(deltaSeconds);
@@ -259,10 +285,22 @@ async function main(): Promise<void> {
     hint.removeAttribute("hidden");
     interactionHud.show();
     practicePanel.show();
+    boardsPanel.show();
+    chatPanel.show();
     entered = true;
     presence.join(onb.state.name, onb.state.colorIndex);
     const colorIndex = onb.state.colorIndex;
     void scenePromise.then((loaded) => loaded.setRobeColor(colorIndex));
+  });
+
+  // Opening a cốc/the hall projector (E, near one) is independent of the
+  // sit/bow/beads interaction state machine (scene.ts's own E handling) —
+  // the zones never overlap. Ignored while typing in a panel's own input.
+  window.addEventListener("keydown", (event) => {
+    if (event.code !== "KeyE" || event.repeat || !entered || nearBoardId === null) return;
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    boardsPanel.openBoard(nearBoardId);
   });
 }
 

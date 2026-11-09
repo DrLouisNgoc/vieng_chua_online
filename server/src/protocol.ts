@@ -3,7 +3,8 @@
 // untrusted: parseClientMessage accepts only the exact shapes below.
 
 export const MAX_NAME_LENGTH = 24;
-export const ROBE_COLOR_COUNT = 5;
+export const MAX_CHAT_LENGTH = 300;
+export const ROBE_COLOR_COUNT = 6;
 // Must match app/src/temple-layout.ts: 16 x 24 hall cushions + 4 banyan seats.
 export const SEAT_COUNT = 388;
 // Must match WORLD_LIMIT in app/src/temple-layout.ts.
@@ -26,6 +27,18 @@ export interface JoinMessage {
   colorIndex: number;
 }
 
+export interface ChatSendMessage {
+  type: "chat";
+  text: string;
+}
+
+export interface ChatEntry {
+  id: string;
+  name: string;
+  text: string;
+  ts: number;
+}
+
 export interface VisitorState {
   x: number;
   z: number;
@@ -41,7 +54,7 @@ export interface StateMessage extends VisitorState {
   type: "state";
 }
 
-export type ClientMessage = JoinMessage | StateMessage;
+export type ClientMessage = JoinMessage | StateMessage | ChatSendMessage;
 
 export interface VisitorView extends VisitorState {
   id: string;
@@ -53,7 +66,9 @@ export type ServerMessage =
   | { type: "presence"; count: number }
   | { type: "welcome"; id: string }
   | { type: "visitors"; visitors: VisitorView[] }
-  | { type: "seat-refused"; seatIndex: number };
+  | { type: "seat-refused"; seatIndex: number }
+  | { type: "chat"; message: ChatEntry }
+  | { type: "chat-history"; messages: ChatEntry[] };
 
 type Fields = Record<string, unknown>;
 
@@ -94,6 +109,13 @@ function parseState(fields: Fields): StateMessage | null {
   };
 }
 
+function parseChat(fields: Fields): ChatSendMessage | null {
+  if (typeof fields.text !== "string") return null;
+  const text = fields.text.trim();
+  if (text.length === 0 || text.length > MAX_CHAT_LENGTH) return null;
+  return { type: "chat", text };
+}
+
 export function parseClientMessage(text: string): ClientMessage | null {
   let value: unknown;
   try {
@@ -106,5 +128,6 @@ export function parseClientMessage(text: string): ClientMessage | null {
   const fields = value as Fields;
   if (fields.type === "join") return parseJoin(fields);
   if (fields.type === "state") return parseState(fields);
+  if (fields.type === "chat") return parseChat(fields);
   return null;
 }

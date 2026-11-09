@@ -21,13 +21,23 @@ export interface VisitorView extends OutgoingState {
   colorIndex: number;
 }
 
+export interface ChatEntry {
+  id: string;
+  name: string;
+  text: string;
+  ts: number;
+}
+
 export type ServerMessage =
   | { type: "presence"; count: number }
   | { type: "welcome"; id: string }
   | { type: "visitors"; visitors: VisitorView[] }
-  | { type: "seat-refused"; seatIndex: number };
+  | { type: "seat-refused"; seatIndex: number }
+  | { type: "chat"; message: ChatEntry }
+  | { type: "chat-history"; messages: ChatEntry[] };
 
 export const STATE_INTERVAL_MS = 100;
+export const MAX_CHAT_LENGTH = 300;
 
 const ACTIVITIES: readonly Activity[] = [
   "idle",
@@ -51,6 +61,10 @@ export function encodeJoin(name: string, colorIndex: number): string {
   return JSON.stringify({ type: "join", name, colorIndex });
 }
 
+export function encodeChat(text: string): string {
+  return JSON.stringify({ type: "chat", text });
+}
+
 export function encodeState(state: OutgoingState): string {
   return JSON.stringify({ type: "state", ...rounded(state) });
 }
@@ -72,6 +86,20 @@ type Fields = Record<string, unknown>;
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function parseChatEntry(value: unknown): ChatEntry | null {
+  if (typeof value !== "object" || value === null) return null;
+  const v = value as Fields;
+  if (
+    typeof v.id === "string" &&
+    typeof v.name === "string" &&
+    typeof v.text === "string" &&
+    Number.isFinite(v.ts)
+  ) {
+    return { id: v.id, name: v.name, text: v.text, ts: v.ts as number };
+  }
+  return null;
 }
 
 function parseVisitor(value: unknown): VisitorView | null {
@@ -130,6 +158,15 @@ export function parseServerMessage(text: string): ServerMessage | null {
         .map(parseVisitor)
         .filter((visitor): visitor is VisitorView => visitor !== null);
       return { type: "visitors", visitors };
+    }
+    case "chat": {
+      const message = parseChatEntry(m.message);
+      return message ? { type: "chat", message } : null;
+    }
+    case "chat-history": {
+      if (!Array.isArray(m.messages)) return null;
+      const messages = m.messages.map(parseChatEntry).filter((entry): entry is ChatEntry => entry !== null);
+      return { type: "chat-history", messages };
     }
     default:
       return null;

@@ -212,4 +212,28 @@ describe("visitor messages", () => {
     socket.close();
     expect(onVisitors).toHaveBeenLastCalledWith([]);
   });
+
+  it("delivers chat history and new chat messages", () => {
+    const onChat = vi.fn();
+    const onChatHistory = vi.fn();
+    client({ onChat, onChatHistory });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    const entry = { id: "m1", name: "An", text: "Xin chào", ts: 1 };
+    socket.message({ type: "chat-history", messages: [entry] });
+    expect(onChatHistory).toHaveBeenCalledWith([entry]);
+    socket.message({ type: "chat", message: entry });
+    expect(onChat).toHaveBeenCalledWith(entry);
+  });
+
+  it("sends chat only once joined", () => {
+    const c = client();
+    const socket = FakeWebSocket.instances[0];
+    c.sendChat("quá sớm");
+    socket.open();
+    c.join("An", 0);
+    c.sendChat("Xin chào");
+    expect(sentTypes(socket)).toEqual(["join", "chat"]);
+    expect(JSON.parse(socket.sent[1])).toEqual({ type: "chat", text: "Xin chào" });
+  });
 });

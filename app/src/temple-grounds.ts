@@ -17,6 +17,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   Object3D,
+  PlaneGeometry,
   PointLight,
   RepeatWrapping,
   SRGBColorSpace,
@@ -36,9 +37,11 @@ import {
   BELL_TOWER,
   BOUNDARY,
   BROADLEAF_TREES,
+  COC_SPOTS,
   GATE,
   HALL,
   HALL_LANTERNS,
+  HALL_PROJECTOR,
   HUT,
   LANTERN_LIGHTS,
   LANTERN_POSTS,
@@ -53,6 +56,7 @@ import {
   URN,
   WALL_SEGMENTS,
   groundHeightAt,
+  type CocSpot,
 } from "./temple-layout";
 
 // Everything here is procedural geometry built in this project (decision
@@ -186,6 +190,12 @@ export async function buildTempleGrounds(
     emissiveIntensity: 2,
   });
 
+  // Thầy Nguyên Tuệ's photo in the hall (owner, 2026-11-09): drop the real
+  // file at app/public/thirdparty/nguyen-tue.jpg (decision 0009) and it
+  // replaces this placeholder on the next load — no code change needed.
+  const teacherPhoto = await textureLoader.loadAsync("/thirdparty/nguyen-tue.jpg").catch(() => null);
+  if (teacherPhoto) teacherPhoto.colorSpace = SRGBColorSpace;
+
   const updaters: ((deltaSeconds: number) => void)[] = [];
   const grounds = new Group();
   grounds.name = "temple-grounds";
@@ -237,7 +247,7 @@ export async function buildTempleGrounds(
     cap: new BoxGeometry(0.62, 0.22, 0.62),
     bud: new SphereGeometry(0.2, 12, 8),
   };
-  const buildings = [buildHall(), buildGate(), buildWall(), buildBellTower(), buildHut()];
+  const buildings = [buildHall(), buildGate(), buildWall(), buildBellTower(), buildHut(), ...buildCocHuts()];
   grounds.add(...buildings);
   grounds.add(buildPaving());
   grounds.add(buildPath());
@@ -248,6 +258,7 @@ export async function buildTempleGrounds(
   grounds.add(buildBroadleafTrees());
   grounds.add(buildBamboo());
   grounds.add(buildSeats());
+  grounds.add(buildHallProjector());
   const lanterns = buildLanterns();
   grounds.add(lanterns.group);
 
@@ -694,6 +705,63 @@ export async function buildTempleGrounds(
     return texture;
   }
 
+  // Like plaqueTexture but the font shrinks to fit a whole (possibly long)
+  // cốc title on one line.
+  function nameplateTexture(text: string): CanvasTexture {
+    const canvas = document.createElement("canvas");
+    canvas.width = 640;
+    canvas.height = 200;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = `#${PALETTE.plaque.toString(16)}`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#d4a640";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+      ctx.fillStyle = "#f2cf5b";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      let fontSize = 60;
+      ctx.font = `bold ${fontSize}px 'Segoe UI', Roboto, sans-serif`;
+      while (ctx.measureText(text).width > canvas.width - 48 && fontSize > 20) {
+        fontSize -= 4;
+        ctx.font = `bold ${fontSize}px 'Segoe UI', Roboto, sans-serif`;
+      }
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2 + fontSize * 0.04);
+    }
+    const texture = new CanvasTexture(canvas);
+    texture.colorSpace = SRGBColorSpace;
+    return texture;
+  }
+
+  // Shown on the frame in the hall until the owner drops a real photo at
+  // app/public/thirdparty/nguyen-tue.jpg.
+  function portraitPlaceholder(firstLine: string, secondLine: string): CanvasTexture {
+    const canvas = document.createElement("canvas");
+    canvas.width = 420;
+    canvas.height = 560;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#e9e0c9";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#b8a978";
+      ctx.lineWidth = 10;
+      ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+      ctx.fillStyle = "#c9bd98";
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height * 0.4, 110, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#8a7a52";
+      ctx.font = "bold 40px 'Segoe UI', Roboto, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(firstLine, canvas.width / 2, canvas.height * 0.72);
+      ctx.fillText(secondLine, canvas.width / 2, canvas.height * 0.72 + 50);
+    }
+    const texture = new CanvasTexture(canvas);
+    texture.colorSpace = SRGBColorSpace;
+    return texture;
+  }
+
   // Three-entrance gate (tam quan): a taller centre bay, two side bays.
   function buildGate(): Group {
     const gate = new Group();
@@ -816,21 +884,22 @@ export async function buildTempleGrounds(
   }
 
   // Wooden meditation hut (cốc thiền).
-  function buildHut(): Group {
+  // A small wooden cốc; `plaqueText` names it (the 8 cốc) or is omitted
+  // (the original unlabeled meditation hut).
+  function hutGroup(x: number, z: number, size: number, plaqueText?: string): Group {
     const hut = new Group();
-    hut.name = "coc-thien";
-    const half = HUT.size / 2;
+    const half = size / 2;
     const wallHeight = 2.2;
     const t = 0.2;
     const wood = pbr("wood", 2, 1.5);
-    add(hut, new BoxGeometry(HUT.size + 0.4, 0.2, HUT.size + 0.4), pbr("wood", 2, 2), 0, 0.1, 0);
+    add(hut, new BoxGeometry(size + 0.4, 0.2, size + 0.4), pbr("wood", 2, 2), 0, 0.1, 0);
     const wallY = 0.2 + wallHeight / 2;
-    add(hut, new BoxGeometry(HUT.size, wallHeight, t), wood, 0, wallY, -half + t / 2);
-    add(hut, new BoxGeometry(HUT.size, wallHeight, t), wood, 0, wallY, half - t / 2);
-    add(hut, new BoxGeometry(t, wallHeight, HUT.size), wood, -half + t / 2, wallY, 0);
+    add(hut, new BoxGeometry(size, wallHeight, t), wood, 0, wallY, -half + t / 2);
+    add(hut, new BoxGeometry(size, wallHeight, t), wood, 0, wallY, half - t / 2);
+    add(hut, new BoxGeometry(t, wallHeight, size), wood, -half + t / 2, wallY, 0);
     // east wall (facing the path) with a doorway in the middle
-    const doorWidth = 1.0;
-    const segment = (HUT.size - doorWidth) / 2;
+    const doorWidth = Math.min(1.0, size * 0.4);
+    const segment = (size - doorWidth) / 2;
     add(hut, new BoxGeometry(t, wallHeight, segment), wood, half - t / 2, wallY, -(doorWidth + segment) / 2);
     add(hut, new BoxGeometry(t, wallHeight, segment), wood, half - t / 2, wallY, (doorWidth + segment) / 2);
     add(hut, new BoxGeometry(t, 0.5, doorWidth), wood, half - t / 2, 0.2 + wallHeight - 0.25, 0);
@@ -842,8 +911,74 @@ export async function buildTempleGrounds(
     roofMesh.position.y = 0.2 + wallHeight;
     hut.add(roofMesh);
     cornerCurls(hut, roof, 0.2 + wallHeight, 0.3);
-    hut.position.set(HUT.x, 0, HUT.z);
+    if (plaqueText) {
+      const plaqueMaterial = new MeshStandardMaterial({ map: nameplateTexture(plaqueText), roughness: 0.6 });
+      const plaque = add(hut, new BoxGeometry(size * 0.85, 0.42, 0.06), plaqueMaterial, half + 0.04, wallY + 0.5, 0);
+      plaque.rotation.y = Math.PI / 2;
+    }
+    hut.position.set(x, 0, z);
     return hut;
+  }
+
+  function buildHut(): Group {
+    const hut = hutGroup(HUT.x, HUT.z, HUT.size);
+    hut.name = "coc-thien";
+    return hut;
+  }
+
+  // The 8 cốc (Milestone: cốc + bulletin boards, owner 2026-11-09): 4 named
+  // + 4 open for registration (see docs/memory/decisions). Each is walkable
+  // up to and opened with E; content lives on the server (board id = hut
+  // name), not baked into this geometry.
+  // Returned individually (not wrapped in one Group) so each can also be a
+  // camera blocker, same as the other buildings.
+  function buildCocHuts(): Group[] {
+    return (COC_SPOTS as readonly CocSpot[]).map((spot) => {
+      const hut = hutGroup(spot.x, spot.z, spot.size, spot.title);
+      hut.name = spot.id;
+      return hut;
+    });
+  }
+
+  // Thầy Nguyên Tuệ's photo (placeholder until the owner drops the real
+  // file — see the load near the top of buildTempleGrounds) and the
+  // projector that plays his talks, inside the hall.
+  function buildHallProjector(): Group {
+    const group = new Group();
+    group.name = "may-chieu-chanh-dien";
+    const { x, z } = HALL_PROJECTOR;
+    const y = HALL.platformHeight;
+    const standMaterial = pbr("wood", 1, 1, PALETTE.lacquer);
+    const frameMaterial = new MeshStandardMaterial({ color: PALETTE.gold, metalness: 0.3, roughness: 0.5 });
+
+    const frameWidth = 1.4;
+    const frameHeight = 1.9;
+    const photoX = x - 1.3;
+    add(group, new BoxGeometry(0.12, frameHeight + 0.6, 0.12), standMaterial, photoX, y + (frameHeight + 0.6) / 2, z - 0.12);
+    add(group, new BoxGeometry(frameWidth + 0.16, frameHeight + 0.16, 0.08), frameMaterial, photoX, y + frameHeight / 2 + 0.6, z);
+    const photoMaterial = new MeshStandardMaterial({
+      map: teacherPhoto ?? portraitPlaceholder("Thiền Sư", "Nguyên Tuệ"),
+    });
+    const photo = add(group, new PlaneGeometry(frameWidth, frameHeight), photoMaterial, photoX, y + frameHeight / 2 + 0.6, z + 0.05);
+    photo.castShadow = false;
+
+    const screenWidth = 2.4;
+    const screenHeight = 1.6;
+    const screenX = x + 1.3;
+    add(group, new BoxGeometry(screenWidth + 0.14, screenHeight + 0.14, 0.08), standMaterial, screenX, y + screenHeight / 2 + 0.6, z);
+    const screenMaterial = new MeshStandardMaterial({ color: 0x15171c, roughness: 0.35 });
+    const screen = add(group, new PlaneGeometry(screenWidth, screenHeight), screenMaterial, screenX, y + screenHeight / 2 + 0.6, z + 0.06);
+    screen.castShadow = false;
+    add(group, new BoxGeometry(0.12, 0.9, 0.12), standMaterial, screenX, y + 0.45, z - 1.6);
+    add(
+      group,
+      new BoxGeometry(0.42, 0.22, 0.32),
+      new MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5 }),
+      screenX,
+      y + 0.95,
+      z - 1.6,
+    );
+    return group;
   }
 
   // ---- pond with lotus and koi --------------------------------------------

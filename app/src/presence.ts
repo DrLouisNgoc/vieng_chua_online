@@ -1,8 +1,10 @@
 import {
+  encodeChat,
   encodeJoin,
   encodeState,
   parseServerMessage,
   shouldSendState,
+  type ChatEntry,
   type OutgoingState,
   type VisitorView,
 } from "./visitor-protocol";
@@ -20,6 +22,10 @@ export interface PresenceClientOptions {
   // Everyone else in the temple (Milestone 6); [] while disconnected.
   onVisitors?: (visitors: VisitorView[]) => void;
   onSeatRefused?: (seatIndex: number) => void;
+  // A new chat message, in arrival order; onChatHistory first, for anyone
+  // already chatting before this client connected.
+  onChat?: (message: ChatEntry) => void;
+  onChatHistory?: (messages: ChatEntry[]) => void;
   reconnectDelayMs?: number;
   now?: () => number;
 }
@@ -29,6 +35,7 @@ export interface PresenceClient {
   join: (name: string, colorIndex: number) => void;
   // Throttled: only sent after joining, when changed, every 100 ms at most.
   sendState: (state: OutgoingState) => void;
+  sendChat: (text: string) => void;
   dispose: () => void;
 }
 
@@ -82,6 +89,12 @@ export function createPresenceClient(
         case "seat-refused":
           options.onSeatRefused?.(message.seatIndex);
           break;
+        case "chat":
+          options.onChat?.(message.message);
+          break;
+        case "chat-history":
+          options.onChatHistory?.(message.messages);
+          break;
       }
     };
 
@@ -113,6 +126,10 @@ export function createPresenceClient(
       socket?.send(encodeState(state));
       lastSent = state;
       lastSentAt = at;
+    },
+    sendChat(text) {
+      if (!identity || !isOpen()) return;
+      socket?.send(encodeChat(text));
     },
     dispose() {
       disposed = true;
