@@ -112,3 +112,4 @@
 - 2026-11-07: chuasen.com found closed. Milestone 7 built: day/night by local
   clock, lanterns, chanting (3 texts) with counts, moktak autoplay, optional
   CC0 sounds (owner to download); 211 app tests.
+- 2026-11-09: root package.json + scripts/dev.mjs: `npm run dev` from the root.

@@ -34,8 +34,8 @@ What the app does now:
 - Presence count from the owner's server in the header.
 
 ## Run it
-`npm run dev` in `server/` (ws://localhost:8787; presence + visitor sync, server/src/protocol.ts), then `npm run dev` in
-`app/` (http://localhost:5173). `app/public/sansatemple/` must be populated
+`npm run dev` in the project root starts the server (ws://localhost:8787)
+and the app (http://localhost:5173) via scripts/dev.mjs. `app/public/sansatemple/` must be populated
 (gitignored, decision 0006): `scripts/fetch-sansatemple-assets.sh`.
 Tests: `npm test` in app/ (211 pass) and server/ (44 pass); `npx tsc --noEmit -p .` clean in both.
 
