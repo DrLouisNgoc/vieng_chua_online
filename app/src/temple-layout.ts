@@ -167,9 +167,11 @@ export const COC_SPOTS: CocSpot[] = (
 // Reach to open a cốc's board, or the hall projector, same radius.
 export const BOARD_REACH = 1.8;
 
-// Photo of Thầy Nguyên Tuệ + the projector that plays his talks, inside
-// the hall, clear of the seat rows (|x| <= 12.6) and the inner pillars.
-export const HALL_PROJECTOR: Point = { x: 28, z: -6 };
+// Photo of Thầy Nguyên Tuệ + the projector that plays his talks, right
+// in front of the Buddha statue (owner, 2026-11-09: "để hẳn dưới tượng
+// phật"), in the open strip between the altar (maxZ -45) and the first
+// cushion row (maxZ -41.8) — outside both.
+export const HALL_PROJECTOR: Point = { x: 0, z: -43 };
 
 // Rectangular lotus pond alongside the hall's right-hand side.
 export const POND = { minX: 48, maxX: 74, minZ: -44, maxZ: -10 } as const;
