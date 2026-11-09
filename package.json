@@ -1,0 +1,7 @@
+{
+  "name": "vieng-chua-online",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs"
+  }
+}
