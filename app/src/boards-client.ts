@@ -2,6 +2,12 @@
 // Every method resolves, never throws — network/parse failures become the
 // "error" outcome so callers (boards-panel.ts) can show one message.
 
+// Shared by boards-panel.ts (the embed player) and main.ts (the in-world
+// screen's thumbnail, since a YouTube embed can't feed a 3D texture).
+export function youtubeVideoId(url: string): string | null {
+  return /(?:v=|youtu\.be\/|embed\/)([\w-]{6,})/.exec(url)?.[1] ?? null;
+}
+
 export type BoardType = "text" | "video";
 
 export interface BoardView {

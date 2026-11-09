@@ -1,5 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
-import { createBoardsClient } from "./boards-client";
+import { createBoardsClient, youtubeVideoId } from "./boards-client";
+
+describe("youtubeVideoId", () => {
+  it("extracts the id from a watch URL with extra query params", () => {
+    expect(youtubeVideoId("https://www.youtube.com/watch?v=VsfXrl13dI4&t=2365s")).toBe("VsfXrl13dI4");
+  });
+
+  it("extracts the id from a youtu.be short link", () => {
+    expect(youtubeVideoId("https://youtu.be/VsfXrl13dI4")).toBe("VsfXrl13dI4");
+  });
+
+  it("returns null for something that isn't a YouTube link", () => {
+    expect(youtubeVideoId("not a link")).toBeNull();
+  });
+});
 
 function fakeFetch(status: number, json: unknown): typeof fetch {
   return vi.fn(async () => ({

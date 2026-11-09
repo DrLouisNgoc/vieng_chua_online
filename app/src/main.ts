@@ -11,7 +11,7 @@ import { createStorageBeadStore } from "./bead-counter";
 import { browserStorage } from "./browser-storage";
 import { createPractice } from "./practice";
 import { createPracticePanel } from "./practice-panel";
-import { createBoardsClient } from "./boards-client";
+import { createBoardsClient, youtubeVideoId } from "./boards-client";
 import { createBoardsPanel } from "./boards-panel";
 import { createChatPanel } from "./chat-panel";
 import { nearestBoardId } from "./board-proximity";
@@ -235,8 +235,21 @@ async function main(): Promise<void> {
         loaded.pulseMoktak();
       },
     });
+    void refreshProjectorPreview(loaded);
     return loaded;
   });
+
+  // The in-world screen shows the current talk's thumbnail; actually
+  // playing it still needs the boards panel (E), since a YouTube embed
+  // can't feed a 3D texture. Refreshed once per load — reload the page
+  // after changing the link to see the new thumbnail.
+  async function refreshProjectorPreview(scene: TempleScene): Promise<void> {
+    const boards = await boardsClient.list();
+    const projector = boards.find((board) => board.id === "may-chieu-chanh-dien");
+    const firstUrl = projector?.body.split("\n").map((line) => line.trim()).find(Boolean);
+    const videoId = firstUrl ? youtubeVideoId(firstUrl) : null;
+    scene.setProjectorPreview(videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null);
+  }
 
 
 

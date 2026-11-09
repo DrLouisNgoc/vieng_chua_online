@@ -154,6 +154,8 @@ export interface TempleScene {
   startChanting: () => boolean;
   stopChanting: () => void;
   isChanting: () => boolean;
+  // The hall projector screen's thumbnail, from the current board content.
+  setProjectorPreview: (imageUrl: string | null) => void;
   dispose: () => void;
 }
 
@@ -598,6 +600,7 @@ export async function createTempleScene(
     startChanting: () => interactions.startChanting(),
     stopChanting: () => interactions.stopChanting(),
     isChanting: () => interactions.snapshot.activity === "chanting",
+    setProjectorPreview: (imageUrl) => grounds.setProjectorPreview(imageUrl),
     dispose,
   };
 }

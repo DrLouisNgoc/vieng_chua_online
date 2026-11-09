@@ -79,6 +79,10 @@ export interface TempleGrounds {
   update: (deltaSeconds: number) => void;
   // 0 = day, 1 = full night: lantern glow and lantern lights.
   setNight: (level: number) => void;
+  // The hall projector screen shows this image (the current talk's
+  // thumbnail) until E opens the real player; null clears it back to a
+  // plain dark screen.
+  setProjectorPreview: (imageUrl: string | null) => void;
 }
 
 const PALETTE = {
@@ -258,7 +262,8 @@ export async function buildTempleGrounds(
   grounds.add(buildBroadleafTrees());
   grounds.add(buildBamboo());
   grounds.add(buildSeats());
-  grounds.add(buildHallProjector());
+  const projector = buildHallProjector();
+  grounds.add(projector.group);
   const lanterns = buildLanterns();
   grounds.add(lanterns.group);
 
@@ -269,6 +274,7 @@ export async function buildTempleGrounds(
       for (const update of updaters) update(deltaSeconds);
     },
     setNight: lanterns.setNight,
+    setProjectorPreview: projector.setPreview,
   };
 
   // ---- roof helpers -------------------------------------------------------
@@ -952,8 +958,12 @@ export async function buildTempleGrounds(
 
   // Thầy Nguyên Tuệ's photo (placeholder until the owner drops the real
   // file — see the load near the top of buildTempleGrounds) and the
-  // projector that plays his talks, inside the hall.
-  function buildHallProjector(): Group {
+  // projector that plays his talks, inside the hall. The screen shows the
+  // current talk's thumbnail (so it reads as "a talk is loaded here") —
+  // main.ts calls setPreview once it has fetched the board; actually
+  // playing the talk still needs the panel (E), since a YouTube embed
+  // can't feed a 3D texture.
+  function buildHallProjector(): { group: Group; setPreview: (imageUrl: string | null) => void } {
     const group = new Group();
     group.name = "may-chieu-chanh-dien";
     const { x, z } = HALL_PROJECTOR;
@@ -988,7 +998,23 @@ export async function buildTempleGrounds(
       y + 0.95,
       z - 1.6,
     );
-    return group;
+
+    function setPreview(imageUrl: string | null): void {
+      if (!imageUrl) {
+        screenMaterial.map = null;
+        screenMaterial.color.setHex(0x15171c);
+        screenMaterial.needsUpdate = true;
+        return;
+      }
+      textureLoader.load(imageUrl, (texture) => {
+        texture.colorSpace = SRGBColorSpace;
+        screenMaterial.map = texture;
+        screenMaterial.color.setHex(0xffffff);
+        screenMaterial.needsUpdate = true;
+      });
+    }
+
+    return { group, setPreview };
   }
 
   // ---- pond with lotus and koi --------------------------------------------

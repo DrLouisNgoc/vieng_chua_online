@@ -1,4 +1,4 @@
-import type { AdminPendingEntry, BoardsClient, BoardView } from "./boards-client";
+import { youtubeVideoId, type AdminPendingEntry, type BoardsClient, type BoardView } from "./boards-client";
 
 // Panel for the 9 boards (4 named cốc, 4 open "Thuyết Pháp" cốc, the hall
 // projector) plus the owner's admin approval screen. DOM-wiring only (no
@@ -356,7 +356,6 @@ export function createBoardsPanel(
 }
 
 function toEmbedUrl(url: string): string {
-  const match = /(?:v=|youtu\.be\/|embed\/)([\w-]{6,})/.exec(url);
-  const id = match?.[1];
+  const id = youtubeVideoId(url);
   return id ? `https://www.youtube-nocookie.com/embed/${id}` : url;
 }
