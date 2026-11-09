@@ -137,9 +137,12 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
    **Gate mode is now auto** (AGENTS.md).
 1. Owner: confirm the two yard rulings in status.md ("x10/x5" on the
    gaps; "nhỏ đi 2 lần" = half the area) — asked 2026-11-05, no answer yet.
-2. Frame rate: pines fixed (see status.md). Still ~22-40 fps, noisy.
-   Next candidates, measure first: merge/instance the ~970 small meshes
-   (draw calls), light count, MSAA. Needs an idle machine to measure.
+2. Frame rate: pines fixed, and the ~970 small meshes are now instanced
+   (790 -> 554 scene meshes/draw calls, -30%; branch
+   perf/instance-small-props, see status.md) — but the frame-time effect
+   on this machine was inconclusive (noise bigger than the diff). Still
+   ~22-40 fps, noisy. Next candidates, measure on an idle machine with a
+   GPU profiler: light count (6 on PBR materials), MSAA, pixel ratio.
 3. Milestone 6 follow-ups: measure remote-visitor render cost on two
    real machines; owner to judge the per-visitor broom (E3) in practice.
 4. When the owner drops files in `app/public/thirdparty/` (Mixamo character

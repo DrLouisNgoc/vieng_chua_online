@@ -114,3 +114,8 @@
   CC0 sounds (owner to download); 211 app tests.
 - 2026-11-09: root package.json + scripts/dev.mjs: `npm run dev` from the root.
 - 2026-11-09: prepared move to another machine (_chuyen-may, CAI-DAT.bat; tested on a copy).
+- 2026-11-09: branch perf/instance-small-props. Instanced hall/stone
+  pillars, lotus petals, broadleaf trees and stairs (790 -> 554 scene
+  meshes/draw calls, -30%); frame-time effect on this machine
+  inconclusive (noise bigger than the measured diff). 211 app tests,
+  44 server tests, tsc clean; screenshots 375/1440.

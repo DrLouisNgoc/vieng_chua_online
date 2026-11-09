@@ -206,6 +206,30 @@ export async function buildTempleGrounds(
     return mesh;
   }
 
+  // Repeated small props (pillars, petals, tree parts) as one InstancedMesh
+  // instead of one Mesh per copy, to keep draw calls down (status.md).
+  function instancedCopies<T>(
+    geometry: BufferGeometry,
+    material: MeshStandardMaterial,
+    items: readonly T[],
+    place: (dummy: Object3D, item: T, index: number) => void,
+  ): InstancedMesh {
+    const mesh = new InstancedMesh(geometry, material, items.length);
+    const dummy = new Object3D();
+    items.forEach((item, index) => {
+      dummy.position.set(0, 0, 0);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      place(dummy, item, index);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(index, dummy.matrix);
+    });
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.instanceMatrix.needsUpdate = true;
+    return mesh;
+  }
+
   const pillarParts = {
     stone: pbr("stone", 1, 2),
     base: new BoxGeometry(0.75, 0.3, 0.75),
@@ -217,7 +241,7 @@ export async function buildTempleGrounds(
   grounds.add(...buildings);
   grounds.add(buildPaving());
   grounds.add(buildPath());
-  for (const pillar of STONE_PILLARS) grounds.add(buildStonePillar(pillar.x, pillar.z));
+  grounds.add(buildStonePillars());
   grounds.add(buildUrn());
   grounds.add(buildPond());
   grounds.add(buildBanyan());
@@ -346,10 +370,14 @@ export async function buildTempleGrounds(
       { x: HALL.minX + 1.4, z: HALL.minZ + 1.4 },
       { x: HALL.maxX - 1.4, z: HALL.minZ + 1.4 },
     ];
-    for (const spot of pillarSpots) {
-      add(hall, pillarGeometry, lacquer, spot.x, top + wallHeight / 2, spot.z);
-      add(hall, baseGeometry, baseStone, spot.x, top + 0.175, spot.z);
-    }
+    hall.add(
+      instancedCopies(pillarGeometry, lacquer, pillarSpots, (dummy, spot) => {
+        dummy.position.set(spot.x, top + wallHeight / 2, spot.z);
+      }),
+      instancedCopies(baseGeometry, baseStone, pillarSpots, (dummy, spot) => {
+        dummy.position.set(spot.x, top + 0.175, spot.z);
+      }),
+    );
     add(hall, new BoxGeometry(width, 0.9, 0.9), lacquer, 0, HALL.roofBaseY - 0.45, HALL.frontPillarZ);
     const ceiling = add(
       hall,
@@ -411,21 +439,33 @@ export async function buildTempleGrounds(
     const stepStone = pbr("stone", tiles(width), 1);
     const railStone = pbr("stone", 1, 1);
     const bw = STAIRS.balustradeWidth;
-    for (let k = 1; k <= STAIRS.count; k += 1) {
-      const height = k * STAIRS.rise;
-      const z = foot - (k - 0.5) * STAIRS.tread;
-      add(hall, new BoxGeometry(width, height, STAIRS.tread), stepStone, centerX, height / 2, z);
-      const railHeight = height + 0.8;
-      for (const x of [STAIRS.minX - bw / 2, STAIRS.maxX + bw / 2]) {
-        add(hall, new BoxGeometry(bw, railHeight, STAIRS.tread), railStone, x, railHeight / 2, z);
-      }
-    }
-    // newel posts at the foot of the balustrades
-    for (const x of [STAIRS.minX - bw / 2, STAIRS.maxX + bw / 2]) {
-      add(hall, new BoxGeometry(bw + 0.2, 1.4, bw + 0.2), railStone, x, 0.7, foot + 0.1);
-      const bud = add(hall, new SphereGeometry(0.32, 12, 8), railStone, x, 1.6, foot + 0.1);
-      bud.scale.y = 1.3;
-    }
+    const newelXs = [STAIRS.minX - bw / 2, STAIRS.maxX + bw / 2];
+    const steps = Array.from({ length: STAIRS.count }, (_, i) => i + 1);
+    const rails = steps.flatMap((k) => newelXs.map((x) => ({ k, x })));
+
+    // Unit-height box geometries, scaled per step/rail instance (each step
+    // and rail segment is a different height) — one draw call each instead
+    // of one per step (status.md: this was ~31 meshes).
+    hall.add(
+      instancedCopies(new BoxGeometry(width, 1, STAIRS.tread), stepStone, steps, (dummy, k) => {
+        const height = k * STAIRS.rise;
+        dummy.position.set(centerX, height / 2, foot - (k - 0.5) * STAIRS.tread);
+        dummy.scale.set(1, height, 1);
+      }),
+      instancedCopies(new BoxGeometry(bw, 1, STAIRS.tread), railStone, rails, (dummy, { k, x }) => {
+        const railHeight = k * STAIRS.rise + 0.8;
+        dummy.position.set(x, railHeight / 2, foot - (k - 0.5) * STAIRS.tread);
+        dummy.scale.set(1, railHeight, 1);
+      }),
+      // newel posts at the foot of the balustrades
+      instancedCopies(new BoxGeometry(bw + 0.2, 1.4, bw + 0.2), railStone, newelXs, (dummy, x) => {
+        dummy.position.set(x, 0.7, foot + 0.1);
+      }),
+      instancedCopies(new SphereGeometry(0.32, 12, 8), railStone, newelXs, (dummy, x) => {
+        dummy.position.set(x, 1.6, foot + 0.1);
+        dummy.scale.set(1, 1.3, 1);
+      }),
+    );
   }
 
   // Lotus pedestal, halo and warm golden lighting around the Shakyamuni
@@ -442,19 +482,19 @@ export async function buildTempleGrounds(
       buddha.z,
     );
     const petal = new SphereGeometry(pedestalRadius * 0.22, 12, 8);
-    for (let i = 0; i < 20; i += 1) {
-      const angle = (i / 20) * Math.PI * 2;
-      const mesh = add(
-        hall,
-        petal,
-        gold,
-        buddha.x + Math.cos(angle) * pedestalRadius * 0.96,
-        altarTop + buddha.pedestal * 0.75,
-        buddha.z + Math.sin(angle) * pedestalRadius * 0.96,
-      );
-      mesh.scale.set(0.6, 0.55, 1.2);
-      mesh.rotation.y = -angle;
-    }
+    const petalIndices = Array.from({ length: 20 }, (_, i) => i);
+    hall.add(
+      instancedCopies(petal, gold, petalIndices, (dummy, i) => {
+        const angle = (i / 20) * Math.PI * 2;
+        dummy.position.set(
+          buddha.x + Math.cos(angle) * pedestalRadius * 0.96,
+          altarTop + buddha.pedestal * 0.75,
+          buddha.z + Math.sin(angle) * pedestalRadius * 0.96,
+        );
+        dummy.rotation.y = -angle;
+        dummy.scale.set(0.6, 0.55, 1.2);
+      }),
+    );
 
     const haloRadius = buddha.height * 0.4;
     const haloY = altarTop + buddha.pedestal + buddha.height * 0.66;
@@ -573,16 +613,27 @@ export async function buildTempleGrounds(
     return path;
   }
 
-  function buildStonePillar(x: number, z: number): Group {
-    const pillar = new Group();
-    pillar.name = "cot-da";
-    add(pillar, pillarParts.base, pillarParts.stone, 0, 0.15, 0);
-    add(pillar, pillarParts.shaft, pillarParts.stone, 0, 1.5, 0);
-    add(pillar, pillarParts.cap, pillarParts.stone, 0, 2.81, 0);
-    const bud = add(pillar, pillarParts.bud, pillarParts.stone, 0, 3.05, 0);
-    bud.scale.set(1, 1.4, 1);
-    pillar.position.set(x, 0, z);
-    return pillar;
+  // One InstancedMesh per part across all STONE_PILLARS spots, instead of a
+  // 4-mesh Group per pillar (status.md: this was 40 meshes for 10 pillars).
+  function buildStonePillars(): Group {
+    const group = new Group();
+    group.name = "cot-da";
+    group.add(
+      instancedCopies(pillarParts.base, pillarParts.stone, STONE_PILLARS, (dummy, spot) => {
+        dummy.position.set(spot.x, 0.15, spot.z);
+      }),
+      instancedCopies(pillarParts.shaft, pillarParts.stone, STONE_PILLARS, (dummy, spot) => {
+        dummy.position.set(spot.x, 1.5, spot.z);
+      }),
+      instancedCopies(pillarParts.cap, pillarParts.stone, STONE_PILLARS, (dummy, spot) => {
+        dummy.position.set(spot.x, 2.81, spot.z);
+      }),
+      instancedCopies(pillarParts.bud, pillarParts.stone, STONE_PILLARS, (dummy, spot) => {
+        dummy.position.set(spot.x, 3.05, spot.z);
+        dummy.scale.set(1, 1.4, 1);
+      }),
+    );
+    return group;
   }
 
   // Bronze incense urn (lư hương) on a stone plinth, with burning sticks.
@@ -979,6 +1030,10 @@ export async function buildTempleGrounds(
     return tree;
   }
 
+  // Instanced instead of one Group per tree (status.md: this was 96 meshes
+  // for 16 trees — 1 trunk + 5 crown clumps each). Trunks share one
+  // InstancedMesh; crowns share one InstancedMesh per leaf colour, since the
+  // 3 colours cycle per tree+clump rather than belonging to one tree each.
   function buildBroadleafTrees(): Group {
     const trees = new Group();
     trees.name = "cay-xanh";
@@ -988,22 +1043,49 @@ export async function buildTempleGrounds(
     const leafMaterials = PALETTE.leaves.map(
       (color) => new MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }),
     );
+    const crownOffsets = [
+      [0, 4.3, 0, 2.1],
+      [1.3, 3.8, 0.4, 1.5],
+      [-1.2, 3.9, -0.3, 1.6],
+      [0.2, 3.7, 1.3, 1.4],
+      [-0.3, 3.8, -1.3, 1.4],
+    ] as const;
+    const treeScale = (index: number): number => 0.9 + (index % 4) * 0.15;
+
+    trees.add(
+      instancedCopies(trunk, bark, BROADLEAF_TREES, (dummy, spot, index) => {
+        const scale = treeScale(index);
+        dummy.position.set(spot.x, 1.6 * scale, spot.z);
+        dummy.rotation.y = index * 1.7;
+        dummy.scale.setScalar(scale);
+      }),
+    );
+
+    const up = new Vector3(0, 1, 0);
+    type Clump = { spot: { x: number; z: number }; index: number; offset: (typeof crownOffsets)[number] };
+    const clumpsByMaterial: Clump[][] = leafMaterials.map(() => []);
     BROADLEAF_TREES.forEach((spot, index) => {
-      const tree = new Group();
-      const scale = 0.9 + (index % 4) * 0.15;
-      add(tree, trunk, bark, 0, 1.6, 0);
-      const offsets = [[0, 4.3, 0, 2.1], [1.3, 3.8, 0.4, 1.5], [-1.2, 3.9, -0.3, 1.6], [0.2, 3.7, 1.3, 1.4], [-0.3, 3.8, -1.3, 1.4]] as const;
-      offsets.forEach(([x, y, z, r], i) => {
-        const material = leafMaterials[(index + i) % leafMaterials.length];
-        if (!material) return;
-        const clump = add(tree, crown, material, x, y, z);
-        clump.scale.setScalar(r);
+      crownOffsets.forEach((offset, i) => {
+        clumpsByMaterial[(index + i) % leafMaterials.length]?.push({ spot, index, offset });
       });
-      tree.scale.setScalar(scale);
-      tree.rotation.y = index * 1.7;
-      tree.position.set(spot.x, 0, spot.z);
-      trees.add(tree);
     });
+    clumpsByMaterial.forEach((clumps, materialIndex) => {
+      const material = leafMaterials[materialIndex];
+      if (!material || clumps.length === 0) return;
+      trees.add(
+        instancedCopies(crown, material, clumps, (dummy, clump) => {
+          const scale = treeScale(clump.index);
+          const [ox, oy, oz, r] = clump.offset;
+          const local = new Vector3(ox, oy, oz)
+            .multiplyScalar(scale)
+            .applyAxisAngle(up, clump.index * 1.7);
+          dummy.position.set(clump.spot.x + local.x, local.y, clump.spot.z + local.z);
+          dummy.rotation.y = clump.index * 1.7;
+          dummy.scale.setScalar(scale * r);
+        }),
+      );
+    });
+
     return trees;
   }
 

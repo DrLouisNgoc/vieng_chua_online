@@ -121,6 +121,32 @@ order, rather than rewriting the original spec.
   longer the clear cost. Remaining cost not isolated; next candidates:
   ~160 colour-pass draw calls (971 meshes, many small spheres/cylinders
   that could be merged or instanced), 6 lights on PBR materials, MSAA.
+  **Fix 2026-11-09** (branch perf/instance-small-props): instanced the
+  biggest remaining one-mesh-per-copy groups — hall pillars (26 spots),
+  stone pillars (10), lotus petals (20), the 16 broadleaf trees (trunk +
+  5 crown clumps each, crowns grouped into one InstancedMesh per leaf
+  colour since the 3 colours cycle per tree+clump), and the stairs
+  (9 steps, 18 balustrade segments, 4 newel parts, each a unit box/sphere
+  scaled per instance). Verified exactly reproduces the original per-copy
+  transforms by hand (position = parent position + rotated/scaled local
+  offset; uniform uniform scale commutes with rotation and translation,
+  so each copy is still expressible as one TRS matrix) and by screenshot
+  at 375/1440 plus teleporting next to each prop (temporary
+  `window.__verify.placeAt`, not committed). Scene mesh/draw-call count
+  (counted by traversing the built grounds, no GPU needed — a vitest
+  `console.log`, not committed): **790 -> 554** (-236, -30%). app 211
+  tests pass, tsc clean.
+  **Frame-time effect: inconclusive.** Timed the same way as above
+  (60 synchronous renders + readPixels), alternating before/after by
+  `git stash`, machine not idle: run 1 before 41.6/29.8 ms, after
+  33.2/33.1 ms (after looks better); run 2 (a few minutes later) before
+  21.3/21.6/22.6 ms, after 22.1/23.0/22.7 ms (statistically the same).
+  The swing between run 1 and run 2 on both sides of the diff is bigger
+  than the diff itself, so this method can't currently tell the two
+  builds apart — consistent with the "comparative fps runs were
+  unreliable" note above. The mesh-count win is real and measured; the
+  frame-time win is not confirmed. Needs an idle machine and ideally a
+  GPU profiler (not just wall-clock) to settle.
 - Camera occlusion: fixed for buildings (raycast to `cameraBlockers`).
   Small props (urn, pillars, trees) may still hide the avatar, by choice.
 - After the architecture pass the yard measured 31 fps once and 12 fps
