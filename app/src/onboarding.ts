@@ -20,7 +20,10 @@ export interface RobeColor {
   trim: string;
 }
 
+// Index 0 (default): plain white, the lay-practitioner "áo tràng" worn for
+// precept days in the Nam Tông (Theravada) tradition — owner's own robe.
 export const ROBE_COLORS: RobeColor[] = [
+  { base: "#f4f1e6", shade: "#d9d3bf", trim: "#b8b09a" },
   { base: "#3f6e9c", shade: "#2d5378", trim: "#9cc0e0" },
   { base: "#28456a", shade: "#1c3350", trim: "#7fa8cc" },
   { base: "#4f7d5c", shade: "#395c43", trim: "#9fc7a8" },
