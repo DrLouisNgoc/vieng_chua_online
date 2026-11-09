@@ -20,7 +20,9 @@ export interface MovementController {
   update: (deltaSeconds: number) => Point;
 }
 
-const DEFAULT_SPEED_UNITS_PER_SECOND = 2.4;
+// Owner, 2026-11-09: "tốc đi nhanh hơn đi" — the grounds grew a lot since
+// this was first tuned (Milestone 4); bumped from 2.4.
+const DEFAULT_SPEED_UNITS_PER_SECOND = 4;
 
 function distance(a: Point, b: Point): number {
   return Math.hypot(b.x - a.x, b.z - a.z);
