@@ -93,7 +93,8 @@ Private deploy, previously Milestone 8, is renumbered to Milestone 9.
   too. Added both; a failed bind now logs one line instead of crashing.
 
 ## Verification
-- `npm test`: app 227 (was 211), server 99 (was 44) — all new code
+- `npm test`: app 234 (was 211, +16 for this milestone, +7 more for the
+  same-day follow-ups below), server 99 (was 44) — all new code
   TDD'd first where it's pure logic (`boards.ts`, `adminAuth.ts`,
   `passwordHash.ts`, `chatRoom.ts`, `boardsHttp.ts`,
   `board-proximity.ts`, `boards-client.ts`, plus extensions to
@@ -114,6 +115,42 @@ Private deploy, previously Milestone 8, is renumbered to Milestone 9.
   driven from one browser this session); the admin screen's behaviour
   with more than one pending registration at a time; load/restart with
   an already-populated `boards.json` (only tested from a fresh file).
+
+## Follow-up changes (same day, owner feedback after the initial build)
+- Renamed 3 of the 4 named cốc to the real people they're for: "Cốc Cô
+  Yến", "Cốc Anh Tuấn Hà", "Cốc Khánh" (owner's own); "Cốc Sư Nguyên Tuệ"
+  unchanged. `BOARD_SEEDS` ids kept stable (`coc-co-chi-yen` etc.), only
+  `title` changed, so no existing content/password is lost.
+- Re-laid-out `COC_SPOTS` from a grid to a single row, named cốc first
+  (`temple-layout.ts`).
+- Moved the hall projector + teacher photo to right in front of/under
+  the Buddha statue (`HALL_PROJECTOR` in `temple-layout.ts`).
+- Added a new chant, "Niệm Bổn Sư Thích Ca" (`chant-texts.ts`,
+  `ChantId = "thichca"`), as the first chant in the list.
+- Movement speed raised 2.4 -> 4 units/sec (`movement.ts`,
+  `DEFAULT_SPEED_UNITS_PER_SECOND`) — the grounds had grown since that
+  default was set in Milestone 4.
+- Removed the ornate roof corner curls ("đầu đao") on the small cốc —
+  looked oversized at their scale; kept on the main hall and the
+  original meditation hut (`hutGroup(..., ornate)` flag in
+  `temple-grounds.ts`; `buildCocHuts()` passes `ornate=false`).
+- Projector now shows something even without opening the panel: the
+  scene fetches the projector board once at load and sets a static
+  YouTube thumbnail (`img.youtube.com/vi/<id>/hqdefault.jpg`) as the
+  in-world screen's texture (`setProjectorPreview`, `temple-grounds.ts`
+  + `scene.ts`). A YouTube iframe can't feed a Three.js texture
+  (cross-origin), so real playback still needs opening the board panel
+  — told the owner this is a hard limit, not a bug.
+- Lecture list given a "Tên bài | URL" format (`parseTalks` in
+  `boards-client.ts`) so the projector board can hold several named
+  talks; `boards-panel.ts` renders a clickable pick-list, falls back to
+  the raw URL as the title for the old one-URL-per-line format.
+- Fixed a real bug: cốc walls rendered near-solid-black regardless of
+  time of day (even at forced noon, `?gio=12`) — the hut's own roof was
+  self-shadowing its own walls via the sun's shared 90-unit shadow map,
+  too low-resolution at a cốc's scale. Fixed by `roofMesh.castShadow =
+  false` in `hutGroup()` (external shadows onto cốc walls, e.g. from
+  trees, still land via `receiveShadow`). See handoff.md gotchas.
 
 ## Open problems
 - No "back to list" button from a board's detail view or the admin

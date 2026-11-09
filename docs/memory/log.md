@@ -137,3 +137,12 @@
   still to drop app/public/thirdparty/nguyen-tue.jpg and give out the
   4 named cốc passwords themselves. See
   docs/specs/milestone-8-coc-boards-chat/status.md.
+- 2026-11-09: owner feedback: cốc walls looked near-black regardless of
+  time of day. Ruled out the day/night cycle (`?gio=12`, still black).
+  Root cause: the sun's shadow map spans the whole ~90-unit yard, so at a
+  cốc's small scale the roof casting a shadow on its own walls just below
+  it was low-resolution and read as flat black. Fixed by turning off
+  `castShadow` on the hut roof mesh in `hutGroup()` (walls still
+  `receiveShadow` from external casters like trees). 234 app tests,
+  tsc clean; verified warm-lit walls at forced noon and at real dusk.
+  Merged to main.

@@ -46,7 +46,7 @@ What the app does now:
 `app/public/sansatemple/` must be populated (gitignored, decision 0006):
 `scripts/fetch-sansatemple-assets.sh`. Board/chat content persists to
 `server/data/boards.json` (gitignored — real content, back it up yourself).
-Tests: `npm test` in app/ (227 pass) and server/ (99 pass); `npx tsc --noEmit -p .` clean in both.
+Tests: `npm test` in app/ (234 pass) and server/ (99 pass); `npx tsc --noEmit -p .` clean in both.
 
 ## Code map (app/src)
 - `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
@@ -146,6 +146,14 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
   `wss` has a default listener — either one throws uncaught (e.g.
   `EADDRINUSE` on a fast dev-watch restart) unless you add `.on("error", ...)`
   to *both* objects.
+- The sun's shadow map (`SHADOW_HALF_EXTENT=45` in scene.ts, a 90-unit
+  span on one 2048x2048 map) has too little per-texel resolution for a
+  small object's own self-shadowing: a cốc's roof casting a shadow on
+  its own walls just below it read as flat black regardless of time of
+  day. Fix: `castShadow = false` on that small object's own
+  shadow-casting part, keep `receiveShadow` for shadows from bigger
+  external casters (trees etc.). Owner, 2026-11-09: "tối quá... sáng
+  như ban ngày".
 
 ## Next (pick up here)
 -1. **Moving to another machine (2026-11-09):** the owner zips this folder.
