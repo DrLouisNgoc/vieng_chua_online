@@ -886,7 +886,7 @@ export async function buildTempleGrounds(
   // Wooden meditation hut (cốc thiền).
   // A small wooden cốc; `plaqueText` names it (the 8 cốc) or is omitted
   // (the original unlabeled meditation hut).
-  function hutGroup(x: number, z: number, size: number, plaqueText?: string): Group {
+  function hutGroup(x: number, z: number, size: number, plaqueText?: string, ornate = true): Group {
     const hut = new Group();
     const half = size / 2;
     const wallHeight = 2.2;
@@ -906,11 +906,21 @@ export async function buildTempleGrounds(
     const corner = new CylinderGeometry(0.12, 0.12, wallHeight, 8);
     const lacquer = pbr("wood", 1, 1, PALETTE.lacquer);
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(hut, corner, lacquer, sx * half, wallY, sz * half);
-    const roof: CurvedRoofOptions = { halfWidth: half + 0.8, halfDepth: half + 0.8, height: 1.6, upturn: 0.5, segments: 12 };
+    // The dramatic curled "đầu đao" corners read fine on the big buildings
+    // but stuck out oddly on a hut this small ("chìa ra", owner 2026-11-09)
+    // — only the original, bigger meditation hut (ornate) keeps them.
+    const overhang = ornate ? 0.8 : 0.3;
+    const roof: CurvedRoofOptions = {
+      halfWidth: half + overhang,
+      halfDepth: half + overhang,
+      height: 1.6,
+      upturn: ornate ? 0.5 : 0.2,
+      segments: 12,
+    };
     const roofMesh = curvedRoof(roof);
     roofMesh.position.y = 0.2 + wallHeight;
     hut.add(roofMesh);
-    cornerCurls(hut, roof, 0.2 + wallHeight, 0.3);
+    if (ornate) cornerCurls(hut, roof, 0.2 + wallHeight, 0.3);
     if (plaqueText) {
       const plaqueMaterial = new MeshStandardMaterial({ map: nameplateTexture(plaqueText), roughness: 0.6 });
       const plaque = add(hut, new BoxGeometry(size * 0.85, 0.42, 0.06), plaqueMaterial, half + 0.04, wallY + 0.5, 0);
@@ -934,7 +944,7 @@ export async function buildTempleGrounds(
   // camera blocker, same as the other buildings.
   function buildCocHuts(): Group[] {
     return (COC_SPOTS as readonly CocSpot[]).map((spot) => {
-      const hut = hutGroup(spot.x, spot.z, spot.size, spot.title);
+      const hut = hutGroup(spot.x, spot.z, spot.size, spot.title, false);
       hut.name = spot.id;
       return hut;
     });
