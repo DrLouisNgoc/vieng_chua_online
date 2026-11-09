@@ -925,6 +925,12 @@ export async function buildTempleGrounds(
     };
     const roofMesh = curvedRoof(roof);
     roofMesh.position.y = 0.2 + wallHeight;
+    // The sun's shadow map spans the whole ~90-unit yard, so at a hut's
+    // scale the roof's own shadow on its own walls below is low-resolution
+    // and reads as solid black regardless of time of day (owner,
+    // 2026-11-09: "tối quá... sáng như ban ngày"). External shadows (trees
+    // etc.) still land on the walls via receiveShadow.
+    roofMesh.castShadow = false;
     hut.add(roofMesh);
     if (ornate) cornerCurls(hut, roof, 0.2 + wallHeight, 0.3);
     if (plaqueText) {
