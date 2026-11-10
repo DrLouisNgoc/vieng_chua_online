@@ -1,6 +1,6 @@
 # Hướng dẫn deploy lên VPS — mục lục
 
-Domain đã chọn: **chuaonline.io.vn**. VPS khuyến nghị: **2GB RAM, KVM,
+Domain đã chọn: **chua.io.vn**. VPS khuyến nghị: **2GB RAM, KVM,
 Ubuntu 24.04**. Đọc theo đúng thứ tự file dưới đây, đừng nhảy cóc —
 đặc biệt là file 00 và 06, hai cái này **chặn mọi thứ** cho tới khi xong.
 
@@ -27,7 +27,7 @@ Ubuntu 24.04**. Đọc theo đúng thứ tự file dưới đây, đừng nhảy
 | Thay tài nguyên bản quyền (file 00) | Claude | ❌ Chưa |
 | Gia cố server (file 06) | Claude | ❌ Chưa |
 | Tạo repo GitHub Private (file 01) | Chủ dự án | ⏳ Đang làm |
-| Mua VPS + domain (file 02) | Chủ dự án | ✅ Đã có `chuaonline.io.vn` + VPS |
+| Mua VPS + domain (file 02) | Chủ dự án | ✅ Đã có `chua.io.vn` + VPS |
 | Nối domain + các bước trên VPS (file 03-11) | Chủ dự án (theo hướng dẫn) | ❌ Chưa bắt đầu |
 
 **Lưu ý quan trọng:** code mới nhất có thể đang nằm ở máy khác (máy chạy

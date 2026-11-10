@@ -10,7 +10,7 @@ Cần xong trước khi tới file [09](09-cau-hinh-caddy.md) (bật domain th�
 
 - [x] Giới hạn số kết nối WebSocket theo mỗi IP (tối đa 8 kết nối cùng lúc
   mỗi IP, `server/src/server.ts`).
-- [x] Chỉ nhận kết nối có header `Origin` khớp đúng `https://chuaonline.io.vn`
+- [x] Chỉ nhận kết nối có header `Origin` khớp đúng `https://chua.io.vn`
   khi biến môi trường `ALLOWED_ORIGIN` được đặt (xem file
   [07](07-dua-code-len-build.md)/[09](09-cau-hinh-caddy.md) để đặt biến này
   trên VPS thật; không đặt thì server vẫn nhận mọi origin, dùng cho máy dev).
@@ -23,7 +23,7 @@ Cần xong trước khi tới file [09](09-cau-hinh-caddy.md) (bật domain th�
 ## Trạng thái
 
 **Đã làm xong trong code** (107 test server pass, `tsc` sạch). Khi deploy
-lên VPS thật, nhớ đặt biến môi trường `ALLOWED_ORIGIN=https://chuaonline.io.vn`
+lên VPS thật, nhớ đặt biến môi trường `ALLOWED_ORIGIN=https://chua.io.vn`
 cho tiến trình server, nếu không server vẫn nhận kết nối từ mọi origin.
 
 ---

@@ -10,7 +10,7 @@
   là nơi bạn **quản lý DNS** của domain.
 - **VPS** là nơi app thật sự chạy, có một địa chỉ IP cố định.
 - "Nối domain vào VPS" nghĩa là: tạo một **bản ghi DNS (A record)** ở nơi
-  bán domain, nói rằng "khi ai gõ `chuaonline.io.vn`, hãy dẫn họ tới địa
+  bán domain, nói rằng "khi ai gõ `chua.io.vn`, hãy dẫn họ tới địa
   chỉ IP này".
 
 ## Bước 1: Lấy địa chỉ IP của VPS
@@ -21,7 +21,7 @@ nhà cung cấp VPS — thường ghi rõ "IP Address" hoặc "Địa chỉ IP".
 
 ## Bước 2: Vào trang quản lý DNS của domain
 
-Đăng nhập vào tài khoản ở nơi bạn mua `chuaonline.io.vn`, tìm mục thường
+Đăng nhập vào tài khoản ở nơi bạn mua `chua.io.vn`, tìm mục thường
 tên là một trong các cụm sau (tuỳ nhà đăng ký):
 - "Quản lý DNS" / "DNS Management"
 - "Quản lý tên miền" → chọn domain → "Cấu hình DNS"
@@ -38,7 +38,7 @@ Tạo (hoặc sửa nếu đã có sẵn) một bản ghi:
 | Giá trị (Value/Points to) | **địa chỉ IP VPS**, ví dụ `123.45.67.89` |
 | TTL | để mặc định (thường 3600 hoặc "Auto") |
 
-**Muốn có cả `www.chuaonline.io.vn`** (tuỳ chọn, không bắt buộc): tạo thêm
+**Muốn có cả `www.chua.io.vn`** (tuỳ chọn, không bắt buộc): tạo thêm
 một bản ghi A khác, Tên = `www`, Giá trị = IP VPS (giống hệt bản ghi trên).
 
 ## Bước 4: Đợi DNS cập nhật (propagation)
@@ -50,12 +50,12 @@ Sau khi lưu, DNS cần một khoảng thời gian để lan ra khắp nơi trê
 
 Cách 1 — dùng PowerShell:
 ```powershell
-nslookup chuaonline.io.vn
+nslookup chua.io.vn
 ```
 Nếu ra đúng IP VPS bạn đã nhập → đã cập nhật xong.
 
 Cách 2 — dùng trang web: vào https://www.whatsmydns.net, gõ
-`chuaonline.io.vn`, chọn loại **A**, xem có hiện đúng IP VPS ở hầu hết các
+`chua.io.vn`, chọn loại **A**, xem có hiện đúng IP VPS ở hầu hết các
 địa điểm trên bản đồ không.
 
 ## Lưu ý quan trọng

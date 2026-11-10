@@ -5,12 +5,12 @@
 ---
 
 **Trước khi làm bước này**, xác nhận file [03](03-noi-ten-mien.md) (DNS)
-đã trỏ đúng — chạy `nslookup chuaonline.io.vn` thấy ra đúng IP VPS. Caddy
+đã trỏ đúng — chạy `nslookup chua.io.vn` thấy ra đúng IP VPS. Caddy
 cần DNS đúng để xin chứng chỉ HTTPS.
 
 ```bash
-cat > /etc/caddy/Caddyfile << 'EOF'
-chuaonline.io.vn {
+sudo tee /etc/caddy/Caddyfile > /dev/null << 'EOF'
+chua.io.vn {
     handle /ws* {
         reverse_proxy localhost:8787
     }
@@ -22,7 +22,7 @@ chuaonline.io.vn {
 }
 EOF
 
-systemctl reload caddy
+sudo systemctl reload caddy
 ```
 
 ## Giải thích ngắn
@@ -38,7 +38,7 @@ systemctl reload caddy
 
 Xem log:
 ```bash
-journalctl -u caddy -f
+sudo journalctl -u caddy -f
 ```
 Nguyên nhân phổ biến nhất: DNS chưa trỏ đúng hoặc chưa kịp cập nhật — quay
 lại file [03](03-noi-ten-mien.md) kiểm tra.

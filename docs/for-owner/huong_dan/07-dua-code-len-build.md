@@ -48,7 +48,7 @@ Sau khi đủ 3 bước trên mới build:
 
 ```bash
 cd /opt/chua/app
-VITE_PRESENCE_URL="wss://chuaonline.io.vn/ws" npm run build
+VITE_PRESENCE_URL="wss://chua.io.vn/ws" npm run build
 ```
 
 ## Nếu repo Private hỏi đăng nhập

@@ -25,7 +25,7 @@ Sau khi tạo xong, bạn sẽ có:
 
 ## Domain
 
-Đã chọn: **chuaonline.io.vn**
+Đã chọn: **chua.io.vn**
 
 - `.io.vn` là tên miền cấp hai thuộc `.vn`, do VNNIC quản lý, mở cho cả cá
   nhân lẫn tổ chức đăng ký.
