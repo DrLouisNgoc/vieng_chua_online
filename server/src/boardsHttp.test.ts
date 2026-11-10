@@ -205,6 +205,12 @@ describe("boards HTTP API", () => {
     expect(board).toMatchObject({ occupantName: null, pendingName: null });
   });
 
+  it("admin: approving or rejecting an unknown board is a 404", async () => {
+    const { url } = start();
+    expect((await postJson(`${url}/admin/approve/nope`, { password: "adminpass" })).status).toBe(404);
+    expect((await postJson(`${url}/admin/reject/nope`, { password: "adminpass" })).status).toBe(404);
+  });
+
   it("admin: approving with nothing pending is a 409", async () => {
     const { url } = start();
     const res = await postJson(`${url}/admin/approve/o`, { password: "adminpass" });
