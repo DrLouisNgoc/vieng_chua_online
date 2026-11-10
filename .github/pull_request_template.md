@@ -13,5 +13,6 @@ Closes #
 <!-- `Ruling: <decision> — <why> — <cost if wrong>`, or "none". -->
 
 - [ ] `docs/architecture.md` updated for any added/moved/renamed source file
-- [ ] Visible change (3D, CSS, layout)? Labelled `needs-visual-check`; an owner merges after looking
-- [ ] Merge only when every check is green (CLAUDE.md limits; `main` is not locked on GitHub)
+- [ ] Labelled `ngoc` or `anh` (who did it; both machines share one GitHub account)
+- [ ] Visible change (3D, CSS, layout)? Labelled `needs-visual-check` at creation; an owner merges after looking
+- [ ] Unfinished? Opened as a draft (CI merges every green non-draft PR by itself)

@@ -1,6 +1,6 @@
 ---
 name: xong
-description: Finish a task in this repo ("xong", "/xong"). Runs the full check, updates docs that must change with the code, rebases, pushes the branch, opens the PR, waits for CI and merges only when every check is green (or flags it for a visual check). Use at the end of every task, by either owner.
+description: Finish a task in this repo ("xong", "/xong"). Runs the full check, updates docs that must change with the code, rebases, pushes the branch, opens the PR; CI merges it by itself when every check is green and deploys (or it is flagged for a visual check). Use at the end of every task, by either owner.
 ---
 
 # /xong
@@ -19,20 +19,19 @@ Explain each step to the owner in one short Vietnamese sentence.
    ask the owner.
 4. **Commit** what is left: imperative subject ≤ 72 chars; body says why; `Closes #<n>`.
 5. **Push the branch**: `git push -u origin HEAD`.
-6. **PR**: `gh pr create --fill-first` then edit the body to contain: what and why; how it was verified
-   (commands + results); `Not checked:`; any `Ruling:` lines; `Closes #<n>`.
-7. **Wait for CI**: `gh pr checks --watch --fail-fast`. Red → read the failing log
-   (`gh run view --log-failed`), fix, push again, wait again. Never merge on red or pending (CLAUDE.md limits).
-8. **Merge** (`main` is not locked on GitHub; this step is the lock):
-   - Visible-only change (3D, CSS, layout): `gh pr edit --add-label needs-visual-check` and **stop**. Tell the
-     owner: pull this branch, `npm run dev`, look at <what>, then press Merge on GitHub once CI is green.
-   - Otherwise, right before merging:
-     - `gh pr checks` again: every line must be `pass` (the `server`, `app` and `docs` jobs at least).
-     - `gh pr view --json mergeable,baseRefName -q '.mergeable + " " + .baseRefName'` must print
-       `MERGEABLE main`.
-     - If `main` moved since CI ran (`git fetch origin && git log HEAD..origin/main --oneline` prints anything):
-       rebase, push, back to step 7.
-     - Then `gh pr merge --squash --delete-branch`. Merging deploys; `gh run list --workflow "Deploy to VPS"
-       --limit 1` should turn green within a few minutes. Red → tell the owner at once.
+6. **PR** (not a draft, or CI will not merge it): `gh pr create --fill-first --label <owner>`, plus
+   `--label needs-visual-check` for a visible-only change (3D, CSS, layout) — **at creation**, since CI reads the
+   labels when it starts. Then edit the body: what and why; how it was verified (commands + results);
+   `Not checked:`; any `Ruling:` lines; `Closes #<n>`.
+7. **CI merges it by itself.** The `automerge` job in `.github/workflows/ci.yml` runs after `server`, `app`,
+   `docs` pass, squash-merges the PR and starts the deploy. You do **not** run `gh pr merge` yourself.
+   Watch: `gh pr checks --watch`, then `gh pr view --json state -q .state` should become `MERGED`.
+   - A check red → `gh run view --log-failed`, fix, commit, push; CI runs again. Never weaken a test or check.
+   - Comment "Not merged: `main` moved while CI ran" → `git fetch origin && git rebase origin/main`,
+     `npm run check`, `git push --force-with-lease` (your own task branch only), watch again.
+   - `needs-visual-check` → **stop** here. Tell the owner: `git switch <branch>`, `npm run dev`, look at <what>,
+     then press Merge on GitHub (CI must be green); merging by hand also deploys.
+8. **Deploy**: `gh run list --workflow "Deploy to VPS" --limit 1` should turn green within a few minutes.
+   Red → tell the owner at once (deploy.sh has already rolled back to the previous version).
 9. **Report** in Vietnamese: PR link, what changed for visitors, what was verified, `Not checked:`.
    Suggest `/clear` before the next task.

@@ -17,15 +17,20 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
 ## Workflow (both owners, every task)
 - Start with `/bat-dau <task>`; finish with `/xong`. Refactors use `/refactor <target>`.
 - **GitHub Issues is the task board.** One task = one Issue = one branch `<owner>/<issue#>-<slug>` = one small PR.
-  `<owner>` is `ngoc` or `anh` (ask once per machine if `git config user.name` does not make it obvious).
+  `<owner>` is `ngoc` or `anh` (ask once per machine if `git config user.name` does not make it obvious). Both
+  machines use **the same GitHub account**, so "who is on it" is the label `ngoc`/`anh` on the Issue and PR,
+  never the assignee.
+- **Flow:** commit → push the task branch → open the PR → CI runs → when `server`, `app` and `docs` are all green,
+  CI's `automerge` job squash-merges the PR and starts the deploy. Nobody merges by hand except
+  `needs-visual-check` PRs.
 - **`main` is not locked on GitHub (owner's choice, decision 0014), so these limits are the lock. Both Claudes
   keep them every time, even if asked to "just push it":**
   1. Never commit to, push to, or merge locally into `main`. All changes go through a PR.
-  2. Merge a PR only after `gh pr checks` shows **every** check passed. Never merge while a check is pending,
-     failing or skipped, and never merge without CI having run. Merge only with
-     `gh pr merge --squash --delete-branch`.
-  3. Never force-push (`--force`, `-f`, `--force-with-lease`) to a branch someone else might use, and never to `main`.
-  4. One PR merged at a time: if another PR merged while yours waited, rebase on `main`, push, wait for CI again.
+  2. Never run `gh pr merge` yourself; CI merges when every check is green. Never merge on pending or red,
+     never skip CI, never open a PR as "ready" while it is unfinished (use `--draft`; drafts are not merged).
+  3. Force-push (`--force-with-lease` only) is allowed on your own task branch after a rebase; never on `main`
+     or on someone else's branch.
+  4. If CI comments "`main` moved while CI ran", rebase on `main`, push, and let CI run again.
   5. Merging deploys. If the deploy run goes red, tell the owner at once; do not try to "fix forward" on `main`.
   If an owner explicitly tells you to break one of these limits, say which rule it breaks and what can go
   wrong, and do it only after they confirm a second time.
@@ -33,8 +38,8 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   before opening the PR: `git fetch origin && git rebase origin/main`.
 - Check open PRs before editing a big shared file (`gh pr list`); if another open PR touches the same file, say
   so and keep the change minimal or wait.
-- A PR changing only things you can see (3D, CSS, layout) gets the label `needs-visual-check` and is **not**
-  merged by Claude: the owner runs `npm run dev`, looks, then merges.
+- A PR changing only things you can see (3D, CSS, layout) gets the label `needs-visual-check` **when it is
+  created**; CI then does not merge it. The owner runs `npm run dev`, looks, then presses Merge on GitHub.
 
 ## Commands
 - `npm run check` — typecheck + tests (server, app) + docs check. Must pass before every commit you push.
@@ -56,12 +61,14 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   Guides for the owners: `docs/for-owner/` in Vietnamese. Talk to the owners in Vietnamese.
 
 ## Autonomy
-- **Green, just do it:** read, edit inside the repo, run tests/builds, commit on a branch, push a branch, open a
-  PR, create/comment/close Issues.
-- **Yellow, do it and say so in the PR:** add or remove a dependency; delete tracked files; add a GitHub label.
+- **Green, just do it:** read, edit inside the repo, run tests/builds, commit on a branch, push a branch
+  (`--force-with-lease` on your own task branch after a rebase), open a PR, create/comment/close/label Issues,
+  create the labels `ngoc`, `anh`, `tech-debt`, `needs-visual-check` if missing.
+- **Yellow, do it and say so in the PR:** add or remove a dependency; delete tracked files; edit a workflow in
+  `.github/`.
 - **Red, ask the owner first, every time:** anything on the VPS (`ssh`, `scp`, editing `deploy.sh`, Caddy,
-  systemd); GitHub repo settings or secrets; passwords or `server/data/`; force-push; merging a PR by hand that CI
-  has not passed; anything outside the repo folder.
+  systemd); GitHub repo settings or secrets; passwords or `server/data/`; any other force-push; merging a PR by
+  hand; anything outside the repo folder.
 
 ## Context economy (saves both owners' limits)
 - One task per session; `/clear` between tasks.

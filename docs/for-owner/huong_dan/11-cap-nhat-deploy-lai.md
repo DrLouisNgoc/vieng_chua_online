@@ -91,11 +91,11 @@ Site đang chạy bản nào: `cat /opt/chua/DEPLOYED`.
 ## CI/CD tự động (cập nhật 2026-11-10, quyết định 0012, 0014)
 
 Không ai push thẳng `main` nữa. Mỗi thay đổi là một PR; **CI** (tab
-Actions, workflow "CI") chạy typecheck + test + build. Theo quy tắc trong
-`CLAUDE.md`, PR chỉ được merge khi CI xanh hết (`main` không khoá trên
-GitHub, nên quy tắc này do Claude giữ, xem file 13). Sau khi merge, CI chạy lại trên `main`; **xanh thì** workflow
-"Deploy to VPS" mới SSH vào VPS chạy `/opt/chua/deploy.sh <commit>`. CI đỏ
-thì không deploy gì cả, site giữ bản cũ.
+Actions, workflow "CI") chạy typecheck + test + build. **Xanh hết thì job
+`automerge` tự merge PR** và gọi workflow "Deploy to VPS", workflow này SSH
+vào VPS chạy `/opt/chua/deploy.sh <commit>`. CI đỏ thì không merge, không
+deploy, site giữ bản cũ. (Merge tay hay push thẳng `main` thì CI chạy lại
+trên `main`, xanh mới deploy.) Chi tiết: file 13.
 
 Deploy lại bằng tay không cần SSH: tab **Actions → Deploy to VPS → Run
 workflow**.

@@ -5,38 +5,48 @@
 ---
 
 Quyết định: `docs/memory/decisions/0012-two-owner-workflow.md` và `0014-limits-instead-of-branch-lock.md`. Tóm tắt:
-**mỗi việc = 1 Issue = 1 nhánh = 1 PR → CI xanh hết → Claude merge → tự deploy.**
+**mỗi việc = 1 Issue = 1 nhánh → commit → push → mở PR → CI chạy → xanh hết thì CI tự merge → tự deploy.**
+
+CI tự merge bằng job `automerge` trong `.github/workflows/ci.yml`. Job này chỉ merge khi cả 3 job `server`,
+`app`, `docs` đều xanh, và chỉ khi trong lúc CI chạy chưa có ai merge thêm gì vào `main`. Nếu có, nó để lại
+comment, Claude rebase và đẩy lại, CI chạy lại rồi tự merge.
 
 `main` **không khoá** trên GitHub (bạn chọn, 2026-11-10). Thay vào đó, Claude của cả hai máy đọc cùng một bộ
 **quy tắc giới hạn** trong `CLAUDE.md`:
 1. Không commit, push hay merge thẳng vào `main`; mọi thay đổi đi qua PR.
-2. Chỉ merge khi **mọi** check CI đều xanh; đang chạy, đỏ hay bị bỏ qua đều không merge.
-3. Không force-push.
-4. Mỗi lần merge một PR; `main` vừa đổi thì rebase và chờ CI lại.
+2. Claude không tự bấm merge; CI merge khi xanh hết. Việc đang làm dở thì mở PR ở dạng **draft**: CI vẫn chạy
+   nhưng không merge.
+3. Chỉ được force-push lên nhánh việc của chính mình sau khi rebase; không bao giờ lên `main`.
+4. CI báo "`main` moved" thì rebase và đẩy lại.
 5. Deploy đỏ thì báo ngay, không tự sửa vội trên `main`.
 
 Bạn hay anh trai bảo Claude phá một quy tắc, nó sẽ nói rõ rủi ro và hỏi lại lần nữa. Thêm một lưới an toàn: kể cả
-khi ai đó lỡ push thẳng `main`, **CI đỏ thì không deploy** (workflow deploy chỉ chạy sau CI xanh).
+khi ai đó lỡ push thẳng `main`, **CI đỏ thì không deploy**.
 
-## Phần A — Chủ repo (Ngọc) bấm trên GitHub, làm 1 lần
+**Hai máy dùng chung một tài khoản GitHub**, nên GitHub không phân biệt được ai làm gì. Claude gắn nhãn `ngoc`
+hoặc `anh` lên Issue và PR, và commit mang tên riêng của từng máy (`git config user.name`).
 
-1. **Mời anh trai:** repo → **Settings → Collaborators → Add people** →
-   tài khoản GitHub của anh → quyền **Write**.
-2. **Settings → General → Pull Requests**:
-   - Bật **Automatically delete head branches**.
-   - Chỉ bật **Allow squash merging** (tắt merge commit và rebase merging) để lịch sử gọn.
-3. **Tạo 2 nhãn:** **Issues → Labels → New label**: `tech-debt` và `needs-visual-check`.
-4. Trên VPS: dán `deploy.sh` bản mới theo [file 11](11-cap-nhat-deploy-lai.md), rồi chạy thử tính năng tự quay về.
+## Phần A — Làm 1 lần
+
+1. **Settings → General → Pull Requests** (không bắt buộc, cho lịch sử gọn): chỉ bật **Allow squash merging**.
+2. **Chỉ khi** job `automerge` báo lỗi `Resource not accessible by integration`: vào **Settings → Actions →
+   General → Workflow permissions**, chọn **Read and write permissions**, Save. Bình thường không cần, vì workflow
+   đã tự xin đủ quyền.
+3. Trên VPS: dán `deploy.sh` bản mới theo [file 11](11-cap-nhat-deploy-lai.md), rồi chạy thử tính năng tự quay về.
+
+Các nhãn `ngoc`, `anh`, `tech-debt`, `needs-visual-check`: Claude tự tạo ở lần `/bat-dau` đầu tiên.
 
 ## Phần B — Máy anh trai, cài 1 lần
 
-1. Cài **Git**, **Node.js 22**, **GitHub CLI** (`gh`), **Claude Code**.
+GitHub đã đăng nhập sẵn trên máy anh. Chỉ cần kiểm tra và cài phần còn thiếu:
+
+1. Có **Git**, **Node.js 22**, **GitHub CLI** (`gh`), **Claude Code**.
 2. Mở terminal:
    ```bash
-   gh auth login                 # chọn GitHub.com → HTTPS → đăng nhập bằng trình duyệt
+   gh auth status                # phải thấy "Logged in to github.com"; nếu không: gh auth login
    gh repo clone DrLouisNgoc/vieng_chua_online
    cd vieng_chua_online
-   git config user.name "Anh"    # tên hiện trên commit
+   git config user.name "Anh"    # tên hiện trên commit, để phân biệt với máy Ngọc
    npm --prefix server ci && npm --prefix app ci
    npm run check                 # phải thấy toàn chữ xanh / "check-docs: ok"
    ```
@@ -51,22 +61,21 @@ khi ai đó lỡ push thẳng `main`, **CI đỏ thì không deploy** (workflow 
    `/bat-dau sửa nút Nhạc nền bị che trên điện thoại` (tả việc bằng lời thường).
    Claude sẽ: lấy code mới nhất → tìm hoặc tạo Issue → tạo nhánh → viết test → sửa.
 2. Xem Claude làm; nó hỏi thì trả lời.
-3. Xong việc, gõ: `/xong`. Claude kiểm tra → mở PR → chờ CI (vài phút, đừng tắt Claude).
-4. CI xanh hết: Claude merge, khoảng 1–3 phút sau site cập nhật. **Không cần làm gì thêm.**
+3. Xong việc, gõ: `/xong`. Claude kiểm tra → commit → push → mở PR → theo dõi CI (vài phút).
+4. CI xanh hết: **CI tự merge**, khoảng 1–3 phút sau site cập nhật. **Không cần làm gì thêm.**
 5. Việc tiếp theo: gõ `/clear` trước, rồi lại `/bat-dau ...`. Một việc một phiên thì đỡ tốn limit.
 
-**PR có nhãn `needs-visual-check`** (đổi giao diện hoặc 3D): Claude không merge. Người làm chạy `npm run dev`, nhìn
+**PR có nhãn `needs-visual-check`** (đổi giao diện hoặc 3D): CI không tự merge. Người làm chạy `npm run dev`, nhìn
 tận mắt, thấy ổn và CI xanh thì vào GitHub bấm **Merge**.
 
-**Xem ai đang làm gì:** tab **Issues** trên GitHub (người được assign là người đang làm). Đừng nhận việc người
-kia đang làm.
+**Xem ai đang làm gì:** tab **Issues** trên GitHub, nhãn `ngoc` hay `anh`. Đừng nhận việc có nhãn của người kia.
 
 ## Khi nào dừng lại và gọi Ngọc
 
 - CI đỏ mà Claude sửa 2 lần vẫn đỏ.
 - Claude báo **xung đột (conflict)** mà không chắc cách gộp.
 - Claude đòi vào VPS (`ssh`), đòi đổi secret hay mật khẩu, đòi xoá `server/data/`, đòi push thẳng `main`, hoặc đòi
-  merge khi CI chưa xanh.
+  merge khi CI chưa xanh, hoặc đòi sửa file trong `.github/workflows/` mà bạn không yêu cầu.
   Trả lời **không**, rồi gọi Ngọc.
 - Site sập sau khi merge: tab **Actions → Deploy to VPS** đỏ nghĩa là script đã tự quay về bản cũ. Muốn gỡ hẳn
   thay đổi đó thì mở PR vừa merge → nút **Revert**.

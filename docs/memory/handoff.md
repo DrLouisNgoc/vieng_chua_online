@@ -8,7 +8,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   onboarding with pháp danh locked per ip, movement/interactions/practice, other visitors live, 8 cốc boards
   + hall projector + quote plaque, hỏi pháp with public answers, public chat, bell on join and hourly,
   background music.
-- Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → Claude merges → deploy; `main` is not locked, CLAUDE.md limits are the lock (0014).
+- Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014).
 - Tests: server 152, app 254; `npm run check` green.
 
 ## Passwords and data (live)

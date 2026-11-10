@@ -1,6 +1,10 @@
-# Deploys only a main commit that CI has passed (decision 0012), one deploy
-# at a time. The VPS side (/opt/chua/deploy.sh) is documented in
-# docs/for-owner/huong_dan/11-cap-nhat-deploy-lai.md.
+# Deploys only a main commit that CI has passed (decisions 0012, 0014), one
+# deploy at a time. Two ways in:
+# - ci.yml's automerge job merges a green PR and dispatches this with the
+#   merged commit (CI already tested exactly that code as the PR's merge);
+# - a merge or push to main by hand runs CI on main, and this follows it
+#   only if CI passed.
+# The VPS side (/opt/chua/deploy.sh): docs/for-owner/huong_dan/11-cap-nhat-deploy-lai.md.
 name: Deploy to VPS
 
 on:
@@ -8,8 +12,14 @@ on:
     workflows: [CI]
     types: [completed]
     branches: [main]
-  # Manual re-deploy of current main (Actions tab → Deploy to VPS → Run workflow).
+  # From automerge, or by hand: Actions tab → Deploy to VPS → Run workflow
+  # (leave sha empty to deploy the current main).
   workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to deploy (empty = current main)
+        required: false
+        default: ""
 
 concurrency:
   group: deploy
@@ -26,6 +36,17 @@ jobs:
        github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     steps:
+      - name: Pick the commit
+        id: pick
+        env:
+          REQUESTED: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          # Only a full commit hash goes into the remote command line.
+          if ! printf '%s' "$REQUESTED" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::not a commit hash: $REQUESTED"
+            exit 1
+          fi
+          echo "sha=$REQUESTED" >> "$GITHUB_OUTPUT"
       - name: SSH and run deploy.sh
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
@@ -34,4 +55,4 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           # The exact commit CI passed, so a later merge whose CI is still
           # running never rides along. (An older deploy.sh ignores the arg.)
-          script: /opt/chua/deploy.sh ${{ github.event.workflow_run.head_sha || github.sha }}
+          script: /opt/chua/deploy.sh ${{ steps.pick.outputs.sha }}

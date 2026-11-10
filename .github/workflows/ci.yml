@@ -1,8 +1,8 @@
-# The only reviewer of every PR (decisions 0012, 0014): a PR is merged only
-# when every job below is green (CLAUDE.md limits; main is not locked on
-# GitHub), and deploy.yml runs only after this passes on main — so even a
-# direct push to main never deploys red code. Never weaken a step to get
-# green — fix the code or the test.
+# The only reviewer of every PR (decisions 0012, 0014). When server, app and
+# docs are green, the automerge job merges the PR and starts the deploy.
+# main is not locked on GitHub; a direct push to main still runs this, and
+# deploy.yml follows only if it passed, so red code never deploys.
+# Never weaken a step to get green — fix the code or the test.
 name: CI
 
 on:
@@ -64,3 +64,48 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: node scripts/check-docs.mjs
+
+  # Merges a green PR by itself, then starts the deploy (decision 0014).
+  # Skipped for drafts, Dependabot (its token cannot merge) and PRs labelled
+  # needs-visual-check, which an owner merges after looking.
+  automerge:
+    needs: [server, app, docs]
+    if: >-
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
+      github.actor != 'dependabot[bot]' &&
+      !contains(github.event.pull_request.labels.*.name, 'needs-visual-check')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      # For a PR, this is GitHub's test merge of the PR into main: the exact
+      # code the jobs above passed. Its first parent is the main commit used.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      - name: Merge if CI tested today's main, then deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }} # gh talks to the API only, never to this detached checkout
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          tested_main=$(git rev-parse HEAD^1)
+          main_now=$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)
+          if [ "$tested_main" != "$main_now" ]; then
+            # Another PR merged while this one ran: the combination is untested.
+            gh pr comment "$PR" --body "Not merged: \`main\` moved while CI ran. Rebase on \`main\` and push; CI runs again and merges by itself when green."
+            echo "::warning::main moved since CI ran; not merged"
+            exit 0
+          fi
+          # --match-head-commit: refuse if someone pushed after these checks ran.
+          gh pr merge "$PR" --squash --delete-branch --match-head-commit "$HEAD_SHA"
+          merged=$(gh pr view "$PR" --json mergeCommit --jq .mergeCommit.oid)
+          # A merge made with GITHUB_TOKEN starts no push workflows, so CI on
+          # main and its deploy would never fire; dispatch the deploy directly.
+          gh workflow run deploy.yml --ref main -f sha="$merged"
+          echo "Merged as $merged, deploy started"

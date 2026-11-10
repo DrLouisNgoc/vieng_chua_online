@@ -92,13 +92,14 @@ Admin and cốc passwords are set by the first submit. To reset one, clear its h
 Two owners, each with their own Claude Code, share this repo ([decision 0012](docs/memory/decisions/0012-two-owner-workflow.md)):
 
 1. `/bat-dau <task>`: opens or claims a GitHub Issue, creates a branch, writes the test first.
-2. `/xong`: runs `npm run check`, opens a PR, waits for CI and merges once every check is green.
-3. After the merge, CI runs again on `main`; only if it is green does the deploy workflow ship that exact commit
-   to the VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back automatically.
+2. `/xong`: runs `npm run check`, commits, pushes the branch and opens a PR.
+3. CI runs `server`, `app` and `docs`. When all are green, its `automerge` job squash-merges the PR, unless it is a
+   draft or labelled `needs-visual-check`, or `main` moved while CI ran. Then it deploys that exact commit to the
+   VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back automatically.
 
 `main` is not locked on GitHub ([decision 0014](docs/memory/decisions/0014-limits-instead-of-branch-lock.md)).
-The limits in [`CLAUDE.md`](CLAUDE.md) are the lock: no direct commits or pushes to `main`, merge only when every
-check is green, no force-pushes. Coding rules: [`docs/conventions.md`](docs/conventions.md).
+The limits in [`CLAUDE.md`](CLAUDE.md) keep both Claudes off it: no direct commits or pushes to `main`, no manual
+merges, no force-pushes outside one's own task branch. Coding rules: [`docs/conventions.md`](docs/conventions.md).
 
 ## Documentation
 
