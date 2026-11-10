@@ -46,7 +46,7 @@ app/        browser client (Vite). src/ holds modules and their *.test.ts files
 server/     WebSocket + boards HTTP server. src/ holds modules and their *.test.ts files
 scripts/    dev runner, docs check, asset fetch script
 docs/       architecture, conventions, memory (decisions, lessons), owner guides, milestone specs
-.claude/    shared Claude Code skills (/bat-dau, /xong, /refactor)
+.claude/    shared Claude Code skills (start / finish / refactor a task; run automatically)
 .github/    CI and deploy workflows
 ```
 
@@ -91,8 +91,10 @@ Admin and cốc passwords are set by the first submit. To reset one, clear its h
 
 Two owners, each with their own Claude Code, share this repo ([decision 0012](docs/memory/decisions/0012-two-owner-workflow.md)):
 
-1. `/bat-dau <task>`: opens or claims a GitHub Issue, creates a branch, writes the test first.
-2. `/xong`: runs `npm run check`, commits, pushes the branch and opens a PR.
+An owner just asks for a change in plain words; Claude runs the steps on its own (no commands to type):
+1. Before editing (`.claude/skills/bat-dau`): opens or claims a GitHub Issue, creates a branch, writes the test first.
+2. When the change is complete (`.claude/skills/xong`): runs `npm run check`, commits, pushes the branch and opens
+   a PR.
 3. CI runs `server`, `app` and `docs`. When all are green, its `automerge` job squash-merges the PR, unless it is a
    draft or labelled `needs-visual-check`, or `main` moved while CI ran. Then it deploys that exact commit to the
    VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back automatically.

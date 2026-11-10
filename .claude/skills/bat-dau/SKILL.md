@@ -1,6 +1,6 @@
 ---
 name: bat-dau
-description: Start a task in this repo ("bắt đầu", "/bat-dau <việc>"). Syncs main, finds or opens the GitHub Issue, makes the branch, loads only the context the task needs, then works test-first. Use at the start of every task, by either owner.
+description: Start a task in this repo. Use AUTOMATICALLY, without being asked, whenever an owner asks in plain words for any change to the repo (fix, add, change, remove), before editing any file; also when typed as /bat-dau. Syncs main, finds or opens the GitHub Issue, makes the branch, loads only the context the task needs, then works test-first.
 ---
 
 # /bat-dau <task>

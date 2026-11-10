@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: Behaviour-preserving cleanup of one target in this repo ("/refactor <file or debt item>", "dọn code", "tách file"). Locks behaviour with tests, moves code verbatim first, cleans second, one small PR. Use for the tech-debt Issues listed in docs/memory/handoff.md.
+description: Behaviour-preserving cleanup of one target in this repo. Use AUTOMATICALLY, in place of bat-dau, whenever an owner asks to clean up, split or tidy code ("dọn code", "tách file", "refactor", a tech-debt Issue); also when typed as /refactor. Locks behaviour with tests, moves code verbatim first, cleans second, one small PR, finished with the xong steps.
 ---
 
 # /refactor <target>
