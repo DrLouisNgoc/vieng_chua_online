@@ -7,9 +7,10 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - Live and public at `https://chua.io.vn` (decision 0011). Milestones 1–10 done: 3D procedural temple,
   onboarding with pháp danh locked per ip, movement/interactions/practice, other visitors live, 8 cốc boards
   + hall projector + quote plaque, hỏi pháp with public answers, public chat, bell on join and hourly,
-  background music.
+  background music, "Đọc Kinh Nikaya" board (a title + link to budsas.org, one per day via `sutraOfTheDay()`;
+  links only, never the copyrighted translation; starts empty, the owner fills it in).
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014).
-- Tests: server 152, app 254; `npm run check` green.
+- Tests: server 152, app 258; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

@@ -18,7 +18,7 @@ hosts the dharma talks and Q&A of the teachers who hold a cốc (hermitage) ther
 | Movement | WASD to walk relative to the camera, Shift to run, drag to orbit, wheel to zoom. The camera stays out of walls |
 | Practice | Sit on any of 388 cushions, bow, greet, count prayer beads (108 per round), chant on the moktak beat, sweep the yard |
 | Together | Other visitors appear live with their robe colour and name. Public chat. The temple bell rings when someone arrives, and once an hour |
-| Cốc boards | 8 cốc (4 named for their teachers, 4 open for registration), each with its own text and private "hỏi pháp" questions that become public once answered; the named ones also have a talk list. A hall projector for talks and a quote plaque in chánh điện |
+| Cốc boards | 8 cốc (4 named for their teachers, 4 open for registration), each with its own text and private "hỏi pháp" questions that become public once answered; the named ones also have a talk list. A hall projector for talks, a quote plaque in chánh điện, and "Đọc Kinh Nikaya": one sutta a day, linked to its source |
 | Admin | Approve or reject registrations for the open cốc |
 
 ## Stack

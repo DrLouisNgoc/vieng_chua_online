@@ -31,7 +31,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `server/src/visitorRoom.ts` | Joined visitors' latest state, seat ownership, dirty flag for the 10 Hz broadcast |
 | `server/src/visitorNames.ts` | Pháp danh locked per ip; `isDefaultName()` |
 | `server/src/chatRoom.ts` | Public chat ring buffer (50 messages) |
-| `server/src/boards.ts` | Board store (cốc, hall projector, quote plaque): seeds, edit, register/approve, hỏi pháp questions/answers |
+| `server/src/boards.ts` | Board store (cốc, hall projector, quote plaque, Đọc Kinh Nikaya): seeds, edit, register/approve, hỏi pháp questions/answers |
 | `server/src/boardsHttp.ts` | HTTP routes for boards and the admin panel (no framework); per-ip write cap and wrong-password lockout (429) |
 | `server/src/clientIp.ts` | The real visitor ip behind Caddy (first `X-Forwarded-For` entry) — used for every per-ip rule |
 | `server/src/rateLimit.ts` | Fixed-window hit counter per key, prunes expired keys |
@@ -103,7 +103,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/remote-motion.ts` | Smoothing between the server's 10 Hz updates |
 | `app/src/chat-panel.ts` | Public chat DOM |
 | `app/src/board-proximity.ts` | Which cốc/projector is within reach |
-| `app/src/boards-client.ts` | fetch wrapper for the boards HTTP API |
+| `app/src/boards-client.ts` | fetch wrapper for the boards HTTP API; `sutraOfTheDay()` |
 | `app/src/boards-panel.ts` | Boards panel DOM: list, board, admin views (580 lines, to be split) |
 
 ## Tests
