@@ -569,22 +569,26 @@ export async function buildTempleGrounds(
     }
   }
 
-  // A sparse grid of ceiling lamps over the cushion seating area —
-  // buildShrine's lights only reach the altar, leaving the rest of the
-  // hall dim (owner, 2026-11-10: "chánh điện sáng trưng hơn nữa"). Kept
-  // to 4 lights (not one per inner pillar, 16 of them) to avoid a real
-  // frame-rate cost — each is a long-reach fill, not a pinpoint source.
+  // A grid of ceiling lamps across the whole hall floor — buildShrine's
+  // lights only reach the altar, and a first pass at 4 of these (owner,
+  // 2026-11-10: "chánh điện sáng trưng hơn nữa") still left it uneven
+  // ("ko đúng... tôi muốn sáng trưng luôn tất cả chánh điện"). 6 lights,
+  // each a long-reach fill with generous overlap, covers the full width
+  // (±24, within the ±37 interior) and both the front and back of the
+  // seating area; still well short of one per inner pillar (16).
   function buildHallAmbientLights(hall: Group, top: number, wallHeight: number): void {
-    const y = top + wallHeight * 0.75;
-    const reach = 32;
+    const y = top + wallHeight * 0.8;
+    const reach = 46;
     const spots = [
-      { x: -20, z: -15 },
-      { x: 20, z: -15 },
-      { x: -20, z: -35 },
-      { x: 20, z: -35 },
+      { x: -24, z: -8 },
+      { x: 0, z: -8 },
+      { x: 24, z: -8 },
+      { x: -24, z: -32 },
+      { x: 0, z: -32 },
+      { x: 24, z: -32 },
     ];
     for (const spot of spots) {
-      const lamp = new PointLight(PALETTE.lamp, 2.2 * reach * reach, reach, 2);
+      const lamp = new PointLight(PALETTE.lamp, 3 * reach * reach, reach, 2);
       lamp.position.set(spot.x, y, spot.z);
       lamp.castShadow = false;
       hall.add(lamp);

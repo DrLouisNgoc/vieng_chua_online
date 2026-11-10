@@ -381,3 +381,18 @@ automation) — only confirmed the scene builds without error and the
 light/sign code matches the existing patterns used elsewhere in this
 file. Worth a screenshot check before the owner relies on exact
 brightness/sign placement looking right.
+
+Owner tried it live and said the 4-light pass "ko đúng... tôi muốn
+sáng trưng luôn tất cả chánh điện" (not enough — wants the whole hall
+evenly bright, not just lit near a few spots). `buildHallAmbientLights`
+now places 6 lights (not 4) in a wider 3x2 grid spanning the hall's
+full width and the seating area's front and back, each with a longer
+reach (46, was 32) and higher intensity — chosen over a global
+`AmbientLight`/`HemisphereLight` added to the hall group because, in
+three.js, those aren't scoped by scene-graph parent: adding one there
+would brighten the whole outdoor scene too (day/night cycle, yard),
+not just the hall. Still not verified by walking there live (same
+tooling gap as above) — this is a best-effort second pass from the
+code alone; if it's still not bright enough, the next lever is simply
+more/stronger lights in `buildHallAmbientLights`, not a different
+approach.
