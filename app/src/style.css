@@ -612,6 +612,15 @@ body {
   box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.35);
 }
 
+.boards__close {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  background: oklch(93% 0.02 85);
+}
+
 .boards__panel h2 {
   margin: 0;
   font-size: 1.1rem;

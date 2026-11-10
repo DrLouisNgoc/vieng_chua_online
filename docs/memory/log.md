@@ -252,7 +252,21 @@
   change needed. App 254 + server 139 tests pass, tsc clean both;
   pháp-danh lock verified live end to end including surviving a dev
   server restart; hourly bell verified via a server test using a short
-  interval (not watched live for a real hour). Not committed yet —
-  owner's go-ahead needed before pushing (deploy auto-runs on push).
-  Documented in
-  docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.
+  interval (not watched live for a real hour). Committed (`3570707`)
+  and pushed to `main` on the owner's go-ahead ("Push luôn"). Documented
+  in docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.
+- 2026-11-10 (same session, continued): owner tried the live site after
+  the push above and sent a screenshot of the "Bài giảng Thầy Nguyên
+  Tuệ" board panel looking broken — no visible close button, a stray
+  scrollbar, content cut off. Not a regression from the push: the
+  `.boards__panel` panel has always scrolled (`overflow-y: auto`) when
+  its content (video + title + body fields) is taller than the
+  available space, and the "Đóng" (close) button was a normal
+  in-flow element that scrolled away with everything else, so once
+  scrolled down there was no visible way back — reproduced locally at
+  a 375x812 mobile viewport. Fix: `.boards__close` is now
+  `position: sticky; top: 0` with a solid (non-translucent) background
+  and full width, so it always stays visible and clickable at the top
+  of the panel regardless of scroll position; verified at both mobile
+  and desktop sizes, closing still works. App 254 tests still pass, tsc
+  clean. Small enough not to need its own status.md section.

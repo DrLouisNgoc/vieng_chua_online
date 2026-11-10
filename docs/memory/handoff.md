@@ -14,23 +14,29 @@ private "hỏi pháp" questions, per-cốc "bài giảng", cốc renaming, chán
 and pushed earlier this session (commits up to `ab2b2fb`), including a
 live-site fix (`runtime-urls.ts`) for a `VITE_*_URL` deploy gap.
 
-**Two more follow-ups built this same session, not yet committed**:
-(1) each visitor's pháp danh is now locked to their ip (server
-remembers it, persisted to `data/visitor-names.json`; onboarding starts
-empty and refuses the old generic default "Thiện Tâm" outright — owner:
-"mỗi người sẽ phải để 1 pháp danh... trùng với ip của họ... chỉ được
-dùng 1 pháp danh này"); (2) the temple bell now also tolls on its own
-once an hour, independent of anyone joining (owner: "âm thanh chuông tự
-động đánh... cứ 1 tiếng đánh 1 lần"). Scope, rulings, what changed:
+**Two more follow-ups, committed and pushed this same session**
+(commit `3570707`, owner said "Push luôn"): (1) each visitor's pháp
+danh is now locked to their ip (server remembers it, persisted to
+`data/visitor-names.json`; onboarding starts empty and refuses the old
+generic default "Thiện Tâm" outright — owner: "mỗi người sẽ phải để 1
+pháp danh... trùng với ip của họ... chỉ được dùng 1 pháp danh này");
+(2) the temple bell now also tolls on its own once an hour, independent
+of anyone joining (owner: "âm thanh chuông tự động đánh... cứ 1 tiếng
+đánh 1 lần"). Scope, rulings, what changed:
 docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md ("Follow-up:
 pháp danh locked per ip" / "Follow-up: the bell also tolls on its own").
 App 254 + server 139 tests pass, typecheck clean both; verified live in
-the running dev app (pháp danh lock end-to-end including surviving a
-dev-server restart; hourly bell via a server test with a short interval,
-not watched live for a real hour). **Not committed or pushed yet** —
-deploy auto-runs on push to `main` (CI/CD, decision 0011's guide), so
-pushing needs the owner's explicit go-ahead first (AGENTS.md red tier),
-separately from committing locally.
+the running dev app, then confirmed live on chua.io.vn after the push.
+
+Right after that push, the owner tried the live site and reported the
+"Bài giảng Thầy Nguyên Tuệ" board panel looking broken (screenshot: no
+visible close button, a stray scrollbar). Not a regression from the
+push — the board panel has always scrolled when its content is taller
+than the space available, and the close button scrolled away with
+everything else. Fixed: `.boards__close` is now `position: sticky` with
+a solid background, so it stays visible/clickable regardless of scroll
+position. Small CSS-only fix, not yet committed as of this status line
+— see docs/memory/log.md for the entry.
 
 Milestone 9 (deploy) is live and public:
 `https://chua.io.vn` (VPS, user `chua`, Caddy reverse-proxying the
