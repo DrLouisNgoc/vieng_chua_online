@@ -570,25 +570,27 @@ export async function buildTempleGrounds(
   }
 
   // A grid of ceiling lamps across the whole hall floor — buildShrine's
-  // lights only reach the altar, and a first pass at 4 of these (owner,
-  // 2026-11-10: "chánh điện sáng trưng hơn nữa") still left it uneven
-  // ("ko đúng... tôi muốn sáng trưng luôn tất cả chánh điện"). 6 lights,
-  // each a long-reach fill with generous overlap, covers the full width
-  // (±24, within the ±37 interior) and both the front and back of the
-  // seating area; still well short of one per inner pillar (16).
+  // lights only reach the altar, and two earlier passes (4, then 6, lights;
+  // owner, 2026-11-10: "sáng trưng hơn nữa" then "ko đúng... sáng trưng luôn
+  // tất cả chánh điện") still left corners and the middle gap dim. This pass
+  // widens the grid to 9 lamps (covers the full ±37 interior, not just ±24)
+  // and raises reach/intensity/decay so the pools overlap edge to edge.
   function buildHallAmbientLights(hall: Group, top: number, wallHeight: number): void {
     const y = top + wallHeight * 0.8;
-    const reach = 46;
+    const reach = 60;
     const spots = [
-      { x: -24, z: -8 },
-      { x: 0, z: -8 },
-      { x: 24, z: -8 },
-      { x: -24, z: -32 },
-      { x: 0, z: -32 },
-      { x: 24, z: -32 },
+      { x: -30, z: -2 },
+      { x: 0, z: -2 },
+      { x: 30, z: -2 },
+      { x: -30, z: -20 },
+      { x: 0, z: -20 },
+      { x: 30, z: -20 },
+      { x: -30, z: -36 },
+      { x: 0, z: -36 },
+      { x: 30, z: -36 },
     ];
     for (const spot of spots) {
-      const lamp = new PointLight(PALETTE.lamp, 3 * reach * reach, reach, 2);
+      const lamp = new PointLight(PALETTE.lamp, 5 * reach * reach, reach, 1.5);
       lamp.position.set(spot.x, y, spot.z);
       lamp.castShadow = false;
       hall.add(lamp);
