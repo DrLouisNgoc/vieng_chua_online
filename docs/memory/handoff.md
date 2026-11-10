@@ -9,7 +9,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   + hall projector + quote plaque, hỏi pháp with public answers, public chat, bell on join and hourly,
   background music.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → auto-merge → deploy.
-- Tests: server 139, app 254; `npm run check` green.
+- Tests: server 152, app 254; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

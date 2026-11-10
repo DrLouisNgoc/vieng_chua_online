@@ -1,0 +1,12 @@
+# One line ending everywhere: both owners work on Windows, the VPS and CI on
+# Linux. Without this, each machine's core.autocrlf decides, and shell
+# snippets copied from the guides can break on the VPS with "\r" errors.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.glb binary
+*.mp3 binary
+*.wav binary
+*.ico binary
