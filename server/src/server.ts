@@ -1,5 +1,4 @@
 import { createServer } from "node:http";
-import type { IncomingMessage } from "node:http";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -7,6 +6,7 @@ import { createAdminAuth } from "./adminAuth.js";
 import { BOARD_SEEDS, createBoardStore, mergeWithSeed } from "./boards.js";
 import { createBoardsRequestListener } from "./boardsHttp.js";
 import { readBoardsFile, writeBoardsFile } from "./boardsFile.js";
+import { clientIp } from "./clientIp.js";
 import { createChatRoom } from "./chatRoom.js";
 import { createPresenceRoom } from "./presenceRoom.js";
 import { parseClientMessage, type ServerMessage } from "./protocol.js";
@@ -17,17 +17,6 @@ const DEFAULT_PORT = 8787;
 const DEFAULT_BOARDS_FILE = (): string => join(process.cwd(), "data", "boards.json");
 const DEFAULT_VISITOR_NAMES_FILE = (): string => join(process.cwd(), "data", "visitor-names.json");
 
-// Caddy's reverse_proxy sets X-Forwarded-For automatically (docs/for-owner
-// /huong_dan/09-cau-hinh-caddy.md); without it, every real visitor behind
-// the proxy would share the proxy's own loopback address as their "ip".
-function clientIp(request: IncomingMessage): string {
-  const forwarded = request.headers["x-forwarded-for"];
-  const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-  if (typeof first === "string" && first.length > 0) {
-    return first.split(",")[0]?.trim() || first;
-  }
-  return request.socket.remoteAddress ?? "unknown";
-}
 // A join or state message is ~250 bytes; anything far bigger is not ours.
 const MAX_PAYLOAD_BYTES = 2048;
 const TICK_MS = 100;
@@ -131,7 +120,7 @@ export function startPresenceServer(
   wss.on("close", () => clearInterval(hourlyBell));
 
   wss.on("connection", (socket, request) => {
-    const ip = request.socket.remoteAddress ?? "unknown";
+    const ip = clientIp(request);
     const connectionCount = (connectionsByIp.get(ip) ?? 0) + 1;
     if (connectionCount > MAX_CONNECTIONS_PER_IP) {
       socket.close(1008, "too many connections from this address");
@@ -139,14 +128,10 @@ export function startPresenceServer(
     }
     connectionsByIp.set(ip, connectionCount);
 
-    // May differ from `ip` above in production (behind Caddy, `ip` is the
-    // proxy's own address) — only this one is used for the pháp danh lock.
-    const identityIp = clientIp(request);
-
     clients.add(socket);
     const visitorId = presence.join();
     const allowed = createRateLimit();
-    send(socket, { type: "name-lock", name: visitorNames.nameFor(identityIp) });
+    send(socket, { type: "name-lock", name: visitorNames.nameFor(ip) });
     broadcast(clients, { type: "presence", count: presence.count });
 
     socket.on("message", (data) => {
@@ -154,13 +139,13 @@ export function startPresenceServer(
       const message = parseClientMessage(String(data));
       if (!message) return;
       if (message.type === "join") {
-        const lockedName = visitorNames.nameFor(identityIp);
+        const lockedName = visitorNames.nameFor(ip);
         if (lockedName === null) {
           if (isDefaultName(message.name)) {
             send(socket, { type: "join-refused", reason: "default-name" });
             return;
           }
-          visitorNames.register(identityIp, message.name);
+          visitorNames.register(ip, message.name);
           persistVisitorNames();
         }
         visitors.join(visitorId, lockedName ?? message.name, message.colorIndex);

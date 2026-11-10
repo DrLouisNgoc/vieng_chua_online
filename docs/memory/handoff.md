@@ -17,8 +17,6 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - `server/data/` (boards, pháp danh locks) exists only on the VPS: back it up; never in git.
 
 ## Open work (to move into GitHub Issues)
-- Bug, likely: the 8-connections-per-ip cap counts Caddy's address, so the whole site may share one cap
-  (`server/src/server.ts`, `const ip = request.socket.remoteAddress`). Use `clientIp()`; test first.
 - Tech debt, in order: Prettier; ESLint + knip report; `strict` in app tsconfig; protocol into `shared/`; split
   `temple-grounds.ts`, `boards-panel.ts`, `scene.ts`, `style.css`; one JSON-route helper in `boardsHttp.ts`.
 - `deploy.sh` hardening on the VPS (build to a temp dir, health check, rollback): guide file 11, owner applies.

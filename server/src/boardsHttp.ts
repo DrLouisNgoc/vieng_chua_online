@@ -4,10 +4,36 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AdminAuth } from "./adminAuth.js";
 import type { BoardStore } from "./boards.js";
+import { clientIp } from "./clientIp.js";
+import { createWindowCounter } from "./rateLimit.js";
 
 // A dharma talk is a few paragraphs plus a handful of YouTube links; this
 // is generous headroom while still bounding memory per request.
 const MAX_BODY_BYTES = 50_000;
+
+// Per visitor ip. The admin password guards approvals for the whole site,
+// and every password here is "first submit sets it" with no lockout of its
+// own, so guessing must be slow. A real person never gets near either cap.
+export interface RequestLimits {
+  postsPerWindow: number;
+  postWindowMs: number;
+  passwordFailuresPerWindow: number;
+  passwordFailureWindowMs: number;
+}
+
+const DEFAULT_LIMITS: RequestLimits = {
+  postsPerWindow: 30,
+  postWindowMs: 60_000,
+  passwordFailuresPerWindow: 10,
+  passwordFailureWindowMs: 15 * 60_000,
+};
+
+const PASSWORD_ROUTES = new Set(["board", "questions", "answer", "admin-pending", "admin-approve", "admin-reject"]);
+
+function sendTooMany(res: ServerResponse, retryAfterMs: number): void {
+  res.setHeader("Retry-After", String(Math.ceil(retryAfterMs / 1000)));
+  sendJson(res, 429, { error: "too-many-requests" });
+}
 const MAX_NAME_LENGTH = 60;
 const MAX_NOTE_LENGTH = 500;
 
@@ -145,7 +171,12 @@ export function createBoardsRequestListener(
   store: BoardStore,
   adminAuth: AdminAuth,
   persist: () => void,
+  limitOverrides: Partial<RequestLimits> = {},
 ): (req: IncomingMessage, res: ServerResponse) => void {
+  const limits = { ...DEFAULT_LIMITS, ...limitOverrides };
+  const posts = createWindowCounter({ windowMs: limits.postWindowMs });
+  const passwordFailures = createWindowCounter({ windowMs: limits.passwordFailureWindowMs });
+
   return (req, res) => {
     setCors(res);
     if (req.method === "OPTIONS") {
@@ -160,6 +191,19 @@ export function createBoardsRequestListener(
       sendJson(res, 404, { error: "not-found" });
       return;
     }
+
+    const ip = clientIp(req);
+    if (req.method === "POST") {
+      if (posts.hit(ip) > limits.postsPerWindow) return sendTooMany(res, limits.postWindowMs);
+      const isLockedOut = passwordFailures.count(ip) >= limits.passwordFailuresPerWindow;
+      if (PASSWORD_ROUTES.has(route.kind) && isLockedOut) {
+        return sendTooMany(res, limits.passwordFailureWindowMs);
+      }
+    }
+    const rejectPassword = (): void => {
+      passwordFailures.hit(ip);
+      sendJson(res, 403, { error: "wrong-password" });
+    };
 
     if (req.method === "GET" && route.kind === "boards") {
       sendJson(res, 200, { boards: store.list() });
@@ -183,7 +227,7 @@ export function createBoardsRequestListener(
           if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
           const result = store.edit(route.id, parsed.password, parsed.body, parsed.talks, parsed.title);
           if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "wrong-password") return sendJson(res, 403, { error: "wrong-password" });
+          if (result === "wrong-password") return rejectPassword();
           if (result === "not-assigned") return sendJson(res, 409, { error: "not-assigned" });
           persist();
           sendJson(res, 200, { ok: true });
@@ -216,7 +260,7 @@ export function createBoardsRequestListener(
           if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
           const result = store.readQuestions(route.id, parsed.password);
           if (result.outcome === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result.outcome === "wrong-password") return sendJson(res, 403, { error: "wrong-password" });
+          if (result.outcome === "wrong-password") return rejectPassword();
           sendJson(res, 200, { questions: result.questions });
         },
         () => sendJson(res, 400, { error: "invalid-request" }),
@@ -231,7 +275,7 @@ export function createBoardsRequestListener(
           if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
           const result = store.answer(route.id, parsed.password, parsed.questionId, parsed.answer);
           if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "wrong-password") return sendJson(res, 403, { error: "wrong-password" });
+          if (result === "wrong-password") return rejectPassword();
           persist();
           sendJson(res, 200, { ok: true });
         },
@@ -264,7 +308,7 @@ export function createBoardsRequestListener(
           const parsed = parsePasswordRequest(value);
           if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
           if (adminAuth.authenticate(parsed.password) === "wrong-password") {
-            return sendJson(res, 403, { error: "wrong-password" });
+            return rejectPassword();
           }
           persist(); // first login may have just set the admin password
           sendJson(res, 200, { registrations: store.listPending() });
@@ -281,7 +325,7 @@ export function createBoardsRequestListener(
           const parsed = parsePasswordRequest(value);
           if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
           if (adminAuth.authenticate(parsed.password) === "wrong-password") {
-            return sendJson(res, 403, { error: "wrong-password" });
+            return rejectPassword();
           }
           const result = decide(route.id);
           if (result === "not-found") return sendJson(res, 404, { error: "not-found" });

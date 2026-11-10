@@ -29,7 +29,7 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
 
 ## Server, proxy, deploy
 - Behind Caddy, `request.socket.remoteAddress` is Caddy's own address; the real visitor ip is the first entry
-  of `X-Forwarded-For` (`clientIp()` in server.ts). Local dev has no proxy, so a bug here only shows live.
+  of `X-Forwarded-For` (`server/src/clientIp.ts`, used for every per-ip rule). Local dev has no proxy, so a bug here only shows live.
 - Server tests share one loopback address: `connect()` in server.test.ts sends a fake `X-Forwarded-For` per call.
 - `new WebSocketServer({ server })`: ws does not close the HTTP server on `wss.close()`, and both `httpServer`
   and `wss` need their own `'error'` listener or `EADDRINUSE` crashes the process.

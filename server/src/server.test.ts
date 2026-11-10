@@ -205,17 +205,25 @@ describe("presence server with visitors", () => {
     expect(await closed).toBe(1001);
   });
 
-  it("closes a connection once an IP has too many at once", async () => {
+  it("closes a connection once one visitor ip has too many at once", async () => {
     server = startPresenceServer(0, undefined, freshVisitorNamesPath());
-    const clientsForIp = await Promise.all(Array.from({ length: 8 }, () => connect()));
+    const ip = "203.0.113.20";
+    const clientsForIp = await Promise.all(Array.from({ length: 8 }, () => connect({ ip })));
     expect(clientsForIp.every((c) => c.socket.readyState === WebSocket.OPEN)).toBe(true);
 
-    const { port } = server.address() as AddressInfo;
-    const extra = new WebSocket(`ws://127.0.0.1:${port}`);
-    sockets.push(extra);
-    const closed = new Promise((resolve) => extra.once("close", resolve));
-    await closed;
-    expect(extra.readyState).toBe(WebSocket.CLOSED);
+    const extra = await connect({ ip });
+    await new Promise((resolve) => extra.socket.once("close", resolve));
+    expect(extra.socket.readyState).toBe(WebSocket.CLOSED);
+  });
+
+  it("counts the cap per real visitor behind the proxy, not per proxy address", async () => {
+    // Behind Caddy every socket comes from the same loopback address; the
+    // cap must not turn into one shared cap for the whole site.
+    server = startPresenceServer(0, undefined, freshVisitorNamesPath());
+    await Promise.all(Array.from({ length: 8 }, () => connect({ ip: "203.0.113.21" })));
+    const otherVisitor = await connect({ ip: "203.0.113.22" });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(otherVisitor.socket.readyState).toBe(WebSocket.OPEN);
   });
 });
 
