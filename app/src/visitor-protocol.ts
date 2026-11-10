@@ -1,4 +1,6 @@
-import type { Activity } from "./interaction-state";
+import { ACTIVITIES, MAX_CHAT_LENGTH, type Activity } from "../../shared/protocol";
+
+export { MAX_CHAT_LENGTH };
 
 // Client side of the visitor protocol (server/src/protocol.ts is the
 // server side; docs/specs/milestone-6-visitors/design.md). Messages from
@@ -40,17 +42,6 @@ export type ServerMessage =
   | { type: "join-refused"; reason: "default-name" };
 
 export const STATE_INTERVAL_MS = 100;
-export const MAX_CHAT_LENGTH = 300;
-
-const ACTIVITIES: readonly Activity[] = [
-  "idle",
-  "walking",
-  "seated",
-  "greeting",
-  "bowing",
-  "beads",
-  "chanting",
-];
 
 function round(value: number): number {
   return Math.round(value * 100) / 100;

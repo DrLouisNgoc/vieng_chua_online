@@ -5,19 +5,7 @@
 // no longer be used at all. server.ts enforces both rules; this module is
 // just the ip -> name memory and the default-name check.
 
-export const DEFAULT_NAME = "Thiện Tâm";
-
-function normalize(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
-}
-
-export function isDefaultName(name: string): boolean {
-  return normalize(name) === normalize(DEFAULT_NAME);
-}
+export { DEFAULT_NAME, isDefaultName } from "../../shared/protocol.js";
 
 export interface VisitorNameStore {
   nameFor: (ip: string) => string | null;
