@@ -23,7 +23,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 ## server/src
 | File | Owns |
 |---|---|
-| `server/src/server.ts` | Entry point: HTTP server + WebSocketServer on one port, connection cap, rate limit, Origin check, join/chat/state routing, hourly bell |
+| `server/src/server.ts` | Entry point: HTTP server + WebSocketServer on one port, connection cap, rate limit, Origin check, join/chat/state routing, hourly bell, graceful SIGTERM shutdown |
 | `server/src/protocol.ts` | Client→server message types and strict parsing (everything a client sends is untrusted) |
 | `server/src/presenceRoom.ts` | Connected-visitor count and ids |
 | `server/src/visitorRoom.ts` | Joined visitors' latest state, seat ownership, dirty flag for the 10 Hz broadcast |
@@ -31,7 +31,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `server/src/chatRoom.ts` | Public chat ring buffer (50 messages) |
 | `server/src/boards.ts` | Board store (cốc, hall projector, quote plaque): seeds, edit, register/approve, hỏi pháp questions/answers |
 | `server/src/boardsHttp.ts` | HTTP routes for boards and the admin panel (no framework) |
-| `server/src/boardsFile.ts` | JSON read/write for `data/*.json`; a missing or corrupt file is not fatal |
+| `server/src/boardsFile.ts` | JSON read/write for `data/*.json`: atomic writes (temp + rename); missing file → null, corrupt file → throws |
 | `server/src/adminAuth.ts` | One admin password, set on first login |
 | `server/src/passwordHash.ts` | scrypt hash/verify shared by boards and admin |
 

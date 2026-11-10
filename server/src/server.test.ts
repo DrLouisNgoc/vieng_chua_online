@@ -4,7 +4,7 @@ import type { AddressInfo } from "node:net";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startPresenceServer } from "./server.js";
+import { startPresenceServer, stopPresenceServer } from "./server.js";
 
 interface Client {
   socket: WebSocket;
@@ -193,6 +193,16 @@ describe("presence server with visitors", () => {
     } finally {
       delete process.env.ALLOWED_ORIGIN;
     }
+  });
+
+  it("on shutdown, tells connected visitors it is going away so their clients reconnect", async () => {
+    const running = startPresenceServer(0, undefined, freshVisitorNamesPath());
+    server = running;
+    const a = await connect();
+    const closed = new Promise<number>((resolve) => a.socket.once("close", (code) => resolve(code)));
+    await stopPresenceServer(running);
+    server = undefined;
+    expect(await closed).toBe(1001);
   });
 
   it("closes a connection once an IP has too many at once", async () => {

@@ -35,6 +35,9 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
   and `wss` need their own `'error'` listener or `EADDRINUSE` crashes the process.
 - The app reads two build-time URLs, `VITE_PRESENCE_URL` and `VITE_BOARDS_URL`; Caddy needs `handle` blocks for
   `/ws*`, `/boards*`, `/admin*`. Missing either looks like "Không tìm thấy." on every board.
+- Never treat an unreadable data file as "fresh install": `server/data/*.json` once fell back to seeds on a
+  parse error, which would have overwritten real content and the admin hash. Missing → seed; corrupt → fail
+  loudly. Write via temp file + rename, since every deploy restarts the server.
 - An ambient `PORT` env var can push the server off 8787; `scripts/dev.mjs` pins it for the server child only.
 - CI's SSH session has no terminal for `sudo`: the VPS has a NOPASSWD rule for exactly
   `systemctl restart chua-server` (`/etc/sudoers.d/chua-deploy`).
