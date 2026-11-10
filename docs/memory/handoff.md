@@ -174,6 +174,17 @@ supersedes 0001's "no public deploy"**.
   shadow-casting part, keep `receiveShadow` for shadows from bigger
   external casters (trees etc.). Owner, 2026-11-09: "tối quá... sáng
   như ban ngày".
+- `main.ts` reads two *separate* build-time env vars: `VITE_PRESENCE_URL`
+  (WebSocket) and `VITE_BOARDS_URL` (boards/admin HTTP API), both
+  defaulting to `localhost:8787` in prod if unset. Building with only
+  `VITE_PRESENCE_URL` set (as the deploy guide first did) leaves every
+  board/cốc panel calling `localhost:8787` in the visitor's own browser —
+  looks exactly like a 404 ("Không tìm thấy." on every board, including
+  one with a hardcoded default body — the fetch itself fails before the
+  body is ever read). Also needs its own Caddy `handle` blocks
+  (`/boards*`, `/admin*`, same as `/ws*`) or Caddy serves them as static
+  files (also 404). Fixed in files 07/09 2026-11-10; owner's VPS still
+  needs the Caddyfile + build command re-run to pick it up.
 
 ## Next (pick up here)
 0. **Deploy (Milestone 9) is live** at `chua.io.vn`, see decision 0011 and

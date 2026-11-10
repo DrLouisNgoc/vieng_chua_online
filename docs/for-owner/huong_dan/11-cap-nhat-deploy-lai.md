@@ -20,7 +20,7 @@ cd /opt/chua
 git pull
 cd server && npm ci
 cd ../app && npm ci
-VITE_PRESENCE_URL="wss://chua.io.vn/ws" npm run build
+VITE_PRESENCE_URL="wss://chua.io.vn/ws" VITE_BOARDS_URL="https://chua.io.vn" npm run build
 sudo systemctl restart chua-server
 echo "Deploy xong."
 EOF

@@ -48,8 +48,15 @@ Sau khi đủ 3 bước trên mới build:
 
 ```bash
 cd /opt/chua/app
-VITE_PRESENCE_URL="wss://chua.io.vn/ws" npm run build
+VITE_PRESENCE_URL="wss://chua.io.vn/ws" VITE_BOARDS_URL="https://chua.io.vn" npm run build
 ```
+
+**Cả 2 biến đều bắt buộc** — thiếu `VITE_BOARDS_URL` thì web vẫn chạy/vào
+được nhưng mọi bảng cốc/máy chiếu báo "Không tìm thấy." (trình duyệt gọi
+API boards ra `localhost:8787` của chính máy người xem, không phải VPS).
+`VITE_BOARDS_URL` dùng chung domain thật, không có cổng — Caddy chuyển
+tiếp `/boards*` và `/admin*` vào server Node ở cổng 8787 (xem file
+[09](09-cau-hinh-caddy.md)).
 
 ## Nếu repo Private hỏi đăng nhập
 
