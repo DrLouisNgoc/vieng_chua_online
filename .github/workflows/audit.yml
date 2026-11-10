@@ -1,0 +1,27 @@
+# Weekly check for known vulnerabilities in the production dependencies.
+# Not part of PR CI: a new advisory should not block an unrelated fix, and
+# Dependabot (.github/dependabot.yml) opens the upgrade PRs. A red run here
+# means: read the output, open an Issue labelled tech-debt.
+name: Audit
+
+on:
+  schedule:
+    - cron: "0 1 * * 1" # Monday 08:00 Vietnam time
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - run: npm audit --audit-level=high --omit=dev
+        working-directory: server
+      - run: npm audit --audit-level=high --omit=dev
+        working-directory: app

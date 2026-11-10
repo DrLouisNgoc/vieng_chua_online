@@ -12,6 +12,8 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 - Production: `https://chua.io.vn`. Caddy serves `app/dist` and proxies `/ws*`, `/boards*`, `/admin*` to the
   server on :8787 (systemd `chua-server`). Deploy: merge to `main` → CI → `/opt/chua/deploy.sh`
   (`docs/for-owner/huong_dan/11-cap-nhat-deploy-lai.md`).
+- Scheduled workflows: `backup.yml` (nightly `server/data/` → VPS + 90-day artifact), `uptime.yml` (hourly),
+  `audit.yml` (weekly); Dependabot weekly. Why: decision 0013.
 - Build-time env: `VITE_PRESENCE_URL`, `VITE_BOARDS_URL`; unset → same origin (`app/src/runtime-urls.ts`).
 - Gitignored, never in git: `app/public/sansatemple/` (original assets, `scripts/fetch-sansatemple-assets.sh`),
   `app/public/thirdparty/` (licensed assets, `docs/assets/third-party-assets.md`), `server/data/` (real content).

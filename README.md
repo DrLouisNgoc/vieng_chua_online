@@ -82,7 +82,9 @@ npm run check      # typecheck + all tests + docs check (what CI runs)
 - `server/data/boards.json`: board content, hỏi pháp Q&A, password hashes (scrypt).
 - `server/data/visitor-names.json`: the pháp danh locked to each ip.
 
-Both files are real people's content: they are gitignored, exist only on the server, and must be backed up.
+Both files are real people's content: they are gitignored and exist only on the server. A nightly workflow backs
+them up (14 days on the VPS, 90 days as a private GitHub artifact); restore steps are in
+[guide 12](docs/for-owner/huong_dan/12-duy-tri-lau-dai.md). An hourly workflow checks the site is up.
 Admin and cốc passwords are set by the first submit. To reset one, clear its hash in `boards.json` and restart.
 
 ## How we work

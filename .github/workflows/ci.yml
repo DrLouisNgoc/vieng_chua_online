@@ -62,18 +62,3 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: node scripts/check-docs.mjs
-
-  # Report only: a new advisory in a dependency should not block an
-  # unrelated fix. Read its output when it goes red.
-  audit:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-      - run: npm audit --audit-level=high --omit=dev
-        working-directory: server
-      - run: npm audit --audit-level=high --omit=dev
-        working-directory: app

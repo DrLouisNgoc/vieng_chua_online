@@ -19,7 +19,10 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 ## Open work (to move into GitHub Issues)
 - Tech debt, in order: Prettier; ESLint + knip report; `strict` in app tsconfig; protocol into `shared/`; split
   `temple-grounds.ts`, `boards-panel.ts`, `scene.ts`, `style.css`; one JSON-route helper in `boardsHttp.ts`.
-- `deploy.sh` hardening on the VPS (build to a temp dir, health check, rollback): guide file 11, owner applies.
+- Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
+  check `systemctl show chua-server -p Environment`), Caddy headers/compression (guide 09). Then run the Backup
+  workflow once by hand.
+- Not done yet: a Content-Security-Policy header (needs testing against the YouTube embeds and inline styles).
 - Owner assets: `bell-gong.mp3` and 3 CC0 sounds (`docs/assets/third-party-assets.md`); quote photos in
   `app/public/thirdparty/phap-cu/`; confirm `nguyen-tue.jpg` is on the VPS.
 - Owner answers pending: yard-size rulings (Milestone 4 status.md); Tâm Kinh proofreading

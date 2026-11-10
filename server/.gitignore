@@ -5,3 +5,5 @@ dist
 # people, not test fixtures. Gitignored like other owner/visitor data; back
 # it up yourself before wiping the repo.
 data/
+# Corrupt data folders set aside during a restore (huong_dan/12)
+data-hong-*/
