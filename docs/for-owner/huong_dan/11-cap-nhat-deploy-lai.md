@@ -32,19 +32,36 @@ Từ sau, mỗi lần có code mới: SSH vào VPS, gõ:
 /opt/chua/deploy.sh
 ```
 
-## CI/CD tự động (không bắt buộc)
+## CI/CD tự động (đã cấu hình, 2026-11-10)
 
-Nếu muốn mỗi lần `git push` lên GitHub là tự động deploy, không cần tự SSH
-vào mỗi lần — dùng **GitHub Actions** gọi script ở trên qua SSH.
+Mỗi lần `git push` nhánh `main` lên GitHub, **GitHub Actions** tự SSH vào
+VPS chạy `/opt/chua/deploy.sh` — không cần tự SSH vào mỗi lần.
 
-Đổi lại: cần lưu **private key SSH của VPS vào GitHub Secrets** — thứ nhạy
-cảm, lộ ra là ai cũng vào được VPS của bạn.
+Workflow: `.github/workflows/deploy.yml` trong repo (không có gì bí mật,
+nằm trong code bình thường). Cần 3 secret trong GitHub (**Settings →
+Secrets and variables → Actions**), chỉ làm 1 lần:
 
-**Khuyến nghị:** với dự án quy mô vài người chơi, cách thủ công
-(`deploy.sh`, một lệnh) đã đủ nhanh. Chỉ nên làm CI/CD nếu sau này sửa code
-rất thường xuyên (vài lần/ngày) và thấy việc SSH tay vẫn phiền. Hỏi Claude
-khi tới lúc cần, sẽ hướng dẫn chi tiết riêng (tạo deploy key, cấu hình
-GitHub Actions workflow).
+| Tên | Giá trị |
+|---|---|
+| `VPS_HOST` | IP hoặc domain VPS (`chua.io.vn`) |
+| `VPS_USER` | `chua` |
+| `VPS_SSH_KEY` | private key SSH **riêng cho CI** (khác khoá deploy key GitHub→VPS ở file 01/07) |
+
+Tạo khoá CI trên VPS (bằng user `chua`):
+```bash
+ssh-keygen -t ed25519 -C "github-actions-ci" -f ~/.ssh/ci_deploy -N ""
+cat ~/.ssh/ci_deploy.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/ci_deploy   # copy nguyên dòng này vào secret VPS_SSH_KEY
+```
+
+**Rủi ro cần biết:** secret này cho phép GitHub Actions chạy lệnh trên
+VPS của bạn. Repo đang Private nên tạm chấp nhận được, nhưng nếu secret
+bị lộ (ví dụ máy bạn bị chiếm quyền, hoặc vô tình để lộ trong log), kẻ
+xấu SSH được vào VPS. Theo dõi tab **Actions** trên GitHub xem có lần
+chạy lạ không.
+
+Kiểm tra sau khi thêm secret: vào tab **Actions** trên GitHub sau lần
+push kế tiếp, xem job "Deploy to VPS" chạy xanh hay đỏ.
 
 ---
 
