@@ -3,6 +3,9 @@
 // untrusted: parseClientMessage accepts only the exact shapes below.
 
 export const MAX_NAME_LENGTH = 24;
+// Letters (incl. Vietnamese diacritics), digits, spaces, apostrophes and
+// hyphens only — no HTML/markup characters (<, >, &, quotes, slashes, …).
+const NAME_PATTERN = /^[\p{L}\p{N}\p{M} '-]+$/u;
 export const MAX_CHAT_LENGTH = 300;
 export const ROBE_COLOR_COUNT = 6;
 // Must match app/src/temple-layout.ts: 16 x 24 hall cushions + 4 banyan seats.
@@ -84,6 +87,7 @@ function parseJoin(fields: Fields): JoinMessage | null {
   if (typeof fields.name !== "string") return null;
   const name = fields.name.trim();
   if (name.length === 0 || name.length > MAX_NAME_LENGTH) return null;
+  if (!NAME_PATTERN.test(name)) return null;
   if (!isIntegerIn(fields.colorIndex, 0, ROBE_COLOR_COUNT)) return null;
   return { type: "join", name, colorIndex: fields.colorIndex };
 }

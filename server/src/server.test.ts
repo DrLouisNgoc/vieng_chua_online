@@ -19,10 +19,10 @@ afterEach(async () => {
   server = undefined;
 });
 
-async function connect(): Promise<Client> {
+async function connect(options?: { origin?: string }): Promise<Client> {
   if (!server) throw new Error("server not started");
   const { port } = server.address() as AddressInfo;
-  const socket = new WebSocket(`ws://127.0.0.1:${port}`);
+  const socket = new WebSocket(`ws://127.0.0.1:${port}`, options?.origin ? { origin: options.origin } : undefined);
   sockets.push(socket);
   const messages: Array<Record<string, unknown>> = [];
   const waiters: Array<() => void> = [];
@@ -126,5 +126,45 @@ describe("presence server with visitors", () => {
     a.send({ type: "join", name: "x".repeat(5000), colorIndex: 0 });
     await closed;
     expect(a.socket.readyState).toBe(WebSocket.CLOSED);
+  });
+
+  it("rejects a connection from a page whose Origin isn't the allowed one", async () => {
+    process.env.ALLOWED_ORIGIN = "https://chuaonline.io.vn";
+    try {
+      server = startPresenceServer(0);
+      const { port } = server.address() as AddressInfo;
+      const socket = new WebSocket(`ws://127.0.0.1:${port}`, { origin: "https://evil.example" });
+      sockets.push(socket);
+      socket.on("error", () => {}); // rejecting the upgrade surfaces as a connection error, not a close
+      const rejected = new Promise((resolve) => socket.once("unexpected-response", resolve));
+      await rejected;
+      expect(socket.readyState).not.toBe(WebSocket.OPEN);
+    } finally {
+      delete process.env.ALLOWED_ORIGIN;
+    }
+  });
+
+  it("accepts a connection from the allowed Origin", async () => {
+    process.env.ALLOWED_ORIGIN = "https://chuaonline.io.vn";
+    try {
+      server = startPresenceServer(0);
+      const a = await connect({ origin: "https://chuaonline.io.vn" });
+      expect(a.socket.readyState).toBe(WebSocket.OPEN);
+    } finally {
+      delete process.env.ALLOWED_ORIGIN;
+    }
+  });
+
+  it("closes a connection once an IP has too many at once", async () => {
+    server = startPresenceServer(0);
+    const clientsForIp = await Promise.all(Array.from({ length: 8 }, () => connect()));
+    expect(clientsForIp.every((c) => c.socket.readyState === WebSocket.OPEN)).toBe(true);
+
+    const { port } = server.address() as AddressInfo;
+    const extra = new WebSocket(`ws://127.0.0.1:${port}`);
+    sockets.push(extra);
+    const closed = new Promise((resolve) => extra.once("close", resolve));
+    await closed;
+    expect(extra.readyState).toBe(WebSocket.CLOSED);
   });
 });

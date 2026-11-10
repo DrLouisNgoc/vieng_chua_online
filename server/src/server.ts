@@ -17,6 +17,7 @@ const DEFAULT_BOARDS_FILE = (): string => join(process.cwd(), "data", "boards.js
 const MAX_PAYLOAD_BYTES = 2048;
 const TICK_MS = 100;
 const MAX_MESSAGES_PER_SECOND = 30;
+const MAX_CONNECTIONS_PER_IP = 8;
 
 function send(socket: WebSocket, message: ServerMessage): void {
   if (socket.readyState === socket.OPEN) socket.send(JSON.stringify(message));
@@ -73,7 +74,16 @@ export function startPresenceServer(
     console.error(`Could not listen on port ${port}:`, error.message);
     process.exitCode = 1;
   });
-  const wss = new WebSocketServer({ server: httpServer, maxPayload: MAX_PAYLOAD_BYTES });
+  const connectionsByIp = new Map<string, number>();
+  // Unset in dev/tests (no browser Origin to check against); set in
+  // production to the real site so other pages can't open a WS connection
+  // to this server.
+  const allowedOrigin = process.env.ALLOWED_ORIGIN;
+  const wss = new WebSocketServer({
+    server: httpServer,
+    maxPayload: MAX_PAYLOAD_BYTES,
+    verifyClient: allowedOrigin ? (info, callback) => callback(info.origin === allowedOrigin) : undefined,
+  });
   // ws re-emits the server's 'error' on itself too; an unhandled 'error'
   // event throws, so this needs its own listener as well as httpServer's.
   wss.on("error", () => {});
@@ -89,7 +99,15 @@ export function startPresenceServer(
   }, TICK_MS);
   wss.on("close", () => clearInterval(tick));
 
-  wss.on("connection", (socket) => {
+  wss.on("connection", (socket, request) => {
+    const ip = request.socket.remoteAddress ?? "unknown";
+    const connectionCount = (connectionsByIp.get(ip) ?? 0) + 1;
+    if (connectionCount > MAX_CONNECTIONS_PER_IP) {
+      socket.close(1008, "too many connections from this address");
+      return;
+    }
+    connectionsByIp.set(ip, connectionCount);
+
     clients.add(socket);
     const visitorId = presence.join();
     const allowed = createRateLimit();
@@ -124,6 +142,10 @@ export function startPresenceServer(
     });
 
     socket.on("close", () => {
+      const remaining = (connectionsByIp.get(ip) ?? 1) - 1;
+      if (remaining <= 0) connectionsByIp.delete(ip);
+      else connectionsByIp.set(ip, remaining);
+
       clients.delete(socket);
       presence.leave(visitorId);
       visitors.leave(visitorId);

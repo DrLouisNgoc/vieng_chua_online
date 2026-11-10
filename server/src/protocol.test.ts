@@ -32,8 +32,20 @@ describe("parseClientMessage: join", () => {
     ["name not a string", { name: 5, colorIndex: 0 }],
     ["colour out of range", { name: "A", colorIndex: 6 }],
     ["colour not an integer", { name: "A", colorIndex: 1.5 }],
+    ["HTML tag", { name: "<script>", colorIndex: 0 }],
+    ["ampersand", { name: "A & B", colorIndex: 0 }],
+    ["quote", { name: 'A"B', colorIndex: 0 }],
+    ["slash", { name: "A/B", colorIndex: 0 }],
   ])("rejects %s", (_label, fields) => {
     expect(parseClientMessage(raw({ type: "join", ...fields }))).toBeNull();
+  });
+
+  it("accepts a hyphenated/apostrophed name", () => {
+    expect(parseClientMessage(raw({ type: "join", name: "Anne-Marie O'Brien", colorIndex: 0 }))).toEqual({
+      type: "join",
+      name: "Anne-Marie O'Brien",
+      colorIndex: 0,
+    });
   });
 });
 
