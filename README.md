@@ -92,13 +92,13 @@ Admin and cốc passwords are set by the first submit. To reset one, clear its h
 Two owners, each with their own Claude Code, share this repo ([decision 0012](docs/memory/decisions/0012-two-owner-workflow.md)):
 
 1. `/bat-dau <task>`: opens or claims a GitHub Issue, creates a branch, writes the test first.
-2. `/xong`: runs `npm run check`, opens a PR and turns on auto-merge.
-3. CI (`server`, `app`, `docs`) must be green. Then the PR merges itself and the deploy workflow ships that
-   exact commit to the VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back
-   automatically.
+2. `/xong`: runs `npm run check`, opens a PR, waits for CI and merges once every check is green.
+3. After the merge, CI runs again on `main`; only if it is green does the deploy workflow ship that exact commit
+   to the VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back automatically.
 
-`main` is protected: no direct pushes, no force-pushes (settings in guide 13, part A). Rules for code and for Claude sessions:
-[`CLAUDE.md`](CLAUDE.md), [`docs/conventions.md`](docs/conventions.md).
+`main` is not locked on GitHub ([decision 0014](docs/memory/decisions/0014-limits-instead-of-branch-lock.md)).
+The limits in [`CLAUDE.md`](CLAUDE.md) are the lock: no direct commits or pushes to `main`, merge only when every
+check is green, no force-pushes. Coding rules: [`docs/conventions.md`](docs/conventions.md).
 
 ## Documentation
 

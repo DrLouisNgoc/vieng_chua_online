@@ -13,4 +13,5 @@ Closes #
 <!-- `Ruling: <decision> — <why> — <cost if wrong>`, or "none". -->
 
 - [ ] `docs/architecture.md` updated for any added/moved/renamed source file
-- [ ] Visible change (3D, CSS, layout)? Labelled `needs-visual-check`, auto-merge off
+- [ ] Visible change (3D, CSS, layout)? Labelled `needs-visual-check`; an owner merges after looking
+- [ ] Merge only when every check is green (CLAUDE.md limits; `main` is not locked on GitHub)

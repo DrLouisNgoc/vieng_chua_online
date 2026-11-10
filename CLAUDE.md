@@ -2,7 +2,7 @@
 
 A Vietnamese 3D virtual temple (Vite + Three.js client in `app/`, Node `ws` + HTTP server in `server/`), live at
 `https://chua.io.vn`. Two owners work on it from two machines, each with their own Claude, sharing only this
-GitHub repo. Neither reviews code by reading it: **CI is the only gate**. These rules are what keep two Claudes
+GitHub repo. Neither reviews code by reading it: **CI is the only gate**, and only these rules make it one. These rules are what keep two Claudes
 consistent. They override any global/user-level routine that conflicts with them (e.g. writing a log line or a
 long handoff).
 
@@ -18,13 +18,23 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
 - Start with `/bat-dau <task>`; finish with `/xong`. Refactors use `/refactor <target>`.
 - **GitHub Issues is the task board.** One task = one Issue = one branch `<owner>/<issue#>-<slug>` = one small PR.
   `<owner>` is `ngoc` or `anh` (ask once per machine if `git config user.name` does not make it obvious).
-- Never commit to or push `main`. PRs merge themselves when CI is green (auto-merge); merging deploys.
+- **`main` is not locked on GitHub (owner's choice, decision 0014), so these limits are the lock. Both Claudes
+  keep them every time, even if asked to "just push it":**
+  1. Never commit to, push to, or merge locally into `main`. All changes go through a PR.
+  2. Merge a PR only after `gh pr checks` shows **every** check passed. Never merge while a check is pending,
+     failing or skipped, and never merge without CI having run. Merge only with
+     `gh pr merge --squash --delete-branch`.
+  3. Never force-push (`--force`, `-f`, `--force-with-lease`) to a branch someone else might use, and never to `main`.
+  4. One PR merged at a time: if another PR merged while yours waited, rebase on `main`, push, wait for CI again.
+  5. Merging deploys. If the deploy run goes red, tell the owner at once; do not try to "fix forward" on `main`.
+  If an owner explicitly tells you to break one of these limits, say which rule it breaks and what can go
+  wrong, and do it only after they confirm a second time.
 - Keep a PR under ~1 day of work and ~400 changed lines (except mechanical moves/formatting). Rebase on `main`
   before opening the PR: `git fetch origin && git rebase origin/main`.
 - Check open PRs before editing a big shared file (`gh pr list`); if another open PR touches the same file, say
   so and keep the change minimal or wait.
-- A PR changing only things you can see (3D, CSS, layout) gets the label `needs-visual-check` and **no**
-  auto-merge: the owner runs `npm run dev`, looks, then merges.
+- A PR changing only things you can see (3D, CSS, layout) gets the label `needs-visual-check` and is **not**
+  merged by Claude: the owner runs `npm run dev`, looks, then merges.
 
 ## Commands
 - `npm run check` — typecheck + tests (server, app) + docs check. Must pass before every commit you push.

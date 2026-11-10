@@ -19,6 +19,6 @@ any bug you spot instead).
    Check after each commit.
 6. **Map.** Update `docs/architecture.md` for every new/moved file.
 7. Finish with `/xong`. The PR title starts with `Refactor:` and the body says "pure refactor, no behaviour
-   change" plus before/after line counts. Anything rendered (3D, CSS) → `needs-visual-check`, not auto-merge.
+   change" plus before/after line counts. Anything rendered (3D, CSS) → `needs-visual-check`; the owner merges it after looking.
 
 Order of the debt items, and why: `docs/memory/handoff.md` → "Open work".

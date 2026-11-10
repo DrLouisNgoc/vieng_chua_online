@@ -1,6 +1,8 @@
-# The only reviewer of every PR (decision 0012): PRs auto-merge when the
-# required jobs below are green, and deploy.yml runs only after this passes
-# on main. Never weaken a step to get green — fix the code or the test.
+# The only reviewer of every PR (decisions 0012, 0014): a PR is merged only
+# when every job below is green (CLAUDE.md limits; main is not locked on
+# GitHub), and deploy.yml runs only after this passes on main — so even a
+# direct push to main never deploys red code. Never weaken a step to get
+# green — fix the code or the test.
 name: CI
 
 on:
