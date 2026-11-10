@@ -24,7 +24,7 @@ Explain each step to the owner in one short Vietnamese sentence.
    `--label needs-visual-check` for a visible-only change (3D, CSS, layout) — **at creation**, since CI reads the
    labels when it starts. Then edit the body: what and why; how it was verified (commands + results);
    `Not checked:`; any `Ruling:` lines; `Closes #<n>`.
-7. **CI merges it by itself.** The `automerge` job in `.github/workflows/ci.yml` runs after `server`, `app`,
+7. **CI merges it by itself.** The `automerge` job in `.github/workflows/ci.yml` runs after `server`, `app`, `lint`,
    `docs` pass, squash-merges the PR and starts the deploy. You do **not** run `gh pr merge` yourself.
    Watch: `gh pr checks --watch`, then `gh pr view --json state -q .state` should become `MERGED`.
    - A check red → `gh run view --log-failed`, fix, commit, push; CI runs again. Never weaken a test or check.

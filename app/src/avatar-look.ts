@@ -1,6 +1,6 @@
+import type { Material } from "three";
 import {
   CanvasTexture,
-  Material,
   Mesh,
   MeshStandardMaterial,
   SRGBColorSpace,

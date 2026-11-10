@@ -60,10 +60,11 @@ Prerequisites: Node.js 22 (`.nvmrc`), Git. The 3D models, textures and sounds ar
 Without these assets the code still builds and all tests pass; the scene is just missing models.
 
 ```bash
+npm ci                # repo root: Prettier + ESLint
 npm --prefix server ci
 npm --prefix app ci
 npm run dev        # server on :8787 and the app on http://localhost:5173
-npm run check      # typecheck + all tests + docs check (what CI runs)
+npm run check      # typecheck + all tests + lint + docs check (what CI runs)
 ```
 
 `?gio=HH` on the URL previews any hour of the day/night cycle.
@@ -95,7 +96,7 @@ An owner just asks for a change in plain words; Claude runs the steps on its own
 1. Before editing (`.claude/skills/bat-dau`): opens or claims a GitHub Issue, creates a branch, writes the test first.
 2. When the change is complete (`.claude/skills/xong`): runs `npm run check`, commits, pushes the branch and opens
    a PR.
-3. CI runs `server`, `app` and `docs`. When all are green, its `automerge` job squash-merges the PR, unless it is a
+3. CI runs `server`, `app`, `docs` and `lint`. When all are green, its `automerge` job squash-merges the PR, unless it is a
    draft or labelled `needs-visual-check`, or `main` moved while CI ran. Then it deploys that exact commit to the
    VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back automatically.
 

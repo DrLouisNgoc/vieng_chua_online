@@ -13,6 +13,12 @@ How code in this repo is written. Match these; when a file still breaks one, lea
   (repo root, after `npm ci` there) before committing. Until the one-off reformat lands, format only the files
   you touch: `npx prettier --write <files>`.
 
+## Lint
+- ESLint (`eslint.config.mjs`): the recommended JS and typescript-eslint rules, plus `eqeqeq`, no `console.log`
+  (`warn`/`error` are fine), `import type` for type-only imports, unused names allowed only with a leading `_`.
+  CI blocks on it. A rule that is genuinely wrong for one line: `// eslint-disable-next-line <rule> -- <why>`,
+  never a blanket disable.
+
 ## Naming
 - Files: `kebab-case.ts` in `app/`, `camelCase.ts` in `server/` (existing style on each side; do not mix within a side).
 - Factories: `createX(...)` returning an interface `X` (e.g. `createBoardStore`, `createPresenceRoom`).
