@@ -17,10 +17,16 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 - Build-time env: `VITE_PRESENCE_URL`, `VITE_BOARDS_URL`; unset → same origin (`app/src/runtime-urls.ts`).
 - Gitignored, never in git: `app/public/sansatemple/` (original assets, `scripts/fetch-sansatemple-assets.sh`),
   `app/public/thirdparty/` (licensed assets, `docs/assets/third-party-assets.md`), `server/data/` (real content).
-- **Must match on both sides** (until the protocol moves to `shared/`): message shapes and the constants
-  `SEAT_COUNT`, `WORLD_LIMIT`, `MAX_NAME_LENGTH`, `ROBE_COLOR_COUNT`, the default-name rule — in
-  `server/src/protocol.ts` / `server/src/visitorNames.ts` and `app/src/visitor-protocol.ts` /
-  `app/src/temple-layout.ts` / `app/src/onboarding.ts`.
+- **One copy of the rules both sides must agree on**: `shared/protocol.ts` — `MAX_NAME_LENGTH`, `MAX_CHAT_LENGTH`,
+  `ROBE_COLOR_COUNT`, `SEAT_COUNT`, `WORLD_LIMIT`, `ACTIVITIES`, `isDefaultName()`. App imports
+  `../../shared/protocol`, server `../../shared/protocol.js`. Message *shapes* are still written on both sides
+  (`server/src/protocol.ts`, `app/src/visitor-protocol.ts`); `app/src/shared-protocol.test.ts` pins the seat
+  layout and robe palette to the shared numbers.
+
+## shared
+| File | Owns |
+|---|---|
+| `shared/protocol.ts` | Constants and the default-name rule used by both app and server (pure, no imports) |
 
 ## server/src
 | File | Owns |

@@ -1,6 +1,7 @@
 import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
+import { WORLD_LIMIT } from "../../shared/protocol";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
 // Pure data: temple-grounds.ts builds the meshes, scene.ts uses the
@@ -261,7 +262,9 @@ export const LEAF_SOURCES: Point[] = [
   { x: BANYAN.x, z: BANYAN.z },
 ];
 
-export const WORLD_LIMIT = 300;
+// The edge of the world is a protocol rule too: the server rejects
+// coordinates beyond it (shared/protocol.ts).
+export { WORLD_LIMIT };
 
 function around(center: Point, half: number): Box {
   return {

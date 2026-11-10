@@ -2,27 +2,21 @@
 // docs/specs/milestone-6-visitors/design.md). Everything a client sends is
 // untrusted: parseClientMessage accepts only the exact shapes below.
 
-export const MAX_NAME_LENGTH = 24;
+import {
+  ACTIVITIES,
+  MAX_CHAT_LENGTH,
+  MAX_NAME_LENGTH,
+  ROBE_COLOR_COUNT,
+  SEAT_COUNT,
+  WORLD_LIMIT,
+  type Activity,
+} from "../../shared/protocol.js";
+
+export { ACTIVITIES, MAX_CHAT_LENGTH, MAX_NAME_LENGTH, ROBE_COLOR_COUNT, SEAT_COUNT, WORLD_LIMIT, type Activity };
+
 // Letters (incl. Vietnamese diacritics), digits, spaces, apostrophes and
 // hyphens only — no HTML/markup characters (<, >, &, quotes, slashes, …).
 const NAME_PATTERN = /^[\p{L}\p{N}\p{M} '-]+$/u;
-export const MAX_CHAT_LENGTH = 300;
-export const ROBE_COLOR_COUNT = 6;
-// Must match app/src/temple-layout.ts: 16 x 24 hall cushions + 4 banyan seats.
-export const SEAT_COUNT = 388;
-// Must match WORLD_LIMIT in app/src/temple-layout.ts.
-export const WORLD_LIMIT = 300;
-
-export const ACTIVITIES = [
-  "idle",
-  "walking",
-  "seated",
-  "greeting",
-  "bowing",
-  "beads",
-  "chanting",
-] as const;
-export type Activity = (typeof ACTIVITIES)[number];
 
 export interface JoinMessage {
   type: "join";

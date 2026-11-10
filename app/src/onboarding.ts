@@ -1,3 +1,5 @@
+import { isDefaultName, MAX_NAME_LENGTH } from "../../shared/protocol";
+
 export type Gender = "nam" | "nu";
 
 export interface OnboardingState {
@@ -36,25 +38,10 @@ export const ROBE_COLORS: RobeColor[] = [
   { base: "#8c5a4a", shade: "#663f33", trim: "#d6a28e" },
 ];
 
-// The old generic default every visitor used to start with — now
-// forbidden outright (owner, 2026-11-10: "ko được để pháp danh mặc định
-// là thiện tâm nữa"), so onboarding starts with an empty name instead.
-const DEFAULT_NAME = "Thiện Tâm";
-const MAX_NAME_LENGTH = 24;
-
-function normalizeForCompare(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
-}
-
-// Mirrors server/src/visitorNames.ts's isDefaultName — client-side check
-// is only for instant feedback; the server enforces it for real.
-export function isDefaultName(name: string): boolean {
-  return normalizeForCompare(name) === normalizeForCompare(DEFAULT_NAME);
-}
+// The forbidden default pháp danh, so onboarding starts with an empty name.
+// Same rule as the server's (shared/protocol.ts); here only for instant
+// feedback, the server enforces it for real.
+export { isDefaultName };
 
 export function createOnboardingController(): OnboardingController {
   const state: OnboardingState = {

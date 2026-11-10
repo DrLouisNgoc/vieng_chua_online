@@ -3,14 +3,10 @@
 // mirrors the original's per-visitor `pose` + `beads` fields, so Milestone 6
 // can send it to the server as is.
 
-export type Activity =
-  | "idle"
-  | "walking"
-  | "seated"
-  | "greeting"
-  | "bowing"
-  | "beads"
-  | "chanting";
+import type { Activity } from "../../shared/protocol";
+
+// The list of activities is a protocol rule (the server rejects others).
+export type { Activity };
 
 export interface InteractionSnapshot {
   activity: Activity;
