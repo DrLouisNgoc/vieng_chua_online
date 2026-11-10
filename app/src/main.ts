@@ -16,10 +16,11 @@ import { createBoardsPanel } from "./boards-panel";
 import { createChatPanel } from "./chat-panel";
 import { nearestBoardId } from "./board-proximity";
 import { createBackgroundMusic, BACKGROUND_MUSIC_VIDEO_ID } from "./background-music";
+import { defaultBoardsUrl, defaultPresenceUrl } from "./runtime-urls";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
-const DEFAULT_PRESENCE_URL = "ws://localhost:8787";
-const DEFAULT_BOARDS_URL = "http://localhost:8787";
+const DEFAULT_PRESENCE_URL = defaultPresenceUrl(import.meta.env.DEV, window.location);
+const DEFAULT_BOARDS_URL = defaultBoardsUrl(import.meta.env.DEV, window.location);
 
 function presenceStatusText(status: PresenceStatus): string {
   switch (status.kind) {
