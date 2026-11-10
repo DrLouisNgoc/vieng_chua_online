@@ -10,32 +10,97 @@
 lại không làm mất dữ liệu khách hay phải tải lại asset. Chỉ cần làm lại các
 bước đó nếu đổi sang VPS khác.
 
-## Cách thủ công: một script, một lệnh
+## Script deploy (bản an toàn, 2026-11-10)
+
+Bản cũ có 3 chỗ làm sập site: build xoá `dist/` trước nên trong lúc build
+site trắng trang (build lỗi là chết hẳn); `git pull` kẹt khi trên VPS có
+file bị sửa tay; server mới không lên thì không ai biết. Bản dưới đây:
+build ra thư mục tạm rồi mới đổi chỗ; sau khi khởi động lại thì **tự kiểm
+tra site**, hỏng thì **tự quay về bản cũ** và báo đỏ trên GitHub.
+
+SSH vào VPS bằng user `chua`, dán nguyên khối này (ghi đè bản cũ):
 
 ```bash
 cat > /opt/chua/deploy.sh << 'EOF'
 #!/bin/bash
-set -e
+# deploy.sh [commit] — CI truyền đúng commit đã qua test; chạy tay thì bỏ trống (= origin/main).
+set -uo pipefail
 cd /opt/chua
-git pull
-cd server && npm ci
-cd ../app && npm ci
-VITE_PRESENCE_URL="wss://chua.io.vn/ws" VITE_BOARDS_URL="https://chua.io.vn" npm run build
+TARGET="${1:-origin/main}"
+HEALTH_BASE="${HEALTH_BASE:-https://chua.io.vn}"
+PREV=$(git rev-parse HEAD)
+SWAPPED=0
+
+healthy() {
+  for _ in $(seq 1 15); do
+    curl -fsS -o /dev/null "$HEALTH_BASE/boards" && curl -fsS -o /dev/null "$HEALTH_BASE/" && return 0
+    sleep 2
+  done
+  return 1
+}
+
+deploy() {
+  git fetch --quiet origin &&
+  git reset --hard "$TARGET" &&
+  (cd server && npm ci) &&
+  (cd app && npm ci && rm -rf dist-new &&
+    VITE_PRESENCE_URL="wss://chua.io.vn/ws" VITE_BOARDS_URL="https://chua.io.vn" \
+    npm run build -- --outDir dist-new) &&
+  rm -rf app/dist-prev &&
+  { [ ! -d app/dist ] || mv app/dist app/dist-prev; } &&
+  mv app/dist-new app/dist && SWAPPED=1 &&
+  sudo systemctl restart chua-server &&
+  healthy
+}
+
+if deploy; then
+  git rev-parse HEAD > DEPLOYED
+  echo "Deploy xong: $(cat DEPLOYED)"
+  exit 0
+fi
+
+echo "DEPLOY HỎNG — quay về bản cũ $PREV" >&2
+git reset --hard "$PREV"
+(cd server && npm ci)
+if [ "$SWAPPED" = 1 ] && [ -d app/dist-prev ]; then rm -rf app/dist && mv app/dist-prev app/dist; fi
 sudo systemctl restart chua-server
-echo "Deploy xong."
+if healthy; then
+  echo "Đã quay về $PREV, site chạy lại bình thường." >&2
+else
+  echo "Bản cũ cũng không lên — xem: journalctl -u chua-server -n 50" >&2
+fi
+exit 1
 EOF
 chmod +x /opt/chua/deploy.sh
 ```
 
-Từ sau, mỗi lần có code mới: SSH vào VPS, gõ:
+Lưu ý: `git reset --hard` **xoá mọi sửa tay trên file có trong git** ở VPS
+(đừng sửa code trực tiếp trên VPS nữa — sửa qua GitHub). Không đụng tới
+`server/data/`, ảnh/model gitignored hay `app/dist` hiện tại.
+
+**Thử tính năng tự quay về (làm 1 lần sau khi dán script):**
 ```bash
-/opt/chua/deploy.sh
+HEALTH_BASE=https://chua.io.vn/khong-co-trang-nay /opt/chua/deploy.sh
 ```
+Phải thấy "DEPLOY HỎNG — quay về bản cũ" rồi "Bản cũ cũng không lên" (vì
+URL kiểm tra cố tình sai), nhưng mở `https://chua.io.vn` vẫn vào bình thường.
+Sau đó chạy lại bình thường: `/opt/chua/deploy.sh` → "Deploy xong".
 
-## CI/CD tự động (đã cấu hình, 2026-11-10)
+Site đang chạy bản nào: `cat /opt/chua/DEPLOYED`.
 
-Mỗi lần `git push` nhánh `main` lên GitHub, **GitHub Actions** tự SSH vào
-VPS chạy `/opt/chua/deploy.sh` — không cần tự SSH vào mỗi lần.
+## CI/CD tự động (cập nhật 2026-11-10, quyết định 0012)
+
+Không ai push thẳng `main` nữa. Mỗi thay đổi là một PR; **CI** (tab
+Actions, workflow "CI") chạy typecheck + test + build. PR chỉ merge được
+khi CI xanh. Sau khi merge, CI chạy lại trên `main`; **xanh thì** workflow
+"Deploy to VPS" mới SSH vào VPS chạy `/opt/chua/deploy.sh <commit>`. CI đỏ
+thì không deploy gì cả, site giữ bản cũ.
+
+Deploy lại bằng tay không cần SSH: tab **Actions → Deploy to VPS → Run
+workflow**.
+
+Lỡ merge một thay đổi hỏng mà CI không bắt được: mở PR đó trên GitHub →
+nút **Revert** → merge PR revert → CI → deploy bản cũ.
 
 Workflow: `.github/workflows/deploy.yml` trong repo (không có gì bí mật,
 nằm trong code bình thường). Cần 3 secret trong GitHub (**Settings →
@@ -71,7 +136,7 @@ xấu SSH được vào VPS. Theo dõi tab **Actions** trên GitHub xem có lầ
 chạy lạ không.
 
 Kiểm tra sau khi thêm secret: vào tab **Actions** trên GitHub sau lần
-push kế tiếp, xem job "Deploy to VPS" chạy xanh hay đỏ.
+merge kế tiếp, xem job "Deploy to VPS" chạy xanh hay đỏ.
 
 ---
 

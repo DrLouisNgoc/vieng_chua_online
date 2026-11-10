@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# deploy.sh's build-then-swap folders (docs/for-owner/huong_dan/11)
+dist-new
+dist-prev
 *.local
 
 # Editor directories and files

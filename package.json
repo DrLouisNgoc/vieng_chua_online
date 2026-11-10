@@ -2,6 +2,10 @@
   "name": "vieng-chua-online",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev.mjs"
+    "dev": "node scripts/dev.mjs",
+    "check": "npm run check:server && npm run check:app && npm run check:docs",
+    "check:server": "npm --prefix server run typecheck && npm --prefix server test",
+    "check:app": "npm --prefix app run typecheck && npm --prefix app test",
+    "check:docs": "node scripts/check-docs.mjs"
   }
 }

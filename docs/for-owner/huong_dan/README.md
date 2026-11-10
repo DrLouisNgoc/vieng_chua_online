@@ -19,6 +19,7 @@ Ubuntu 24.04**. Đọc theo đúng thứ tự file dưới đây, đừng nhảy
 | [10-kiem-tra.md](10-kiem-tra.md) | Kiểm tra trước khi gửi link cho mọi người |
 | [11-cap-nhat-deploy-lai.md](11-cap-nhat-deploy-lai.md) | Cập nhật code sau này, CI/CD |
 | [12-duy-tri-lau-dai.md](12-duy-tri-lau-dai.md) | Duy trì lâu dài |
+| [13-lam-viec-2-nguoi.md](13-lam-viec-2-nguoi.md) | Hai người, hai máy, hai Claude: quy trình làm chung |
 
 ## Tóm tắt tình trạng (cập nhật 2026-11-09)
 
