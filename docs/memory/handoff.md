@@ -18,8 +18,11 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - `server/data/` (boards, pháp danh locks) exists only on the VPS: back it up; never in git.
 
 ## Open work (to move into GitHub Issues)
-- Tech debt, in order: Prettier; ESLint + knip report; `strict` in app tsconfig; protocol into `shared/`; split
-  `temple-grounds.ts`, `boards-panel.ts`, `scene.ts`, `style.css`; one JSON-route helper in `boardsHttp.ts`.
+- Tech debt, in order (done: boardsHttp helper, Prettier config): run `npm run format` once and add
+  `format:check` to CI; `strict` in app tsconfig; protocol constants into `shared/`; split `temple-grounds.ts`,
+  `boards-panel.ts`, `scene.ts`, `style.css`, `main.ts` (`npm run check:size` lists them); then `check-size
+  --strict` in CI. Wait for branch `ngoc/chanh-dien-kinh-nikaya` (edits those app files) to merge first.
+  ESLint/knip dropped: typescript-eslint supports TS < 6.1 (we use 7); knip needs a prebuilt native parser.
 - Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
   check `systemctl show chua-server -p Environment`), Caddy headers/compression (guide 09). Then run the Backup
   workflow once by hand.

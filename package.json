@@ -6,6 +6,12 @@
     "check": "npm run check:server && npm run check:app && npm run check:docs",
     "check:server": "npm --prefix server run typecheck && npm --prefix server test",
     "check:app": "npm --prefix app run typecheck && npm --prefix app test",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:size": "node scripts/check-size.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
   }
 }
