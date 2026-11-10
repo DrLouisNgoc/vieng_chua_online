@@ -9,6 +9,10 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   + hall projector + quote plaque, hỏi pháp with public answers, public chat, bell on join and hourly,
   background music, "Đọc Kinh Nikaya" board (a title + link to budsas.org, one per day via `sutraOfTheDay()`;
   links only, never the copyrighted translation; starts empty, the owner fills it in).
+- This PR (ngoc): chánh điện brighter across 4 passes (9-lamp ceiling grid, `buildHallAmbientLights`); chánh
+  điện plaque cycles short own-words lines (`setPhapCuText`, not a copy of any Pháp Cú translation) plus two
+  static entrance quote tiles (`buildWallPlaque`); a plain "Phòng Đọc Kinh Nikaya" sign at the meditation hut's
+  door; the sutra board reads its link inline in an iframe instead of a new tab.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
 - Tests: server 152, app 258; `npm run check` green.
 

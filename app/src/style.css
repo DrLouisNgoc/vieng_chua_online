@@ -696,6 +696,20 @@ body {
   border-radius: 0.6rem;
 }
 
+.boards__sutra-frame {
+  width: 100%;
+  height: min(60vh, 26rem);
+  border: 1px solid oklch(72% 0.1 80 / 0.45);
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.boards__sutra-open {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  color: var(--color-gold);
+}
+
 .boards__video-list {
   margin: 0;
   padding: 0;

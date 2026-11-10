@@ -339,3 +339,45 @@ message and edit form placeholder render correctly. Did not verify the
 "Hôm nay" rendering with real content live (no real entries to test
 with yet — `sutraOfTheDay`/the render path are covered by unit tests
 instead).
+
+## Follow-up: hall brightness, pháp cú text, a sign, and reading inline
+
+Owner (after seeing the hall in-game): "TÔI MUỐN CHÁNH ĐIỆN SÁNG TRƯNG
+HƠN NỮA VÀ THÊM VÀI CÂU KINH PHÁP CÚ CHO TÔI", then (after seeing the
+doc-kinh cốc): "TRƯỚC CỬA CỐC NÀY CÓ GHI PHÒNG ĐỌC KINH NYKIA, VÀ CODE
+THÊM MỞ KINH NHƯ TRANG GIẤY CHỚ ĐỪNG CHUYỂN LINK SANG LINK KHÁC".
+
+- `temple-grounds.ts`: `buildHallAmbientLights()` — 4 ceiling fill
+  lights over the cushion area (the altar's own lights, `buildShrine`,
+  don't reach past it); kept to 4 (not one per inner pillar, which would
+  be 16) to avoid a real light-count/frame-rate cost.
+- Ruling: the "pháp cú" quotes are this app's own short original
+  Vietnamese lines, not a copy of any specific published Pháp Cú
+  translation — a named translator's rendering is copyrighted
+  separately from the ancient, public-domain Pali verses themselves
+  (same reasoning as the doc-kinh board above).
+  `quoteTextTexture()`/`setPhapCuText()` draw a short line directly on
+  the chánh điện plaque (word-wrapped canvas text, same look as the
+  existing placeholder); `main.ts`'s `FALLBACK_PHAP_CU_QUOTES` (4 lines)
+  rotate on it until the owner adds real quote photos, which still take
+  priority once present (unchanged behaviour).
+- A small sign ("Phòng Đọc Kinh Nikaya", plain label — not scripture
+  text) now stands at the meditation hut's own door, right at
+  `SUTRA_SPOT`; doesn't rename the hut itself (still `coc-thien`,
+  sitting meditation).
+- `boards-panel.ts`'s sutra reader now shows the linked page inline in
+  an `<iframe>` ("mở kinh như trang giấy, đừng chuyển link sang link
+  khác" — don't navigate the app away to read it) instead of a plain
+  outbound link; a small "Mở trang gốc ↗" link underneath still opens a
+  new tab, as a fallback for a source site that refuses to be framed
+  (not tested against budsas.org specifically — no real links entered
+  yet to try).
+
+Verified: app tests + tsc clean (temple-grounds.test.ts's smoke build
+still passes with the new lights/sign). Did not verify the brighter
+hall or the new sign by walking there in the browser this session
+(ran out of a clean way to drive WASD movement via the browser-pane
+automation) — only confirmed the scene builds without error and the
+light/sign code matches the existing patterns used elsewhere in this
+file. Worth a screenshot check before the owner relies on exact
+brightness/sign placement looking right.

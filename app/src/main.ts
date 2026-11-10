@@ -288,20 +288,30 @@ async function main(): Promise<void> {
   // (owner, 2026-11-10: "treo một số câu nói hay của sư phụ"); files go
   // in app/public/thirdparty/phap-cu/ (gitignored, decision 0009).
   const PHAP_CU_ROTATE_MS = 15_000;
+  // A few short lines in this app's own words (not a copy of any specific
+  // published translation — those are copyrighted separately from the
+  // ancient, public-domain Pali canon itself), shown until the owner adds
+  // real quote photos (owner, 2026-11-10: "thêm vài câu kinh pháp cú").
+  const FALLBACK_PHAP_CU_QUOTES = [
+    "Tâm dẫn đầu mọi sự; giữ tâm trong sáng, an vui sẽ theo.",
+    "Lấy oán báo oán, oán thù không dứt; lấy tình thương đáp lại, oán thù mới tan.",
+    "Thắng vạn quân không bằng tự thắng chính mình.",
+    "Sống tỉnh thức từng phút giây, ấy là con đường của người trí.",
+  ];
   async function refreshPhapCuBanner(scene: TempleScene): Promise<void> {
     const boards = await boardsClient.list();
     const board = boards.find((b) => b.id === "loi-phap-chanh-dien");
     const images = board ? parseQuoteImages(board.body) : [];
-    if (images.length === 0) {
-      scene.setPhapCuImage(null);
-      return;
-    }
+    const frames: (() => void)[] =
+      images.length > 0
+        ? images.map((image) => () => scene.setPhapCuImage(`/thirdparty/phap-cu/${image.file}`))
+        : FALLBACK_PHAP_CU_QUOTES.map((quote) => () => scene.setPhapCuText(quote));
     let index = 0;
-    scene.setPhapCuImage(`/thirdparty/phap-cu/${images[0]?.file}`);
-    if (images.length > 1) {
+    frames[0]?.();
+    if (frames.length > 1) {
       setInterval(() => {
-        index = (index + 1) % images.length;
-        scene.setPhapCuImage(`/thirdparty/phap-cu/${images[index]?.file}`);
+        index = (index + 1) % frames.length;
+        frames[index]?.();
       }, PHAP_CU_ROTATE_MS);
     }
   }
