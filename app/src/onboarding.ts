@@ -9,7 +9,12 @@ export interface OnboardingState {
 export interface OnboardingController {
   readonly state: OnboardingState;
   readonly isValid: boolean;
+  // Once locked (the server already has a pháp danh for this visitor's
+  // ip), setName() is a no-op — owner, 2026-11-10: "họ chỉ được dùng 1
+  // pháp danh này".
+  readonly isNameLocked: boolean;
   setName: (name: string) => void;
+  lockName: (name: string) => void;
   setGender: (gender: Gender) => void;
   setColorIndex: (index: number) => void;
 }
@@ -31,18 +36,42 @@ export const ROBE_COLORS: RobeColor[] = [
   { base: "#8c5a4a", shade: "#663f33", trim: "#d6a28e" },
 ];
 
+// The old generic default every visitor used to start with — now
+// forbidden outright (owner, 2026-11-10: "ko được để pháp danh mặc định
+// là thiện tâm nữa"), so onboarding starts with an empty name instead.
 const DEFAULT_NAME = "Thiện Tâm";
 const MAX_NAME_LENGTH = 24;
 
+function normalizeForCompare(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
+// Mirrors server/src/visitorNames.ts's isDefaultName — client-side check
+// is only for instant feedback; the server enforces it for real.
+export function isDefaultName(name: string): boolean {
+  return normalizeForCompare(name) === normalizeForCompare(DEFAULT_NAME);
+}
+
 export function createOnboardingController(): OnboardingController {
   const state: OnboardingState = {
-    name: DEFAULT_NAME,
+    name: "",
     gender: "nam",
     colorIndex: 0,
   };
+  let nameLocked = false;
 
   function setName(name: string): void {
+    if (nameLocked) return;
     state.name = name.trim();
+  }
+
+  function lockName(name: string): void {
+    nameLocked = true;
+    state.name = name;
   }
 
   function setGender(gender: Gender): void {
@@ -61,9 +90,13 @@ export function createOnboardingController(): OnboardingController {
       return state;
     },
     get isValid() {
-      return state.name.length > 0 && state.name.length <= MAX_NAME_LENGTH;
+      return state.name.length > 0 && state.name.length <= MAX_NAME_LENGTH && !isDefaultName(state.name);
+    },
+    get isNameLocked() {
+      return nameLocked;
     },
     setName,
+    lockName,
     setGender,
     setColorIndex,
   };

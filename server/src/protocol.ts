@@ -74,7 +74,13 @@ export type ServerMessage =
   | { type: "chat-history"; messages: ChatEntry[] }
   // One bell toll, broadcast to everyone present when a visitor joins
   // (owner, 2026-11-10: "ai vào có 1 hồi chuông cho tôi").
-  | { type: "bell" };
+  | { type: "bell" }
+  // Sent once right after connecting, before any join: the pháp danh
+  // already locked to this visitor's ip, or null for a first-time ip
+  // (owner, 2026-11-10: "mỗi người sẽ phải để 1 pháp danh... trùng với
+  // ip của họ").
+  | { type: "name-lock"; name: string | null }
+  | { type: "join-refused"; reason: "default-name" };
 
 type Fields = Record<string, unknown>;
 

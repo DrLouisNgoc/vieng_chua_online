@@ -279,6 +279,17 @@ body {
   outline-offset: 1px;
 }
 
+.onboarding__input:read-only {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.onboarding__error {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: oklch(70% 0.17 30);
+}
+
 .onboarding__toggle {
   display: flex;
   gap: 0.5rem;

@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import type { IncomingMessage } from "node:http";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -10,14 +11,32 @@ import { createChatRoom } from "./chatRoom.js";
 import { createPresenceRoom } from "./presenceRoom.js";
 import { parseClientMessage, type ServerMessage } from "./protocol.js";
 import { createVisitorRoom } from "./visitorRoom.js";
+import { createVisitorNameStore, isDefaultName } from "./visitorNames.js";
 
 const DEFAULT_PORT = 8787;
 const DEFAULT_BOARDS_FILE = (): string => join(process.cwd(), "data", "boards.json");
+const DEFAULT_VISITOR_NAMES_FILE = (): string => join(process.cwd(), "data", "visitor-names.json");
+
+// Caddy's reverse_proxy sets X-Forwarded-For automatically (docs/for-owner
+// /huong_dan/09-cau-hinh-caddy.md); without it, every real visitor behind
+// the proxy would share the proxy's own loopback address as their "ip".
+function clientIp(request: IncomingMessage): string {
+  const forwarded = request.headers["x-forwarded-for"];
+  const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  if (typeof first === "string" && first.length > 0) {
+    return first.split(",")[0]?.trim() || first;
+  }
+  return request.socket.remoteAddress ?? "unknown";
+}
 // A join or state message is ~250 bytes; anything far bigger is not ours.
 const MAX_PAYLOAD_BYTES = 2048;
 const TICK_MS = 100;
 const MAX_MESSAGES_PER_SECOND = 30;
 const MAX_CONNECTIONS_PER_IP = 8;
+// The temple bell also tolls on its own, once an hour, independent of
+// anyone joining (owner, 2026-11-10: "âm thanh chuông tự động đánh...
+// cứ 1 tiếng đánh 1 lần").
+const DEFAULT_BELL_INTERVAL_MS = 60 * 60 * 1000;
 
 function send(socket: WebSocket, message: ServerMessage): void {
   if (socket.readyState === socket.OPEN) socket.send(JSON.stringify(message));
@@ -48,6 +67,8 @@ function createRateLimit(): () => boolean {
 export function startPresenceServer(
   port: number = DEFAULT_PORT,
   boardsFilePath: string = DEFAULT_BOARDS_FILE(),
+  visitorNamesFilePath: string = DEFAULT_VISITOR_NAMES_FILE(),
+  bellIntervalMs: number = DEFAULT_BELL_INTERVAL_MS,
 ): WebSocketServer {
   const presence = createPresenceRoom();
   const visitors = createVisitorRoom();
@@ -66,6 +87,10 @@ export function startPresenceServer(
       adminPasswordHash: adminAuth.snapshotHash(),
       boards: boardStore.snapshot(),
     });
+  // Pháp danh locked per ip (owner, 2026-11-10); persisted so the lock
+  // survives a server restart/redeploy, same reasoning as boards.json.
+  const visitorNames = createVisitorNameStore(readBoardsFile(visitorNamesFilePath));
+  const persistVisitorNames = (): void => writeBoardsFile(visitorNamesFilePath, visitorNames.snapshot());
   const httpServer = createServer(createBoardsRequestListener(boardStore, adminAuth, persistBoards));
   // Without this, a bind failure (e.g. the port not yet freed by a just-
   // restarted process) is an unhandled 'error' event, which Node re-throws
@@ -99,6 +124,9 @@ export function startPresenceServer(
   }, TICK_MS);
   wss.on("close", () => clearInterval(tick));
 
+  const hourlyBell = setInterval(() => broadcast(clients, { type: "bell" }), bellIntervalMs);
+  wss.on("close", () => clearInterval(hourlyBell));
+
   wss.on("connection", (socket, request) => {
     const ip = request.socket.remoteAddress ?? "unknown";
     const connectionCount = (connectionsByIp.get(ip) ?? 0) + 1;
@@ -108,9 +136,14 @@ export function startPresenceServer(
     }
     connectionsByIp.set(ip, connectionCount);
 
+    // May differ from `ip` above in production (behind Caddy, `ip` is the
+    // proxy's own address) — only this one is used for the pháp danh lock.
+    const identityIp = clientIp(request);
+
     clients.add(socket);
     const visitorId = presence.join();
     const allowed = createRateLimit();
+    send(socket, { type: "name-lock", name: visitorNames.nameFor(identityIp) });
     broadcast(clients, { type: "presence", count: presence.count });
 
     socket.on("message", (data) => {
@@ -118,7 +151,16 @@ export function startPresenceServer(
       const message = parseClientMessage(String(data));
       if (!message) return;
       if (message.type === "join") {
-        visitors.join(visitorId, message.name, message.colorIndex);
+        const lockedName = visitorNames.nameFor(identityIp);
+        if (lockedName === null) {
+          if (isDefaultName(message.name)) {
+            send(socket, { type: "join-refused", reason: "default-name" });
+            return;
+          }
+          visitorNames.register(identityIp, message.name);
+          persistVisitorNames();
+        }
+        visitors.join(visitorId, lockedName ?? message.name, message.colorIndex);
         send(socket, { type: "welcome", id: visitorId });
         send(socket, { type: "chat-history", messages: chat.recent() });
         broadcast(clients, { type: "bell" });

@@ -2,7 +2,7 @@ import "./style.css";
 import { createTempleScene, type TempleScene } from "./scene";
 import { createMoktakController } from "./moktak";
 import { createPresenceClient, type PresenceStatus } from "./presence";
-import { createOnboardingController, ROBE_COLORS, type Gender } from "./onboarding";
+import { createOnboardingController, isDefaultName, ROBE_COLORS, type Gender } from "./onboarding";
 import { renderAvatarSvg } from "./avatar-svg";
 import { t } from "./i18n";
 import { createInteractionHud } from "./interaction-hud";
@@ -66,7 +66,8 @@ function renderShell(): void {
         <div class="onboarding__preview" id="onboarding-preview"></div>
         <div class="onboarding__field">
           <label for="onboarding-name">Pháp danh</label>
-          <input id="onboarding-name" class="onboarding__input" type="text" maxlength="24" autocomplete="off" />
+          <input id="onboarding-name" class="onboarding__input" type="text" maxlength="24" autocomplete="off" placeholder="Nhập pháp danh hoặc tên riêng của bạn" />
+          <p class="onboarding__error" id="onboarding-name-error" hidden></p>
         </div>
         <div class="onboarding__field">
           <label>Giới tính</label>
@@ -127,6 +128,9 @@ async function main(): Promise<void> {
   const onboardingNameInput = document.querySelector<HTMLInputElement>(
     "#onboarding-name",
   );
+  const onboardingNameError = document.querySelector<HTMLParagraphElement>(
+    "#onboarding-name-error",
+  );
   const onboardingGender = document.querySelector<HTMLElement>(
     "#onboarding-gender",
   );
@@ -149,6 +153,7 @@ async function main(): Promise<void> {
     !onboardingForm ||
     !onboardingPreview ||
     !onboardingNameInput ||
+    !onboardingNameError ||
     !onboardingGender ||
     !onboardingSwatches ||
     !musicToggle
@@ -181,6 +186,14 @@ async function main(): Promise<void> {
     onChat: (message) => chatPanel.addMessage(message),
     onChatHistory: (messages) => chatPanel.setHistory(messages),
     onBell: () => ambience.ringBell(),
+    // Pháp danh locked to this visitor's ip (owner, 2026-11-10): prefill
+    // and freeze the name field instead of leaving it open to a default.
+    onNameLock: (name) => {
+      if (name !== null) applyNameLock(name);
+    },
+    onWelcome: () => enterTemple(onb.state.name),
+    onJoinRefused: () =>
+      showNameError("Pháp danh này không dùng được, hãy nhập pháp danh hoặc tên riêng của bạn."),
   });
   let entered = false;
   const interactionHud = createInteractionHud(interactionRoot, (action) =>
@@ -300,8 +313,51 @@ async function main(): Promise<void> {
   onboardingNameInput.value = onb.state.name;
   updateAvatarPreview(onboardingPreview, onb.state.gender, onb.state.colorIndex);
 
+  // Re-bound as provably non-null for use inside the nested functions
+  // below (TypeScript doesn't carry the guard's narrowing into them).
+  const nameInput: HTMLInputElement = onboardingNameInput;
+  const nameError: HTMLParagraphElement = onboardingNameError;
+  const visitorLabel: HTMLSpanElement = visitorNameLabel;
+  const onboardingPanel: HTMLElement = onboarding;
+  const hudTopPanel: HTMLElement = hudTop;
+  const hintPanel: HTMLElement = hint;
+
+  function showNameError(message: string): void {
+    nameError.textContent = message;
+    nameError.removeAttribute("hidden");
+  }
+
+  function hideNameError(): void {
+    nameError.setAttribute("hidden", "");
+  }
+
+  // The server already has a pháp danh for this visitor's ip (owner,
+  // 2026-11-10: "họ chỉ được dùng 1 pháp danh này") — freeze the field so
+  // they can't try to enter a different one.
+  function applyNameLock(name: string): void {
+    onb.lockName(name);
+    nameInput.value = name;
+    nameInput.readOnly = true;
+    hideNameError();
+  }
+
+  function enterTemple(name: string): void {
+    if (entered) return;
+    visitorLabel.textContent = name;
+    onboardingPanel.setAttribute("hidden", "");
+    hudTopPanel.removeAttribute("hidden");
+    hintPanel.removeAttribute("hidden");
+    interactionHud.show();
+    practicePanel.show();
+    boardsPanel.show();
+    chatPanel.show();
+    entered = true;
+    void scenePromise.then((loaded) => loaded.setRobeColor(onb.state.colorIndex));
+  }
+
   onboardingNameInput.addEventListener("input", () => {
     onb.setName(onboardingNameInput.value);
+    hideNameError();
   });
 
   onboardingGender.addEventListener("click", (event) => {
@@ -332,20 +388,18 @@ async function main(): Promise<void> {
 
   onboardingForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!onb.isValid) return;
-
-    visitorNameLabel.textContent = onb.state.name;
-    onboarding.setAttribute("hidden", "");
-    hudTop.removeAttribute("hidden");
-    hint.removeAttribute("hidden");
-    interactionHud.show();
-    practicePanel.show();
-    boardsPanel.show();
-    chatPanel.show();
-    entered = true;
+    if (!onb.isNameLocked && isDefaultName(onb.state.name)) {
+      showNameError("Pháp danh này không dùng được, hãy nhập pháp danh hoặc tên riêng của bạn.");
+      return;
+    }
+    if (!onb.isValid) {
+      showNameError("Vui lòng nhập pháp danh (tối đa 24 ký tự).");
+      return;
+    }
+    hideNameError();
+    // Transition to the 3D scene happens in onWelcome, once the server
+    // actually accepts the join (it may refuse a forbidden default name).
     presence.join(onb.state.name, onb.state.colorIndex);
-    const colorIndex = onb.state.colorIndex;
-    void scenePromise.then((loaded) => loaded.setRobeColor(colorIndex));
   });
 
   // Opening a cốc/the hall projector (E, near one) is independent of the

@@ -64,6 +64,21 @@ describe("parseServerMessage", () => {
     expect(parseServerMessage('{"type":"bell"}')).toEqual({ type: "bell" });
   });
 
+  it("parses a pháp danh lock, locked or not", () => {
+    expect(parseServerMessage('{"type":"name-lock","name":"Diệu Tâm"}')).toEqual({
+      type: "name-lock",
+      name: "Diệu Tâm",
+    });
+    expect(parseServerMessage('{"type":"name-lock","name":null}')).toEqual({ type: "name-lock", name: null });
+  });
+
+  it("parses a join refusal", () => {
+    expect(parseServerMessage('{"type":"join-refused","reason":"default-name"}')).toEqual({
+      type: "join-refused",
+      reason: "default-name",
+    });
+  });
+
   it("parses visitors and drops malformed entries", () => {
     const parsed = parseServerMessage(
       JSON.stringify({ type: "visitors", visitors: [view, { ...view, id: 5 }, { ...view, activity: "flying" }] }),

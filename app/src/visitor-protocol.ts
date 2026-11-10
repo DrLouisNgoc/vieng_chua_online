@@ -35,7 +35,9 @@ export type ServerMessage =
   | { type: "seat-refused"; seatIndex: number }
   | { type: "chat"; message: ChatEntry }
   | { type: "chat-history"; messages: ChatEntry[] }
-  | { type: "bell" };
+  | { type: "bell" }
+  | { type: "name-lock"; name: string | null }
+  | { type: "join-refused"; reason: "default-name" };
 
 export const STATE_INTERVAL_MS = 100;
 export const MAX_CHAT_LENGTH = 300;
@@ -151,6 +153,10 @@ export function parseServerMessage(text: string): ServerMessage | null {
       return typeof m.id === "string" ? { type: "welcome", id: m.id } : null;
     case "bell":
       return { type: "bell" };
+    case "name-lock":
+      return typeof m.name === "string" || m.name === null ? { type: "name-lock", name: m.name } : null;
+    case "join-refused":
+      return m.reason === "default-name" ? { type: "join-refused", reason: "default-name" } : null;
     case "seat-refused":
       return Number.isInteger(m.seatIndex)
         ? { type: "seat-refused", seatIndex: m.seatIndex as number }

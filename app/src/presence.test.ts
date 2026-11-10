@@ -235,6 +235,31 @@ describe("visitor messages", () => {
     expect(onBell).toHaveBeenCalledTimes(1);
   });
 
+  it("calls onNameLock with the locked pháp danh, or null for a first-time ip", () => {
+    const onNameLock = vi.fn();
+    client({ onNameLock });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    socket.message({ type: "name-lock", name: "Diệu Tâm" });
+    expect(onNameLock).toHaveBeenCalledWith("Diệu Tâm");
+    socket.message({ type: "name-lock", name: null });
+    expect(onNameLock).toHaveBeenCalledWith(null);
+  });
+
+  it("calls onWelcome once joined, and onJoinRefused when the server refuses the name", () => {
+    const onWelcome = vi.fn();
+    const onJoinRefused = vi.fn();
+    const c = client({ onWelcome, onJoinRefused });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    c.join("Thiện Tâm", 0);
+    socket.message({ type: "join-refused", reason: "default-name" });
+    expect(onJoinRefused).toHaveBeenCalledWith("default-name");
+    expect(onWelcome).not.toHaveBeenCalled();
+    socket.message({ type: "welcome", id: "v1" });
+    expect(onWelcome).toHaveBeenCalledTimes(1);
+  });
+
   it("sends chat only once joined", () => {
     const c = client();
     const socket = FakeWebSocket.instances[0];

@@ -235,3 +235,24 @@
   answered it as the occupant, confirmed it appeared in the public
   "Hỏi đáp" list). Documented in
   docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.
+- 2026-11-10 (same session, continued): owner asked for two more
+  follow-ups. (1) Each visitor's pháp danh is now locked to their ip:
+  onboarding starts empty and refuses the old generic default "Thiện
+  Tâm" outright (any case/diacritics); the server (new
+  server/src/visitorNames.ts) remembers the first real name an ip uses,
+  persisted to `data/visitor-names.json`, and recalls it (field
+  prefilled + `readOnly`) on every later connection, even after a
+  restart — real ip read from `X-Forwarded-For` (Caddy sets this
+  automatically), since the raw socket address alone would be Caddy's
+  own address for every visitor in production. Known, accepted
+  limitation: a household sharing one router/NAT shares one locked
+  name. (2) The temple bell (already tolling on every join) now also
+  tolls on its own once an hour via a second server-side `setInterval`
+  broadcasting the same `{type:"bell"}` message — no client/protocol
+  change needed. App 254 + server 139 tests pass, tsc clean both;
+  pháp-danh lock verified live end to end including surviving a dev
+  server restart; hourly bell verified via a server test using a short
+  interval (not watched live for a real hour). Not committed yet —
+  owner's go-ahead needed before pushing (deploy auto-runs on push).
+  Documented in
+  docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.

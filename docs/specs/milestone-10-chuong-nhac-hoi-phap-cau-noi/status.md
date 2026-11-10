@@ -174,9 +174,74 @@ interview, not a default I picked — recorded here since it changes who
 can read what a visitor asked (previously strictly private to the
 occupant).
 
+## Follow-up: pháp danh locked per ip
+
+Owner: "giờ vào mỗi người sẽ phải để 1 pháp danh, hoặc tên riêng, trùng
+với ip của họ vào! và họ chỉ được dùng 1 pháp danh này ko được để pháp
+danh mặc định là thiện tâm nữa" (each visitor must now give a pháp danh
+or their own name, tied to their ip, and may only ever use that one —
+the old generic default "Thiện Tâm" is no longer allowed).
+
+- `server/src/visitorNames.ts` (new): `isDefaultName()` (normalizes
+  case/diacritics so "thien tam" also matches) and
+  `createVisitorNameStore()` (ip -> pháp danh, persisted to a new
+  `data/visitor-names.json`, same pattern as boards.json).
+- `server/src/server.ts`: on connect, sends `{type:"name-lock", name}`
+  (the ip's already-registered name, or `null`) before any join. On
+  `join`: if the ip has a lock, the visitor is joined under that locked
+  name regardless of what they sent (defense in depth — the normal UI
+  never offers a different name once locked); if not, a first-time
+  `join` with the forbidden default name is refused
+  (`{type:"join-refused", reason:"default-name"}`) instead of
+  registering it.
+- `app/src/onboarding.ts`: starts with an empty name (no more
+  `DEFAULT_NAME` prefill); `isValid` now also rejects the default name;
+  new `lockName()`/`isNameLocked` so the field can be frozen once the
+  server reports a lock.
+- `app/src/main.ts`: the name field is prefilled and set `readOnly` on
+  `onNameLock`; entering the temple (hiding onboarding, showing the HUD)
+  now happens on `onWelcome` instead of synchronously on submit, since a
+  submit can be refused; `onJoinRefused` shows an inline error and keeps
+  the form open.
+
+Ruling: a visitor's ip is read from `X-Forwarded-For` (Caddy sets this
+automatically when reverse-proxying — docs/for-owner/huong_dan/09-cau-hinh
+-caddy.md), falling back to the raw socket address only when that header
+is absent (local dev, no proxy). Using the raw socket address alone
+would have been wrong in production: behind Caddy, every real visitor's
+raw address as seen by the Node server is Caddy's own address, which
+would have collapsed every visitor into one shared lock. Cost if wrong:
+the whole feature would silently do nothing in production (everyone
+sharing one locked name) while still working in local testing — checked
+this specifically against the Caddy config before writing it.
+
+Ruling: ip-based locking means everyone behind the same router/NAT
+(a household on shared WiFi) gets forced onto one shared pháp danh —
+a known, accepted limitation of identifying people by ip with no
+accounts, not something fixable without adding logins. Flagged here
+rather than silently shipped.
+
+## Follow-up: the bell also tolls on its own, every hour
+
+Owner: "sau 2 việc trên, làm cho tôi phần là âm thanh chuông tự động
+đánh, ! cứ 1 tiếng đánh 1 lần !" (after the two things above, make the
+bell sound ring on its own, once every hour).
+
+- `server/src/server.ts`: a second `setInterval` (alongside the
+  existing visitor-state tick) broadcasts the same `{type:"bell"}`
+  message the join-bell already used, once an hour
+  (`DEFAULT_BELL_INTERVAL_MS`). No client or protocol change — the
+  existing `onBell` → `ambience.ringBell()` wiring from earlier in this
+  milestone already handles any `"bell"` message the same way, whatever
+  triggered it.
+- `startPresenceServer()` grew a 4th parameter, the interval in ms,
+  defaulting to one hour; tests pass a short one (50ms) to observe
+  several tolls inside the test's own timeout instead of waiting an
+  hour for real.
+
 ## Verified
 
-App 246 + server 122 tests pass; `npx tsc --noEmit -p .` clean in both.
+App 254 + server 139 tests pass; `npx tsc --noEmit -p .` clean in both.
 Live in the running dev app: entering tolled the bell for an
 already-present tab too; the music toggle's icon and the iframe's
 `mute` query param both flipped on click; opened "Cốc Cô Yến", set its
@@ -188,15 +253,31 @@ by walking there (lower priority than the already-confirmed
 functional/panel behaviour) — worth a screenshot check before the
 owner relies on it looking right.
 
+Pháp danh lock, live in the running dev app: submitting the forbidden
+default name showed the inline error and stayed on the onboarding
+screen; submitting a real name entered the temple normally; reloading
+the page afterward showed the name field prefilled and `readOnly` with
+that same name (confirmed via the DOM, not just the visible text);
+restarting the dev server and reloading again still showed it locked
+(persistence to `data/visitor-names.json` survives a restart).
+
 ## Not checked
 
 - The plaque's actual in-world look (position, facing, whether it
   clips a pillar) — only confirmed the scene loads without error.
 - Whether `bell-gong.mp3` actually sounds right once the owner adds it
   (still silent/placeholder in this session, same as the other two
-  optional sounds).
+  optional sounds) — now also what the hourly auto-toll will actually
+  sound like once that file exists.
 - Mobile/narrow-viewport layout for the new header button and the
   longer boards-panel forms.
 - Whether an unmuted YouTube iframe autoplay actually gets through on
   every real browser the owner's family might use — the toggle-click
   approach is the standard workaround, but browser policies vary.
+- The hourly bell's real 1-hour cadence was not watched live for an
+  hour — verified instead with a short interval in a server test and by
+  reading the `setInterval` code; the join-triggered bell (same
+  broadcast path) was confirmed live.
+- What happens to a visitor's lock if their isp/router gives them a new
+  ip later (mobile networks especially) — they'd be treated as a new,
+  unlocked visitor; not something this session was asked to solve.

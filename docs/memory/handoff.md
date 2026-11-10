@@ -7,19 +7,30 @@ owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
 ## Status (2026-11-10)
-Milestones 1-9 done. **Milestone 10 (not in the original plan; owner
-requested it live, same session) built, not yet committed**: a bell toll
-broadcast to everyone on entry, background music (a hidden YouTube embed
-of a song the owner picked), private "hỏi pháp" questions per cốc, a
-"bài giảng" talk list for each of the 4 named cốc, renaming a cốc's title
-through its own edit form, and a chánh điện plaque for the owner's own
-quote photos. Scope, the 4 live-interview answers and rulings:
-docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md. App 241 +
-server 121 tests pass, typecheck clean both; verified live in the running
-app (dev server). **Not committed or pushed yet** — deploy auto-runs on
-push to `main` (CI/CD, decision 0011's guide), so pushing needs the
-owner's explicit go-ahead first (AGENTS.md red tier), separately from
-committing locally.
+Milestones 1-9 done. Milestone 10 (not in the original plan; owner
+requested it live, same session): bell toll on entry, background music,
+private "hỏi pháp" questions, per-cốc "bài giảng", cốc renaming, chánh
+điện quote plaque, public answers to "hỏi pháp" — all built, committed
+and pushed earlier this session (commits up to `ab2b2fb`), including a
+live-site fix (`runtime-urls.ts`) for a `VITE_*_URL` deploy gap.
+
+**Two more follow-ups built this same session, not yet committed**:
+(1) each visitor's pháp danh is now locked to their ip (server
+remembers it, persisted to `data/visitor-names.json`; onboarding starts
+empty and refuses the old generic default "Thiện Tâm" outright — owner:
+"mỗi người sẽ phải để 1 pháp danh... trùng với ip của họ... chỉ được
+dùng 1 pháp danh này"); (2) the temple bell now also tolls on its own
+once an hour, independent of anyone joining (owner: "âm thanh chuông tự
+động đánh... cứ 1 tiếng đánh 1 lần"). Scope, rulings, what changed:
+docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md ("Follow-up:
+pháp danh locked per ip" / "Follow-up: the bell also tolls on its own").
+App 254 + server 139 tests pass, typecheck clean both; verified live in
+the running dev app (pháp danh lock end-to-end including surviving a
+dev-server restart; hourly bell via a server test with a short interval,
+not watched live for a real hour). **Not committed or pushed yet** —
+deploy auto-runs on push to `main` (CI/CD, decision 0011's guide), so
+pushing needs the owner's explicit go-ahead first (AGENTS.md red tier),
+separately from committing locally.
 
 Milestone 9 (deploy) is live and public:
 `https://chua.io.vn` (VPS, user `chua`, Caddy reverse-proxying the
@@ -86,6 +97,14 @@ What the app does now:
   "Hỏi đáp" section everyone sees, since the asker has no private page to
   come back to) — owner, 2026-11-10: "cấp riêng tài khoản cho cô Yến/
   anh Tuấn Hà/sư Nguyên Tuệ khi vào cốc để trả lời", clarified public.
+- (Milestone 10, follow-up) Onboarding's pháp danh field starts empty
+  and is rejected if it's the old generic default "Thiện Tâm" (any
+  case/diacritics); the server locks the first real name a visitor
+  submits to their ip and recalls it on every later connection (field
+  prefilled + `readOnly`), so one visitor can't keep changing their name
+  — server/src/visitorNames.ts, persisted alongside boards.json. The
+  bell (already tolling on every join) now also tolls on its own once an
+  hour, broadcast from the server, no client change needed.
 
 ## Run it
 `npm run dev` in the project root starts the server (ws + boards HTTP on
@@ -93,7 +112,7 @@ What the app does now:
 `app/public/sansatemple/` must be populated (gitignored, decision 0006):
 `scripts/fetch-sansatemple-assets.sh`. Board/chat content persists to
 `server/data/boards.json` (gitignored — real content, back it up yourself).
-Tests: `npm test` in app/ (246 pass) and server/ (122 pass); `npx tsc --noEmit -p .` clean in both.
+Tests: `npm test` in app/ (254 pass) and server/ (139 pass); `npx tsc --noEmit -p .` clean in both.
 The admin password (boards approval panel) and each board's own password
 are both "first login/edit sets it" (adminAuth.ts, boards.ts) — no
 recovery, only reset: clear `adminPasswordHash` (or a board's
@@ -123,7 +142,11 @@ password — go set it again right away after resetting on a live deploy.
   `interaction-hud.ts` (DOM).
   Milestone 10: `background-music.ts` (pure embed-URL builder + DOM
   wiring, no unit test on the wiring half — same convention as
-  boards-panel.ts).
+  boards-panel.ts). `onboarding.ts` gained `isDefaultName()` (mirrors
+  server/src/visitorNames.ts) and `lockName()`/`isNameLocked` for the
+  pháp-danh-lock follow-up; `main.ts`'s onboarding submit now only
+  calls `presence.join()` — entering the temple (hiding the onboarding
+  card) moved to `onWelcome`, since a join can now be refused.
   `temple-grounds.test.ts` builds the whole grounds in Node.
   Milestone 8: `board-proximity.ts` (pure, which cốc/projector is in
   reach), `boards-client.ts` (fetch wrapper for the server's boards API),
@@ -155,7 +178,19 @@ password — go set it again right away after resetting on a live deploy.
   (Milestone 10: `scripts/dev.mjs` now pins `PORT=8787` for this child
   process only — see its own comment for why).
   Milestone 10: broadcasts `{type:"bell"}` to every connected client
-  whenever any client's "join" message is accepted.
+  whenever any client's "join" message is accepted, and again on its own
+  every `bellIntervalMs` (default 1 hour, a 4th `startPresenceServer`
+  param so tests can use a short one). `clientIp()` reads
+  `X-Forwarded-For` first (Caddy sets it automatically when
+  reverse-proxying), falling back to the raw socket address only when
+  that header is absent (local dev) — the raw address alone would be
+  Caddy's own address for every real visitor in production.
+- `visitorNames.ts` (new, Milestone 10 follow-up) — `isDefaultName()`
+  and the ip -> pháp danh store (`createVisitorNameStore`), persisted to
+  `data/visitor-names.json` by `server.ts` the same way boards.json is.
+  A locked ip's `join` always uses the locked name, even if a (bypassed)
+  client sends a different one; an unlocked ip's `join` with the
+  forbidden default name is refused instead of registered.
 
 ## Decisions (docs/memory/decisions/) — read before re-deciding
 0001 personal use only · 0002 Electron (superseded) · 0003 keep original
@@ -250,6 +285,26 @@ supersedes 0001's "no public deploy"**.
   allowed without a prior click. The background-music toggle starts
   muted and reloads the iframe's `src` with `mute=0` on a real click —
   that direct user gesture is usually enough to let the sound through.
+- Behind Caddy's `reverse_proxy`, `request.socket.remoteAddress` as seen
+  by the Node server is Caddy's own address, not the real visitor's —
+  Caddy sets `X-Forwarded-For` automatically, so anything that needs the
+  real visitor ip (e.g. the pháp-danh lock) must read that header first
+  and only fall back to the raw socket address for local dev (no proxy
+  in front). Easy to miss since local dev works fine either way.
+- TypeScript does not carry a null-guard's narrowing into a nested
+  `function` *declaration* defined later in the same scope (unlike an
+  inline arrow callback at the point of use) — re-bind the narrowed
+  value to a new, explicitly-typed `const` first (same pattern already
+  used for `musicToggleButton` in main.ts) rather than reading the
+  original possibly-null variable inside the nested function.
+- Server-side tests that open real WebSocket connections from the test
+  process all share one loopback address — any ip-keyed server feature
+  (like the pháp-danh lock) needs a way to simulate distinct ips in
+  tests; `server.test.ts`'s `connect()` now sends a per-call synthetic
+  `X-Forwarded-For` by default (explicit `ip` to simulate the *same*
+  visitor reconnecting), and ip-keyed state is persisted to a fresh
+  temp-dir file per test (`freshVisitorNamesPath()`), never the real
+  `data/visitor-names.json`.
 
 ## Next (pick up here)
 0. **Deploy (Milestone 9) is live** at `chua.io.vn`, see decision 0011 and
@@ -270,16 +325,17 @@ supersedes 0001's "no public deploy"**.
    - Admin password and the 4 named cốc passwords: "first submit sets
      it" — owner should set these themselves on the live site now that
      it's public, before someone else does (see "Run it" above).
-0b. **Milestone 10 (bell, nhạc nền, hỏi pháp, bài giảng theo cốc, đổi
-   tên cốc, câu nói hay chánh điện) is built on this machine, tests
-   green, verified live in dev — not committed yet.** See
-   docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.
-   Before committing: owner's go-ahead (asked this session). Still open
-   either way:
+0b. **Milestone 10's pháp-danh-lock and hourly-bell follow-ups are built
+   on this machine, tests green, verified live in dev — not committed
+   yet.** See docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md
+   ("Follow-up: pháp danh locked per ip" / "Follow-up: the bell also
+   tolls on its own, every hour"). Before committing: owner's go-ahead
+   (asked this session). Still open either way:
    - Owner to drop `bell-gong.mp3` into
      `app/public/thirdparty/audio/` (docs/assets/third-party-assets.md)
-     for the entry bell to actually have sound — silent (console-warn
-     only) until then, same as the other optional sounds.
+     for either bell (on-join or the new hourly one) to actually have
+     sound — silent (console-warn only) until then, same as the other
+     optional sounds.
    - Owner to drop quote photos into `app/public/thirdparty/phap-cu/`
      and list them (filename | chú thích, one per line) on the "Lời Pháp
      Chánh Điện" board — a plain placeholder plaque shows until then.

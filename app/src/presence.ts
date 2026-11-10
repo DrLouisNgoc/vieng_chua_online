@@ -29,6 +29,14 @@ export interface PresenceClientOptions {
   // One bell toll for everyone present, when any visitor (including this
   // one) joins.
   onBell?: () => void;
+  // Sent once right after connecting, before join: the pháp danh already
+  // locked to this visitor's ip, or null for a first-time ip (owner,
+  // 2026-11-10: "mỗi người sẽ phải để 1 pháp danh... trùng với ip của họ").
+  onNameLock?: (name: string | null) => void;
+  // join() was accepted — the server sent "welcome".
+  onWelcome?: () => void;
+  // join() was rejected: the submitted name was the forbidden default.
+  onJoinRefused?: (reason: "default-name") => void;
   reconnectDelayMs?: number;
   now?: () => number;
 }
@@ -85,6 +93,7 @@ export function createPresenceClient(
           break;
         case "welcome":
           ownId = message.id;
+          options.onWelcome?.();
           break;
         case "visitors":
           options.onVisitors?.(message.visitors.filter((visitor) => visitor.id !== ownId));
@@ -100,6 +109,12 @@ export function createPresenceClient(
           break;
         case "bell":
           options.onBell?.();
+          break;
+        case "name-lock":
+          options.onNameLock?.(message.name);
+          break;
+        case "join-refused":
+          options.onJoinRefused?.(message.reason);
           break;
       }
     };
