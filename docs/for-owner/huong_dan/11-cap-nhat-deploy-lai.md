@@ -54,6 +54,16 @@ cat ~/.ssh/ci_deploy.pub >> ~/.ssh/authorized_keys
 cat ~/.ssh/ci_deploy   # copy nguyên dòng này vào secret VPS_SSH_KEY
 ```
 
+`deploy.sh` cần `sudo systemctl restart chua-server`, nhưng phiên SSH tự
+động của GitHub Actions không có terminal để gõ mật khẩu `sudo` — sẽ báo
+lỗi "a terminal is required to read the password". Cho user `chua` quyền
+chạy **đúng 1 lệnh đó** không cần mật khẩu (không mở toang `sudo`):
+```bash
+echo "chua ALL=(root) NOPASSWD: /usr/bin/systemctl restart chua-server" | sudo tee /etc/sudoers.d/chua-deploy
+sudo chmod 440 /etc/sudoers.d/chua-deploy
+sudo visudo -c   # kiểm tra cú pháp, tránh khoá nhầm sudo của cả máy
+```
+
 **Rủi ro cần biết:** secret này cho phép GitHub Actions chạy lệnh trên
 VPS của bạn. Repo đang Private nên tạm chấp nhận được, nhưng nếu secret
 bị lộ (ví dụ máy bạn bị chiếm quyền, hoặc vô tình để lộ trong log), kẻ
