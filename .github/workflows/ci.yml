@@ -80,6 +80,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
       actions: write
     steps:
       # For a PR, this is GitHub's test merge of the PR into main: the exact
@@ -103,8 +104,14 @@ jobs:
             exit 0
           fi
           # --match-head-commit: refuse if someone pushed after these checks ran.
+          # Read before merging: the PR's "Closes #n" links.
+          issues=$(gh pr view "$PR" --json closingIssuesReferences --jq '.closingIssuesReferences[].number')
           gh pr merge "$PR" --squash --delete-branch --match-head-commit "$HEAD_SHA"
           merged=$(gh pr view "$PR" --json mergeCommit --jq .mergeCommit.oid)
+          # GitHub skips its own "Closes #n" auto-close when GITHUB_TOKEN merges.
+          for issue in $issues; do
+            gh issue close "$issue" --comment "Merged in #$PR." || echo "::warning::could not close #$issue"
+          done
           # A merge made with GITHUB_TOKEN starts no push workflows, so CI on
           # main and its deploy would never fire; dispatch the deploy directly.
           gh workflow run deploy.yml --ref main -f sha="$merged"
