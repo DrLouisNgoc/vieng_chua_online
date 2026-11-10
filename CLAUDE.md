@@ -32,7 +32,7 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   `<owner>` is `ngoc` or `anh` (ask once per machine if `git config user.name` does not make it obvious). Both
   machines use **the same GitHub account**, so "who is on it" is the label `ngoc`/`anh` on the Issue and PR,
   never the assignee.
-- **Flow:** commit → push the task branch → open the PR → CI runs → when `server`, `app` and `docs` are all green,
+- **Flow:** commit → push the task branch → open the PR → CI runs → when `server`, `app`, `docs` and `lint` are all green,
   CI's `automerge` job squash-merges the PR and starts the deploy. Nobody merges by hand except
   `needs-visual-check` PRs.
 - **`main` is not locked on GitHub (owner's choice, decision 0014), so these limits are the lock. Both Claudes
@@ -54,7 +54,9 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   created**; CI then does not merge it. The owner runs `npm run dev`, looks, then presses Merge on GitHub.
 
 ## Commands
-- `npm run check` — typecheck + tests (server, app) + docs check. Must pass before every commit you push.
+- `npm run check` — typecheck + tests (server, app) + ESLint + docs check. Must pass before every commit you
+  push. First time on a machine: `npm ci` in the repo root (lint/format tools), `server/` and `app/`.
+- `npm run lint` — ESLint; `npx eslint --fix <files>` fixes most findings. Never disable a rule to get green.
 - `npm run dev` — server on :8787 + app on http://localhost:5173. Needs the gitignored assets in
   `app/public/sansatemple/` (`scripts/fetch-sansatemple-assets.sh`) for models/textures.
 - Single file: `cd app && npx vitest run src/x.test.ts`.

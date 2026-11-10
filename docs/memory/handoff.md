@@ -22,7 +22,8 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   and add `format:check` to CI; `strict` in app tsconfig; split `temple-grounds.ts`,
   `boards-panel.ts`, `scene.ts`, `style.css`, `main.ts` (`npm run check:size` lists them); then `check-size
   --strict` in CI. Wait for branch `ngoc/chanh-dien-kinh-nikaya` (edits those app files) to merge first.
-  ESLint/knip dropped: typescript-eslint supports TS < 6.1 (we use 7); knip needs a prebuilt native parser.
+  ESLint runs in CI (`lint`); the four big app files are excluded in `eslint.config.mjs` until that branch merges
+  — lint them then. knip dropped: it needs a prebuilt native parser.
 - Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
   check `systemctl show chua-server -p Environment`), Caddy headers/compression (guide 09). Then run the Backup
   workflow once by hand.

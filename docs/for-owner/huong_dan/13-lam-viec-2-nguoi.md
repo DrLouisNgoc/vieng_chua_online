@@ -47,7 +47,7 @@ GitHub đã đăng nhập sẵn trên máy anh. Chỉ cần kiểm tra và cài 
    gh repo clone DrLouisNgoc/vieng_chua_online
    cd vieng_chua_online
    git config user.name "Anh"    # tên hiện trên commit, để phân biệt với máy Ngọc
-   npm --prefix server ci && npm --prefix app ci
+   npm ci && npm --prefix server ci && npm --prefix app ci
    npm run check                 # phải thấy toàn chữ xanh / "check-docs: ok"
    ```
 3. **Ảnh/model không có trong git**: Ngọc nén thư mục `app/public/sansatemple/` và `app/public/thirdparty/` ở
