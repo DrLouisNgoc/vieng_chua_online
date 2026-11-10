@@ -3,6 +3,7 @@ import {
   parseTalks,
   youtubeVideoId,
   type AdminPendingEntry,
+  type AnsweredQuestion,
   type BoardsClient,
   type BoardView,
   type Question,
@@ -66,14 +67,18 @@ export function createBoardsPanel(
   let selectedTalkIndex = 0;
   // Questions a board's occupant has pulled up with their password (E,
   // "hỏi pháp") — null until they ask to see them, cleared when leaving
-  // the board so a later visitor never sees a stale list.
+  // the board so a later visitor never sees a stale list. questionsPassword
+  // is kept alongside so answering a question can reuse it without a
+  // second password field.
   let questionsView: Question[] | null = null;
+  let questionsPassword = "";
 
   function openPanel(next: View): void {
     view = next;
     message = "";
     selectedTalkIndex = 0;
     questionsView = null;
+    questionsPassword = "";
     panel.hidden = false;
     toggle.setAttribute("aria-expanded", "true");
     void refresh();
@@ -229,9 +234,11 @@ export function createBoardsPanel(
     });
     viewQuestions?.addEventListener("click", () => {
       void (async () => {
-        const result = await client.readQuestions(board.id, board.requiresPassword ? password.value : "");
+        const pw = board.requiresPassword ? password.value : "";
+        const result = await client.readQuestions(board.id, pw);
         if (result.outcome === "ok") {
           questionsView = result.questions;
+          questionsPassword = pw;
           message = result.questions.length === 0 ? "Chưa có câu hỏi nào." : "";
         } else {
           questionsView = null;
@@ -291,18 +298,86 @@ export function createBoardsPanel(
     return wrap;
   }
 
-  function renderQuestions(questions: Question[]): HTMLElement {
+  function renderQuestions(board: BoardView, questions: Question[]): HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "boards__questions";
     const heading = document.createElement("h3");
     heading.textContent = "Câu hỏi đã nhận";
     wrap.append(heading);
     for (const question of questions) {
-      const item = document.createElement("p");
+      const item = document.createElement("div");
       item.className = "boards__question";
-      const from = document.createElement("strong");
-      from.textContent = `${question.name}: `;
-      item.append(from, document.createTextNode(question.text));
+      const from = document.createElement("p");
+      const name = document.createElement("strong");
+      name.textContent = `${question.name}: `;
+      from.append(name, document.createTextNode(question.text));
+      item.append(from);
+      if (question.answer !== null) {
+        const answerP = document.createElement("p");
+        answerP.className = "boards__answer";
+        const label = document.createElement("strong");
+        label.textContent = "Trả lời: ";
+        answerP.append(label, document.createTextNode(question.answer));
+        item.append(answerP);
+      } else {
+        item.append(renderAnswerForm(board, question));
+      }
+      wrap.append(item);
+    }
+    return wrap;
+  }
+
+  function renderAnswerForm(board: BoardView, question: Question): HTMLElement {
+    const form = document.createElement("form");
+    form.className = "boards__form";
+    const answer = document.createElement("textarea");
+    answer.rows = 2;
+    answer.maxLength = 500;
+    answer.placeholder = "Trả lời câu hỏi này (sẽ hiện công khai ở cốc)...";
+    const submit = document.createElement("button");
+    submit.type = "submit";
+    submit.textContent = "Trả lời";
+    form.append(answer, submit);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void (async () => {
+        const result = await client.answer(board.id, questionsPassword, question.id, answer.value);
+        if (result === "ok") {
+          message = "Đã trả lời.";
+          const refreshed = await client.readQuestions(board.id, questionsPassword);
+          if (refreshed.outcome === "ok") questionsView = refreshed.questions;
+        } else {
+          message = "Không trả lời được, thử lại sau.";
+        }
+        await refresh();
+      })();
+    });
+    return form;
+  }
+
+  // Everyone visiting this cốc sees answered questions — the asker never
+  // comes back to a private page, so "công khai trong cốc đó" (owner,
+  // 2026-11-10) is the only way they'd see the reply at all.
+  function renderAnsweredQuestions(answered: AnsweredQuestion[]): HTMLElement | null {
+    if (answered.length === 0) return null;
+    const wrap = document.createElement("div");
+    wrap.className = "boards__questions";
+    const heading = document.createElement("h3");
+    heading.textContent = "Hỏi đáp";
+    wrap.append(heading);
+    for (const qa of answered) {
+      const item = document.createElement("div");
+      item.className = "boards__question";
+      const from = document.createElement("p");
+      const name = document.createElement("strong");
+      name.textContent = `${qa.name}: `;
+      from.append(name, document.createTextNode(qa.text));
+      const answerP = document.createElement("p");
+      answerP.className = "boards__answer";
+      const label = document.createElement("strong");
+      label.textContent = "Trả lời: ";
+      answerP.append(label, document.createTextNode(qa.answer));
+      item.append(from, answerP);
       wrap.append(item);
     }
     return wrap;
@@ -374,8 +449,10 @@ export function createBoardsPanel(
       content.textContent = board.body || "(chưa có nội dung)";
       parts.push(content);
       if (hasOwnTalks(board)) parts.push(renderVideos(board.talks));
+      const answered = renderAnsweredQuestions(board.answeredQuestions);
+      if (answered) parts.push(answered);
       parts.push(renderAskForm(board), renderEditForm(board));
-      if (questionsView) parts.push(renderQuestions(questionsView));
+      if (questionsView) parts.push(renderQuestions(board, questionsView));
     }
     body.replaceChildren(...parts);
   }

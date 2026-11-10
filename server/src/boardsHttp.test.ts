@@ -51,6 +51,7 @@ describe("boards HTTP API", () => {
       requiresPassword: true,
       occupantName: null,
       pendingName: null,
+      answeredQuestions: [],
     });
   });
 
@@ -106,9 +107,34 @@ describe("boards HTTP API", () => {
 
     const right = await postJson(`${url}/boards/a/questions`, { password: "bimat" });
     expect(right.status).toBe(200);
-    expect(await right.json()).toEqual({
-      questions: [{ name: "Khách", text: "Thưa thầy, con nên bắt đầu từ đâu?" }],
+    const { questions } = await right.json();
+    expect(questions).toMatchObject([
+      { name: "Khách", text: "Thưa thầy, con nên bắt đầu từ đâu?", answer: null },
+    ]);
+    expect(typeof questions[0].id).toBe("string");
+  });
+
+  it("answers a question, which then shows publicly on the board", async () => {
+    const { url } = start();
+    await postJson(`${url}/boards/a`, { password: "bimat", body: "Xin chào" });
+    await postJson(`${url}/boards/a/ask`, { name: "Khách", text: "Con nên bắt đầu từ đâu?" });
+    const { questions } = await (await postJson(`${url}/boards/a/questions`, { password: "bimat" })).json();
+    const questionId = questions[0].id;
+
+    const wrong = await postJson(`${url}/boards/a/answer`, { password: "sai", questionId, answer: "x" });
+    expect(wrong.status).toBe(403);
+
+    const res = await postJson(`${url}/boards/a/answer`, {
+      password: "bimat",
+      questionId,
+      answer: "Bắt đầu từ hơi thở.",
     });
+    expect(res.status).toBe(200);
+
+    const board = await (await fetch(`${url}/boards/a`)).json();
+    expect(board.answeredQuestions).toEqual([
+      { id: questionId, name: "Khách", text: "Con nên bắt đầu từ đâu?", answer: "Bắt đầu từ hơi thở." },
+    ]);
   });
 
   it("409s asking an open cốc with no occupant yet, 400s a malformed ask", async () => {

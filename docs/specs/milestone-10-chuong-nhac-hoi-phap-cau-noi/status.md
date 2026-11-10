@@ -2,10 +2,12 @@
 
 Not in the original plan; owner requested all of this live in one
 session (2026-11-10), after Milestone 9's deploy. Built, tested,
-verified in the running dev app. **Not committed** as of this writing —
-asked the owner first, since a push to `main` auto-deploys to the live
-`chua.io.vn` (CI/CD, decision 0011's guide) and this needs their
-go-ahead separately from the local commit.
+verified in the running dev app, then committed and pushed (owner
+confirmed each push explicitly — see the log entries for the exact
+wording). Later the same session: a real bug on the live site
+(`runtime-urls.ts`, see "Follow-up: live boards.json break" below) and a
+new "trả lời" (answer) feature for hỏi pháp (see "Follow-up: answering
+hỏi pháp questions" below).
 
 ## Scope (owner's own words, then the 4-question interview)
 
@@ -114,9 +116,67 @@ real architectural fork:
   found while verifying in this harness's browser preview — see
   handoff.md's Gotchas).
 
+## Follow-up: live boards.json break
+
+Pushing the above broke every board on the live site, not just the
+projector's talk: the deployed build called `http://localhost:8787` for
+boards/presence (mixed-content/private-network blocked by the
+visitor's browser), because `VITE_BOARDS_URL` was never actually set in
+`/opt/chua/deploy.sh` on the VPS — the deploy guide's own earlier fix
+(handoff.md's Gotchas, 2026-11-10 morning) only ever reached the
+markdown, not the live script. No SSH/credentials to the VPS from this
+session to fix deploy.sh directly; owner tried to SSH in themselves and
+lost the password mid-session.
+
+Fix, shipped without needing the VPS at all: `app/src/runtime-urls.ts`
+(`defaultPresenceUrl`/`defaultBoardsUrl`, pure, tested) — a production
+build with no `VITE_*_URL` override now falls back to the page's own
+origin (`wss://<host>/ws`, `https://<host>`) instead of `localhost`,
+since Caddy already proxies `/ws*`, `/boards*`, `/admin*` on the same
+domain. Dev keeps the old `localhost:8787` default (Vite and this app's
+server are different ports locally). Self-heals this exact class of
+deploy misconfiguration on every future build, whether or not deploy.sh
+ever gets fixed.
+
+Verified live after pushing: confirmed via the deployed bundle's own
+source (fetched it directly) that the fallback code shipped and ran,
+then confirmed the hall projector's talk loaded again in the browser.
+Browser/edge caching made this noisy to verify — different reloads
+briefly served different bundle hashes; a cache-busting query string
+settled it.
+
+## Follow-up: answering hỏi pháp questions
+
+Owner: "cấp riêng tài khoản cho cô Yến/anh Tuấn Hà/sư Nguyên Tuệ khi vào
+cốc để trả lời" (give them accounts for when they go into their cốc to
+answer). Interviewed: "trả lời" means typing an answer in the app (not
+just reading questions, which already worked), and the answer should be
+public in that cốc — the asker has no private page to come back to, so
+a private-only answer would never reach them.
+
+- `server/src/boards.ts`: `Question` gained `id` (crypto.randomUUID,
+  same pattern as ChatEntry) and `answer: string | null`.
+  `normalizeQuestion` fills both for questions already on the live site
+  from before this change (same backward-compat rule as talks/questions
+  earlier in this doc). New `answer(id, password, questionId, answer)`
+  store method — same password as edit/readQuestions. `PublicBoard`
+  gained `answeredQuestions: AnsweredQuestion[]` (only questions with a
+  non-null answer; `toPublic` filters).
+- `server/src/boardsHttp.ts`: `POST /boards/:id/answer`.
+- `app/src/boards-client.ts` / `boards-panel.ts`: mirrors the above.
+  Each unanswered question in the occupant's own "Câu hỏi đã nhận" view
+  gets an inline "Trả lời" textarea + button; an already-answered one
+  shows the answer instead. A new "Hỏi đáp" section (no password) shows
+  every answered pair to any visitor of that cốc.
+
+Ruling: public answer visibility was the owner's explicit choice in the
+interview, not a default I picked — recorded here since it changes who
+can read what a visitor asked (previously strictly private to the
+occupant).
+
 ## Verified
 
-App 241 + server 121 tests pass; `npx tsc --noEmit -p .` clean in both.
+App 246 + server 122 tests pass; `npx tsc --noEmit -p .` clean in both.
 Live in the running dev app: entering tolled the bell for an
 already-present tab too; the music toggle's icon and the iframe's
 `mute` query param both flipped on click; opened "Cốc Cô Yến", set its

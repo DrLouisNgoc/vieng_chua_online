@@ -80,6 +80,12 @@ What the app does now:
   (type "image") holds a list of the owner's own quote photos
   (filename | caption) that cycle on a plaque in chánh điện — a plain
   placeholder shows until photos are listed.
+- (Milestone 10, later same day) Each unanswered "hỏi pháp" question has
+  an inline "Trả lời" box in the occupant's own password-gated view; once
+  answered, the question+answer pair becomes public on that cốc (a new
+  "Hỏi đáp" section everyone sees, since the asker has no private page to
+  come back to) — owner, 2026-11-10: "cấp riêng tài khoản cho cô Yến/
+  anh Tuấn Hà/sư Nguyên Tuệ khi vào cốc để trả lời", clarified public.
 
 ## Run it
 `npm run dev` in the project root starts the server (ws + boards HTTP on
@@ -87,7 +93,7 @@ What the app does now:
 `app/public/sansatemple/` must be populated (gitignored, decision 0006):
 `scripts/fetch-sansatemple-assets.sh`. Board/chat content persists to
 `server/data/boards.json` (gitignored — real content, back it up yourself).
-Tests: `npm test` in app/ (241 pass) and server/ (121 pass); `npx tsc --noEmit -p .` clean in both.
+Tests: `npm test` in app/ (246 pass) and server/ (122 pass); `npx tsc --noEmit -p .` clean in both.
 The admin password (boards approval panel) and each board's own password
 are both "first login/edit sets it" (adminAuth.ts, boards.ts) — no
 recovery, only reset: clear `adminPasswordHash` (or a board's

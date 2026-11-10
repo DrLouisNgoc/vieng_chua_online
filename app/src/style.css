@@ -694,6 +694,13 @@ body {
   border-radius: 0.6rem;
 }
 
+.boards__answer {
+  margin: 0;
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--color-gold);
+  font-size: 0.85rem;
+}
+
 .boards__questions h3 {
   margin: 0;
   font-size: 0.95rem;

@@ -74,6 +74,7 @@ const board = {
   registrable: false,
   occupantName: null,
   pendingName: null,
+  answeredQuestions: [],
 };
 
 describe("boards-client", () => {

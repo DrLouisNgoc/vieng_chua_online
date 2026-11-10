@@ -18,6 +18,7 @@ describe("createBoardStore: fixed (non-registrable) boards", () => {
         requiresPassword: true,
         occupantName: null,
         pendingName: null,
+        answeredQuestions: [],
       },
     ]);
   });
@@ -80,10 +81,10 @@ describe("createBoardStore: fixed (non-registrable) boards", () => {
     expect(store.readQuestions("a", "anything")).toEqual({ outcome: "wrong-password" });
     store.edit("a", "bimat123", "Xin chào");
     expect(store.readQuestions("a", "wrong")).toEqual({ outcome: "wrong-password" });
-    expect(store.readQuestions("a", "bimat123")).toEqual({
-      outcome: "ok",
-      questions: [{ name: "Khách", text: "Câu hỏi 1" }],
-    });
+    const result = store.readQuestions("a", "bimat123");
+    if (result.outcome !== "ok") throw new Error("expected ok");
+    expect(result.questions).toMatchObject([{ name: "Khách", text: "Câu hỏi 1", answer: null }]);
+    expect(typeof result.questions[0]?.id).toBe("string");
   });
 
   it("ask reports not-found for an unknown board", () => {

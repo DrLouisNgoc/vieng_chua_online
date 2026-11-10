@@ -200,3 +200,38 @@
   renamed + wrote + saved a cốc, asked and read back a question,
   opened the new image board's edit form). Not committed yet — asked
   the owner first, since a later push auto-deploys to chua.io.vn.
+- 2026-11-10 (same session, continued): owner reported the hall
+  projector's talk was gone on the just-pushed live site. Reproduced it
+  live (navigated the real chua.io.vn, found the boards panel empty for
+  everyone) rather than guessing: the live build was calling
+  `http://localhost:8787` for boards/presence — VITE_BOARDS_URL was
+  never actually set in `/opt/chua/deploy.sh` after the deploy guide's
+  own fix (a known, already-flagged gap, see this file's earlier
+  Gotchas). No SSH/credentials to the VPS to fix deploy.sh directly
+  (owner tried, lost the VPS password mid-session, gave up on SSH).
+  Fixed without needing SSH: `app/src/runtime-urls.ts` — when no
+  VITE_*_URL is set at build time, a production build now falls back to
+  the page's own origin instead of localhost, since Caddy already
+  proxies /ws*, /boards*, /admin* on the same domain. Verified live
+  after deploying (bundle hash changed, confirmed the new fallback code
+  ran, the talk loaded again) — browser caching made this noisy to
+  verify (different reloads served different bundle hashes for a
+  while), worth remembering if this comes up again. Owner then asked for
+  a new feature: Cô Yến/Anh Tuấn Hà/Sư Nguyên Tuệ should be able to type
+  an answer to a "hỏi pháp" question from their own cốc's password-gated
+  view; interviewed (one round) on what "trả lời" meant — confirmed:
+  typed in-app, and public (the asker has no private page to return to,
+  so a private-only answer would never be read). Built: `Question`
+  gained `id`/`answer` (server/src/boards.ts, backward-compatible —
+  `normalizeQuestion` fills defaults for already-live questions missing
+  these fields); new store method `answer()`; once answered, a question
+  surfaces via a new public `PublicBoard.answeredQuestions`
+  (boardsHttp.ts: `POST .../answer`). App side: boards-client.ts mirrors
+  this; boards-panel.ts shows an inline "Trả lời" form on each
+  unanswered question in the occupant's own view, and a "Hỏi đáp"
+  section (answered pairs) visible to every visitor of that cốc, no
+  password needed. App 246 + server 122 tests pass, tsc clean both;
+  verified live in the running dev app end to end (asked a question,
+  answered it as the occupant, confirmed it appeared in the public
+  "Hỏi đáp" list). Documented in
+  docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.

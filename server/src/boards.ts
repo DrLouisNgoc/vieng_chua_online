@@ -41,11 +41,15 @@ export interface PendingRegistration {
 }
 
 // A question a visitor left for this board's occupant (owner, 2026-11-10:
-// "ấn vào để hỏi pháp"). Private: only readQuestions, with the board's own
-// password, can see these — never exposed via list/get.
+// "ấn vào để hỏi pháp"). Unanswered: only readQuestions, with the board's
+// own password, can see it. Once answered (owner, same day: "trả lời...
+// công khai trong cốc đó"), the pair becomes public — see
+// PublicBoard.answeredQuestions.
 export interface Question {
+  id: string;
   name: string;
   text: string;
+  answer: string | null;
 }
 
 // A talk's worth of questions is plenty; oldest drop first past this.
@@ -64,6 +68,18 @@ export interface PublicBoard {
   // visible publicly so a second visitor knows not to also register; the
   // note they wrote is admin-only (see AdminPendingEntry).
   pendingName: string | null;
+  // Questions this board's occupant has answered — public, visible to
+  // every visitor of this cốc (owner, 2026-11-10: "công khai trong cốc
+  // đó"). A still-unanswered question is never in this list; it only
+  // ever shows via readQuestions, with the board's own password.
+  answeredQuestions: AnsweredQuestion[];
+}
+
+export interface AnsweredQuestion {
+  id: string;
+  name: string;
+  text: string;
+  answer: string;
 }
 
 export interface StoredBoard {
@@ -91,6 +107,7 @@ export type EditResult = "ok" | "wrong-password" | "not-found" | "not-assigned";
 export type RegisterResult = "ok" | "not-found" | "not-registrable" | "already-pending" | "already-assigned";
 export type DecisionResult = "ok" | "not-found" | "no-pending";
 export type AskResult = "ok" | "not-found" | "not-assigned";
+export type AnswerResult = "ok" | "wrong-password" | "not-found";
 export type ReadQuestionsResult =
   | { outcome: "ok"; questions: Question[] }
   | { outcome: "wrong-password" }
@@ -109,14 +126,19 @@ export interface BoardStore {
   reject: (id: string) => DecisionResult;
   // Anyone can leave a question for the board's occupant to read later.
   ask: (id: string, name: string, text: string) => AskResult;
-  // Only with the board's own password — same one edit uses.
+  // Only with the board's own password — same one edit uses. Returns
+  // every question, answered or not; the UI decides what to show.
   readQuestions: (id: string, password: string) => ReadQuestionsResult;
+  // Only with the board's own password. Once answered, the pair is
+  // public (toPublic's answeredQuestions) — answering twice just
+  // overwrites the previous answer.
+  answer: (id: string, password: string, questionId: string, answer: string) => AnswerResult;
   // The on-disk shape, password hashes included — for persistence only.
   snapshot: () => StoredBoard[];
 }
 
 function toPublic(board: StoredBoard): PublicBoard {
-  const { id, title, type, body, talks, registrable, requiresPassword, occupantName, pending } = board;
+  const { id, title, type, body, talks, registrable, requiresPassword, occupantName, pending, questions } = board;
   return {
     id,
     title,
@@ -127,6 +149,9 @@ function toPublic(board: StoredBoard): PublicBoard {
     requiresPassword,
     occupantName,
     pendingName: pending?.name ?? null,
+    answeredQuestions: questions
+      .filter((q): q is Question & { answer: string } => q.answer !== null)
+      .map(({ id, name, text, answer }) => ({ id, name, text, answer })),
   };
 }
 
@@ -201,7 +226,7 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
       const board = boards.get(id);
       if (!board) return "not-found";
       if (board.registrable && board.occupantName === null) return "not-assigned";
-      board.questions.push({ name, text });
+      board.questions.push({ id: crypto.randomUUID(), name, text, answer: null });
       if (board.questions.length > MAX_QUESTIONS_PER_BOARD) board.questions.shift();
       return "ok";
     },
@@ -212,6 +237,17 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
         return { outcome: "wrong-password" };
       }
       return { outcome: "ok", questions: board.questions };
+    },
+    answer(id, password, questionId, answer) {
+      const board = boards.get(id);
+      if (!board) return "not-found";
+      if (board.requiresPassword && (board.passwordHash === null || !verifyPassword(password, board.passwordHash))) {
+        return "wrong-password";
+      }
+      const question = board.questions.find((q) => q.id === questionId);
+      if (!question) return "not-found";
+      question.answer = answer;
+      return "ok";
     },
     snapshot: () => [...boards.values()].map((board) => ({ ...board })),
   };
@@ -226,7 +262,24 @@ function isPendingRegistration(value: unknown): value is PendingRegistration {
 function isQuestion(value: unknown): value is Question {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
-  return typeof v.name === "string" && typeof v.text === "string";
+  return (
+    typeof v.name === "string" &&
+    typeof v.text === "string" &&
+    // id/answer added after some boards.json files already had questions
+    // (same live-deploy backward-compat rule as talks/questions above) —
+    // normalizeQuestion below fills in the defaults.
+    (v.id === undefined || typeof v.id === "string") &&
+    (v.answer === undefined || v.answer === null || typeof v.answer === "string")
+  );
+}
+
+function normalizeQuestion(question: Question): Question {
+  return {
+    id: question.id ?? crypto.randomUUID(),
+    name: question.name,
+    text: question.text,
+    answer: question.answer ?? null,
+  };
 }
 
 function isStoredBoard(value: unknown): value is StoredBoard {
@@ -272,7 +325,7 @@ export function mergeWithSeed(persisted: unknown, seeds: readonly BoardSeed[]): 
           passwordHash: existing.passwordHash,
           occupantName: existing.occupantName,
           pending: existing.pending,
-          questions: existing.questions ?? [],
+          questions: (existing.questions ?? []).map(normalizeQuestion),
         }
       : {
           ...seed,

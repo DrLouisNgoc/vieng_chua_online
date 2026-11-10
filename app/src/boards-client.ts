@@ -63,11 +63,21 @@ export interface BoardView {
   requiresPassword: boolean;
   occupantName: string | null;
   pendingName: string | null;
+  answeredQuestions: AnsweredQuestion[];
 }
 
 export interface Question {
+  id: string;
   name: string;
   text: string;
+  answer: string | null;
+}
+
+export interface AnsweredQuestion {
+  id: string;
+  name: string;
+  text: string;
+  answer: string;
 }
 
 export interface AdminPendingEntry {
@@ -90,6 +100,7 @@ export type AdminPendingResult =
   | { outcome: "ok"; registrations: AdminPendingEntry[] }
   | { outcome: "wrong-password" | "error" };
 export type AskOutcome = "ok" | "not-found" | "not-assigned" | "error";
+export type AnswerOutcome = "ok" | "wrong-password" | "not-found" | "error";
 export type ReadQuestionsResult =
   | { outcome: "ok"; questions: Question[] }
   | { outcome: "wrong-password" | "not-found" | "error" };
@@ -100,6 +111,7 @@ export interface BoardsClient {
   register: (id: string, name: string, note: string) => Promise<RegisterOutcome>;
   ask: (id: string, name: string, text: string) => Promise<AskOutcome>;
   readQuestions: (id: string, password: string) => Promise<ReadQuestionsResult>;
+  answer: (id: string, password: string, questionId: string, answer: string) => Promise<AnswerOutcome>;
   adminPending: (password: string) => Promise<AdminPendingResult>;
   adminApprove: (id: string, password: string) => Promise<AdminDecisionOutcome>;
   adminReject: (id: string, password: string) => Promise<AdminDecisionOutcome>;
@@ -168,6 +180,18 @@ export function createBoardsClient(baseUrl: string, fetchImpl: typeof fetch = fe
       const error = errorField(json);
       if (error === "wrong-password" || error === "not-found") return { outcome: error };
       return { outcome: "error" };
+    },
+
+    async answer(id, password, questionId, answer) {
+      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/answer`, {
+        password,
+        questionId,
+        answer,
+      });
+      if (status === 200) return "ok";
+      const error = errorField(json);
+      if (error === "wrong-password" || error === "not-found") return error;
+      return "error";
     },
 
     async register(id, name, note) {
