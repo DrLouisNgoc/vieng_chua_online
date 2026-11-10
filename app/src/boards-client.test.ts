@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createBoardsClient, parseQuoteImages, parseTalks, youtubeVideoId } from "./boards-client";
+import { createBoardsClient, parseQuoteImages, parseTalks, sutraOfTheDay, youtubeVideoId } from "./boards-client";
 
 describe("youtubeVideoId", () => {
   it("extracts the id from a watch URL with extra query params", () => {
@@ -54,6 +54,35 @@ describe("parseQuoteImages", () => {
 
   it("returns [] for empty input", () => {
     expect(parseQuoteImages("")).toEqual([]);
+  });
+});
+
+describe("sutraOfTheDay", () => {
+  // Reuses Talk/parseTalks (owner enters "Tên kinh | link" lines, same as
+  // bài giảng) — this app never stores the sutta's own (copyrighted)
+  // translated text, only a title and a link to read it.
+  const sutras = [
+    { title: "A", url: "https://example.com/a" },
+    { title: "B", url: "https://example.com/b" },
+    { title: "C", url: "https://example.com/c" },
+  ];
+
+  it("returns null for an empty list", () => {
+    expect(sutraOfTheDay([], new Date(2026, 0, 1))).toBeNull();
+  });
+
+  it("picks the same sutra for every moment within one local day", () => {
+    const morning = sutraOfTheDay(sutras, new Date(2026, 0, 1, 0, 1));
+    const night = sutraOfTheDay(sutras, new Date(2026, 0, 1, 23, 59));
+    expect(morning).toEqual(night);
+  });
+
+  it("picks a different sutra (deterministically) the next day, cycling through the list", () => {
+    const day1 = sutraOfTheDay(sutras, new Date(2026, 0, 1));
+    const day2 = sutraOfTheDay(sutras, new Date(2026, 0, 2));
+    const day4 = sutraOfTheDay(sutras, new Date(2026, 0, 4));
+    expect(day1).not.toEqual(day2);
+    expect(day1).toEqual(day4); // cycles with period 3
   });
 });
 

@@ -173,6 +173,11 @@ export const BOARD_REACH = 1.8;
 // cushion row (maxZ -41.8) — outside both.
 export const HALL_PROJECTOR: Point = { x: 0, z: -43 };
 
+// "Đọc Kinh Nikaya" board (owner, 2026-11-10: "tạo thêm 1 chỗ để đọc
+// kinh") — right beside the existing meditation hut (HUT, untouched), a
+// few units clear of it so it doesn't share the hut's own collider.
+export const SUTRA_SPOT: Point = { x: HUT.x + HUT.size + 2, z: HUT.z };
+
 // Rectangular lotus pond alongside the hall's right-hand side.
 export const POND = { minX: 48, maxX: 74, minZ: -44, maxZ: -10 } as const;
 

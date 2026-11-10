@@ -35,8 +35,22 @@ push — the board panel has always scrolled when its content is taller
 than the space available, and the close button scrolled away with
 everything else. Fixed: `.boards__close` is now `position: sticky` with
 a solid background, so it stays visible/clickable regardless of scroll
-position. Small CSS-only fix, not yet committed as of this status line
-— see docs/memory/log.md for the entry.
+position. Committed (`38b69cd`).
+
+**New board, same session: "Đọc Kinh Nikaya"** (owner: "tạo thêm 1 chỗ
+để đọc kinh nikaya... mỗi ngày tự động hiện lên 1 bài kinh hay", source:
+budsas.org's Trung Bộ Kinh). Stores a title + a link to read on the
+source site (reuses the existing `Talk`/"Tên | link" format, same as
+bài giảng) — deliberately **not** the sutta's own translated text,
+since that translation is copyrighted (distinct from the ancient Pali
+canon itself); `sutraOfTheDay()` picks the same one for every visitor
+each local calendar day. Board starts empty — budsas.org didn't have a
+cleanly scrapable per-sutta index, so no starter entries were
+auto-filled; the owner fills it in via the board's own edit form, same
+as any other cốc. See
+docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md
+("Follow-up: Đọc Kinh Nikaya") for the full ruling. App 258 tests pass,
+tsc clean; not yet committed as of this status line.
 
 Milestone 9 (deploy) is live and public:
 `https://chua.io.vn` (VPS, user `chua`, Caddy reverse-proxying the

@@ -367,4 +367,17 @@ export const BOARD_SEEDS: BoardSeed[] = [
     // own photos of câu pháp cú/kinh — not text this app writes).
     body: "",
   },
+  {
+    id: "doc-kinh",
+    title: "Đọc Kinh Nikaya",
+    type: "text",
+    registrable: false,
+    // Owner's own entries (interviewed 2026-11-10: typed in, not
+    // authored by this app). One sutra per block, separated by a line
+    // of "---"; a block's first line is its title, the rest its text.
+    // app/src/boards-client.ts's parseSutras()/sutraOfTheDay() parse
+    // this and pick that day's one, the same for every visitor that
+    // day until local midnight.
+    body: "",
+  },
 ];

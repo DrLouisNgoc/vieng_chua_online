@@ -1,4 +1,4 @@
-import { BOARD_REACH, COC_SPOTS, HALL_PROJECTOR } from "./temple-layout";
+import { BOARD_REACH, COC_SPOTS, HALL_PROJECTOR, SUTRA_SPOT } from "./temple-layout";
 
 export interface BoardSpot {
   id: string;
@@ -9,6 +9,7 @@ export interface BoardSpot {
 const BOARD_SPOTS: BoardSpot[] = [
   ...COC_SPOTS.map(({ id, x, z }) => ({ id, x, z })),
   { id: "may-chieu-chanh-dien", x: HALL_PROJECTOR.x, z: HALL_PROJECTOR.z },
+  { id: "doc-kinh", x: SUTRA_SPOT.x, z: SUTRA_SPOT.z },
 ];
 
 // The id of the cốc or hall projector within BOARD_REACH of `position`, or

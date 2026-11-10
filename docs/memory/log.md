@@ -269,4 +269,26 @@
   and full width, so it always stays visible and clickable at the top
   of the panel regardless of scroll position; verified at both mobile
   and desktop sizes, closing still works. App 254 tests still pass, tsc
-  clean. Small enough not to need its own status.md section.
+  clean. Small enough not to need its own status.md section. Committed
+  (`38b69cd`).
+- 2026-11-10 (same session, continued): owner asked for "1 chỗ để đọc
+  kinh nikaya" with a new sutta shown automatically each day, then gave
+  the source: budsas.org's Trung Bộ Kinh (Majjhima Nikaya). New board
+  "doc-kinh" stores a title + a link to read on the source site (reuses
+  the existing bài-giảng "Tên | link" format) — not the sutta's own
+  translated text, since that translation (and its summaries) are
+  copyrighted separately from the ancient Pali canon; visitors click
+  through to read it on budsas.org itself. Tried to find a clean,
+  scrapable list of all 152 suttas on budsas.org to pre-fill a starter
+  set — the site's table of contents is a mix of commentary links, not
+  a clean per-sutta index, and its summary page is one long page of
+  copyrighted summary text, so left the board empty rather than risk
+  copying it wrong or scraping copyrighted summaries; owner fills it in
+  via the board's own password-gated edit form, same as any other cốc.
+  `sutraOfTheDay()` (boards-client.ts) picks the same entry for every
+  visitor each local calendar day, pure/tested. New proximity spot
+  beside the existing meditation hut (no new geometry). App 258 tests
+  pass, tsc clean; verified live (board list, proximity, empty-state
+  render) — not yet committed as of this entry. Documented in
+  docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md
+  ("Follow-up: Đọc Kinh Nikaya").

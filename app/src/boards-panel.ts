@@ -1,13 +1,21 @@
 import {
   parseQuoteImages,
   parseTalks,
+  sutraOfTheDay,
   youtubeVideoId,
   type AdminPendingEntry,
   type AnsweredQuestion,
   type BoardsClient,
   type BoardView,
   type Question,
+  type Talk,
 } from "./boards-client";
+
+// The "Đọc Kinh Nikaya" board (owner, 2026-11-10): a daily-rotating list
+// of links to read, same "Tên | link" body format as bài giảng — not a
+// board type of its own, so it's special-cased by id like the hall
+// projector/chánh điện boards already are.
+const SUTRA_BOARD_ID = "doc-kinh";
 
 // Panel for the 9 boards (4 named cốc, 4 open "Thuyết Pháp" cốc, the hall
 // projector) plus the owner's admin approval screen. DOM-wiring only (no
@@ -65,6 +73,9 @@ export function createBoardsPanel(
   let boards: BoardView[] = [];
   let message = "";
   let selectedTalkIndex = 0;
+  // null = today's automatic pick (sutraOfTheDay); an index once the
+  // visitor picks a different one from the list to read instead.
+  let selectedSutraIndex: number | null = null;
   // Questions a board's occupant has pulled up with their password (E,
   // "hỏi pháp") — null until they ask to see them, cleared when leaving
   // the board so a later visitor never sees a stale list. questionsPassword
@@ -77,6 +88,7 @@ export function createBoardsPanel(
     view = next;
     message = "";
     selectedTalkIndex = 0;
+    selectedSutraIndex = null;
     questionsView = null;
     questionsPassword = "";
     panel.hidden = false;
@@ -165,7 +177,7 @@ export function createBoardsPanel(
   // trong cốc") — the open "Thuyết Pháp" cốc and the hall projector (which
   // IS a talk list) don't get a second one.
   function hasOwnTalks(board: BoardView): boolean {
-    return !board.registrable && board.type === "text";
+    return !board.registrable && board.type === "text" && board.id !== SUTRA_BOARD_ID;
   }
 
   function renderEditForm(board: BoardView): HTMLElement {
@@ -184,7 +196,9 @@ export function createBoardsPanel(
         ? "Mỗi dòng một bài: Tên bài | link YouTube\nVí dụ: Vô thường | https://youtu.be/..."
         : board.type === "image"
           ? "Mỗi dòng một ảnh: tên-file.jpg | Chú thích\n(đưa file ảnh vào app/public/thirdparty/phap-cu/)"
-          : "Viết câu nói hoặc bài pháp ở đây...";
+          : board.id === SUTRA_BOARD_ID
+            ? "Mỗi dòng một bài kinh: Tên kinh | link để đọc\nVí dụ: Kinh Căn Bản Pháp Môn | https://..."
+            : "Viết câu nói hoặc bài pháp ở đây...";
     const talks = hasOwnTalks(board) ? document.createElement("textarea") : null;
     if (talks) {
       talks.className = "boards__content-input";
@@ -200,9 +214,9 @@ export function createBoardsPanel(
     submit.type = "submit";
     submit.textContent = "Lưu";
     // Only a text cốc can receive questions (renderAskForm, same
-    // condition) — the hall projector and the chánh điện image banner
-    // have no one to answer them.
-    const viewQuestions = board.type === "text" ? document.createElement("button") : null;
+    // condition) — the hall projector, the chánh điện image banner and
+    // the kinh board have no one to answer them.
+    const viewQuestions = board.type === "text" && board.id !== SUTRA_BOARD_ID ? document.createElement("button") : null;
     if (viewQuestions) {
       viewQuestions.type = "button";
       viewQuestions.textContent = "Xem câu hỏi đã nhận";
@@ -425,6 +439,60 @@ export function createBoardsPanel(
     return wrap;
   }
 
+  // "Hôm nay" + a browsable list of the rest; a click reads a different
+  // one but never changes which one is "today's" for other visitors.
+  function renderSutraBoard(linksText: string): HTMLElement {
+    const wrap = document.createElement("div");
+    const sutras = parseTalks(linksText);
+    if (sutras.length === 0) {
+      const p = document.createElement("p");
+      p.className = "boards__content";
+      p.textContent = "Chưa có bài kinh nào.";
+      wrap.append(p);
+      return wrap;
+    }
+    const today = sutraOfTheDay(sutras);
+    const current: Talk | undefined =
+      selectedSutraIndex !== null ? sutras[selectedSutraIndex] : (today ?? sutras[0]);
+
+    const label = document.createElement("p");
+    label.className = "boards__status";
+    label.textContent = selectedSutraIndex === null ? "Hôm nay:" : "Đang xem:";
+    const link = document.createElement("a");
+    link.className = "boards__content";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    if (current) {
+      link.href = current.url;
+      link.textContent = current.title;
+    }
+    wrap.append(label, link);
+
+    if (sutras.length > 1) {
+      const listLabel = document.createElement("p");
+      listLabel.className = "boards__status";
+      listLabel.textContent = "Các bài kinh khác:";
+      const list = document.createElement("ul");
+      list.className = "boards__video-list";
+      sutras.forEach((sutra, index) => {
+        const li = document.createElement("li");
+        const pick = document.createElement("button");
+        pick.type = "button";
+        pick.className = "boards__video-pick";
+        pick.textContent = sutra.title;
+        if (sutra === current) pick.setAttribute("aria-current", "true");
+        pick.addEventListener("click", () => {
+          selectedSutraIndex = index;
+          render();
+        });
+        li.append(pick);
+        list.append(li);
+      });
+      wrap.append(listLabel, list);
+    }
+    return wrap;
+  }
+
   function renderBoardDetail(board: BoardView): void {
     const title = document.createElement("h2");
     title.textContent = board.title;
@@ -443,6 +511,8 @@ export function createBoardsPanel(
       parts.push(renderEditForm(board));
     } else if (board.type === "image") {
       parts.push(renderQuoteImageList(board.body), renderEditForm(board));
+    } else if (board.id === SUTRA_BOARD_ID) {
+      parts.push(renderSutraBoard(board.body), renderEditForm(board));
     } else {
       const content = document.createElement("p");
       content.className = "boards__content";

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { nearestBoardId } from "./board-proximity";
-import { COC_SPOTS, HALL_PROJECTOR } from "./temple-layout";
+import { COC_SPOTS, HALL_PROJECTOR, SUTRA_SPOT } from "./temple-layout";
 
 describe("nearestBoardId", () => {
   it("is null far from every board", () => {
@@ -16,6 +16,10 @@ describe("nearestBoardId", () => {
 
   it("finds the hall projector when close", () => {
     expect(nearestBoardId({ x: HALL_PROJECTOR.x, z: HALL_PROJECTOR.z })).toBe("may-chieu-chanh-dien");
+  });
+
+  it("finds the Đọc Kinh Nikaya spot when close", () => {
+    expect(nearestBoardId({ x: SUTRA_SPOT.x, z: SUTRA_SPOT.z })).toBe("doc-kinh");
   });
 
   it("is null just outside the reach of every board", () => {

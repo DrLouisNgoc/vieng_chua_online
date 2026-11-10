@@ -289,9 +289,9 @@ describe("mergeWithSeed", () => {
 });
 
 describe("BOARD_SEEDS", () => {
-  it("has the 4 named cốc, the hall projector, 4 open cốc and the chánh điện quote banner, each with a unique id", () => {
-    expect(BOARD_SEEDS).toHaveLength(10);
-    expect(new Set(BOARD_SEEDS.map((b) => b.id)).size).toBe(10);
+  it("has the 4 named cốc, the hall projector, 4 open cốc, the chánh điện quote banner and the kinh board, each with a unique id", () => {
+    expect(BOARD_SEEDS).toHaveLength(11);
+    expect(new Set(BOARD_SEEDS.map((b) => b.id)).size).toBe(11);
     expect(BOARD_SEEDS.filter((b) => b.registrable)).toHaveLength(4);
   });
 

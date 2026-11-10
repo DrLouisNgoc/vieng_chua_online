@@ -281,3 +281,61 @@ restarting the dev server and reloading again still showed it locked
 - What happens to a visitor's lock if their isp/router gives them a new
   ip later (mobile networks especially) — they'd be treated as a new,
   unlocked visitor; not something this session was asked to solve.
+
+## Follow-up: Đọc Kinh Nikaya (a daily-rotating sutta reading list)
+
+Owner: "tạo thêm 1 chỗ để đọc kinh nikaya, sau đó mỗi ngày sẽ tự động
+hiện lên 1 bài kinh hay!" — then, source: "đây nguồn nikaya từ đây,
+trung bộ kinh" (budsas.org's Trung Bộ Kinh / Majjhima Nikaya section).
+Interviewed: content is the owner's own entries, same as every other
+cốc, not this app's.
+
+Ruling: the board stores a title + a link to read on its source site
+(reusing the exact "Tên | link" format `Talk`/`parseTalks` already use
+for bài giảng), never the sutta's own translated text. budsas.org's
+Trung Bộ Kinh translation (HT Thích Minh Châu) and its English/Vietnamese
+summaries (Bhikkhu Bodhi / Ni sư Trí Hải) are copyrighted works, distinct
+from the ancient Pali canon itself — copying them into this app's own
+data would reproduce someone else's copyrighted translation, not just
+reference a public-domain scripture. Visitors click through to read the
+full text on the source site itself, same as how the bài giảng board
+links out to YouTube instead of hosting its own copy of a talk.
+
+Looked for a clean, scrapable "152 suttas -> individual page" index on
+budsas.org to pre-fill a starter list; the site's own table-of-contents
+page for Trung Bộ Kinh is a mix of commentary links (not a clean
+per-sutta list) and its summary page is one long page of copyrighted
+summary text with no per-sutta links extractable without touching that
+text. Left the board empty rather than risk scraping it wrong — the
+owner (or a later session, with the owner picking the exact
+title/link pairs) fills it in via the board's own password-gated edit
+form, same as every other cốc.
+
+- `server/src/boards.ts`: new seed `doc-kinh`, title "Đọc Kinh Nikaya",
+  `type: "text"`, no special fields — reuses the existing board
+  store/edit/password flow entirely.
+- `app/src/boards-client.ts`: `sutraOfTheDay(talks, now?)` — picks the
+  same `Talk` for every visitor on a given local calendar day
+  (`Date.UTC` from local y/m/d, so it changes at local midnight),
+  cycling through the list; pure, tested (same-day stability,
+  next-day change, empty-list → null).
+- `app/src/boards-panel.ts`: `doc-kinh` is special-cased by id (like the
+  hall projector/chánh điện boards already are) to a dedicated renderer
+  — "Hôm nay:" (today's pick, a link) + a browsable list of the rest
+  (picking one just changes what's shown locally, never which one is
+  "today's" for anyone else). No "hỏi pháp"/"bài giảng" UI (no occupant
+  to answer, not a talk list) — excluded the same way the hall
+  projector/chánh điện boards already are.
+- `app/src/temple-layout.ts` / `board-proximity.ts`: a new spot
+  (`SUTRA_SPOT`) right beside the existing meditation hut (`HUT`,
+  untouched/no new geometry) so walking up there prompts "Nhấn E" like
+  every other board; it's also always reachable from the "Cốc & Bài
+  giảng" list regardless of location, same as every other board.
+
+Verified: app 258 tests pass (tsc clean); board appears in the list and
+proximity spot resolves correctly (`board-proximity.test.ts`); opened
+the board live in the running dev app and confirmed the empty-state
+message and edit form placeholder render correctly. Did not verify the
+"Hôm nay" rendering with real content live (no real entries to test
+with yet — `sutraOfTheDay`/the render path are covered by unit tests
+instead).

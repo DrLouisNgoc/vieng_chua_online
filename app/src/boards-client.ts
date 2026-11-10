@@ -53,6 +53,22 @@ export function parseQuoteImages(body: string): QuoteImage[] {
     });
 }
 
+// The "Đọc Kinh Nikaya" board's body reuses the exact same "Tên | link"
+// format as the bài giảng board (parseTalks) — the owner's own curated
+// links (interviewed 2026-11-10: "nguồn nikaya... trung bộ kinh",
+// budsas.org) to a sutta's own page, never this app's own copy of the
+// (copyrighted) translated text.
+
+// Deterministic by local calendar day, so every visitor sees the same one
+// that day and it changes automatically at local midnight — no server
+// involvement needed (owner, 2026-11-10: "mỗi ngày sẽ tự động hiện lên 1
+// bài kinh hay").
+export function sutraOfTheDay(sutras: Talk[], now: Date = new Date()): Talk | null {
+  if (sutras.length === 0) return null;
+  const dayIndex = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86_400_000);
+  return sutras[((dayIndex % sutras.length) + sutras.length) % sutras.length] ?? null;
+}
+
 export interface BoardView {
   id: string;
   title: string;
