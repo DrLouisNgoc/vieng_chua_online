@@ -11,10 +11,11 @@ import { createStorageBeadStore } from "./bead-counter";
 import { browserStorage } from "./browser-storage";
 import { createPractice } from "./practice";
 import { createPracticePanel } from "./practice-panel";
-import { createBoardsClient, youtubeVideoId } from "./boards-client";
+import { createBoardsClient, parseQuoteImages, youtubeVideoId } from "./boards-client";
 import { createBoardsPanel } from "./boards-panel";
 import { createChatPanel } from "./chat-panel";
 import { nearestBoardId } from "./board-proximity";
+import { createBackgroundMusic, BACKGROUND_MUSIC_VIDEO_ID } from "./background-music";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
 const DEFAULT_PRESENCE_URL = "ws://localhost:8787";
@@ -48,6 +49,7 @@ function renderShell(): void {
     <div id="viewport"></div>
     <header class="hud-top" hidden>
       <span class="room-label">${t("산사")} · <span id="visitor-name"></span> · <span id="presence-label"></span></span>
+      <button type="button" class="music-toggle" id="music-toggle">🔈 Nhạc nền</button>
     </header>
     <div class="interaction-hud" id="interaction-hud" hidden></div>
     <div class="practice" id="practice" hidden></div>
@@ -130,6 +132,7 @@ async function main(): Promise<void> {
   const onboardingSwatches = document.querySelector<HTMLElement>(
     "#onboarding-swatches",
   );
+  const musicToggle = document.querySelector<HTMLButtonElement>("#music-toggle");
   if (
     !viewport ||
     !hudTop ||
@@ -146,7 +149,8 @@ async function main(): Promise<void> {
     !onboardingPreview ||
     !onboardingNameInput ||
     !onboardingGender ||
-    !onboardingSwatches
+    !onboardingSwatches ||
+    !musicToggle
   ) {
     throw new Error("expected UI elements are missing");
   }
@@ -175,6 +179,7 @@ async function main(): Promise<void> {
     onSeatRefused: () => temple?.refuseSeat(),
     onChat: (message) => chatPanel.addMessage(message),
     onChatHistory: (messages) => chatPanel.setHistory(messages),
+    onBell: () => ambience.ringBell(),
   });
   let entered = false;
   const interactionHud = createInteractionHud(interactionRoot, (action) =>
@@ -183,6 +188,19 @@ async function main(): Promise<void> {
 
   // "Tu tập" (Milestone 7): chanting, moktak autoplay, background sound.
   const ambience = createAmbience();
+  // Background music (owner, 2026-11-10: "để bài này làm nhạc tự động
+  // phát cho tôi") — a hidden YouTube embed, muted until the visitor
+  // clicks the toggle (browsers block automatic sound without a click).
+  const backgroundMusic = createBackgroundMusic(document.body, BACKGROUND_MUSIC_VIDEO_ID);
+  const musicToggleButton: HTMLButtonElement = musicToggle;
+  function renderMusicToggle(): void {
+    musicToggleButton.textContent = backgroundMusic.muted ? "🔈 Nhạc nền" : "🔊 Nhạc nền";
+  }
+  renderMusicToggle();
+  musicToggleButton.addEventListener("click", () => {
+    backgroundMusic.setMuted(!backgroundMusic.muted);
+    renderMusicToggle();
+  });
   const storage = browserStorage() ?? { getItem: () => null, setItem: () => {} };
   // Cốc + hall projector boards (owner, 2026-11-09): read-only HTTP for
   // everyone, password-gated edits, registration + admin approval for the
@@ -236,6 +254,7 @@ async function main(): Promise<void> {
       },
     });
     void refreshProjectorPreview(loaded);
+    void refreshPhapCuBanner(loaded);
     return loaded;
   });
 
@@ -249,6 +268,28 @@ async function main(): Promise<void> {
     const firstUrl = projector?.body.split("\n").map((line) => line.trim()).find(Boolean);
     const videoId = firstUrl ? youtubeVideoId(firstUrl) : null;
     scene.setProjectorPreview(videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null);
+  }
+
+  // The chánh điện banner cycles through the owner's own quote photos
+  // (owner, 2026-11-10: "treo một số câu nói hay của sư phụ"); files go
+  // in app/public/thirdparty/phap-cu/ (gitignored, decision 0009).
+  const PHAP_CU_ROTATE_MS = 15_000;
+  async function refreshPhapCuBanner(scene: TempleScene): Promise<void> {
+    const boards = await boardsClient.list();
+    const board = boards.find((b) => b.id === "loi-phap-chanh-dien");
+    const images = board ? parseQuoteImages(board.body) : [];
+    if (images.length === 0) {
+      scene.setPhapCuImage(null);
+      return;
+    }
+    let index = 0;
+    scene.setPhapCuImage(`/thirdparty/phap-cu/${images[0]?.file}`);
+    if (images.length > 1) {
+      setInterval(() => {
+        index = (index + 1) % images.length;
+        scene.setPhapCuImage(`/thirdparty/phap-cu/${images[index]?.file}`);
+      }, PHAP_CU_ROTATE_MS);
+    }
   }
 
 

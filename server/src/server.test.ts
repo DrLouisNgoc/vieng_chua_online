@@ -83,6 +83,16 @@ describe("presence server with visitors", () => {
     expect((seen as unknown as Visitors).visitors).toHaveLength(2);
   });
 
+  it("broadcasts a bell toll to everyone already present when a visitor joins", async () => {
+    server = startPresenceServer(0);
+    const a = await connect();
+    const b = await connect();
+    a.send({ type: "join", name: "An", colorIndex: 1 });
+    await a.waitFor((m) => m.type === "welcome");
+    expect(await a.waitFor((m) => m.type === "bell")).toEqual({ type: "bell" });
+    expect(await b.waitFor((m) => m.type === "bell")).toEqual({ type: "bell" });
+  });
+
   it("refuses a cushion that is taken", async () => {
     server = startPresenceServer(0);
     const a = await connect();

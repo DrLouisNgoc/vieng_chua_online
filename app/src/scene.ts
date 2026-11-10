@@ -156,6 +156,8 @@ export interface TempleScene {
   isChanting: () => boolean;
   // The hall projector screen's thumbnail, from the current board content.
   setProjectorPreview: (imageUrl: string | null) => void;
+  // The chánh điện quote banner's current photo.
+  setPhapCuImage: (imageUrl: string | null) => void;
   dispose: () => void;
 }
 
@@ -601,6 +603,7 @@ export async function createTempleScene(
     stopChanting: () => interactions.stopChanting(),
     isChanting: () => interactions.snapshot.activity === "chanting",
     setProjectorPreview: (imageUrl) => grounds.setProjectorPreview(imageUrl),
+    setPhapCuImage: (imageUrl) => grounds.setPhapCuImage(imageUrl),
     dispose,
   };
 }

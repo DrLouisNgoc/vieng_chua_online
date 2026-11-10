@@ -121,6 +121,7 @@ export function startPresenceServer(
         visitors.join(visitorId, message.name, message.colorIndex);
         send(socket, { type: "welcome", id: visitorId });
         send(socket, { type: "chat-history", messages: chat.recent() });
+        broadcast(clients, { type: "bell" });
         return;
       }
       if (message.type === "chat") {

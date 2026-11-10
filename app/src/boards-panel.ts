@@ -1,4 +1,12 @@
-import { parseTalks, youtubeVideoId, type AdminPendingEntry, type BoardsClient, type BoardView } from "./boards-client";
+import {
+  parseQuoteImages,
+  parseTalks,
+  youtubeVideoId,
+  type AdminPendingEntry,
+  type BoardsClient,
+  type BoardView,
+  type Question,
+} from "./boards-client";
 
 // Panel for the 9 boards (4 named cốc, 4 open "Thuyết Pháp" cốc, the hall
 // projector) plus the owner's admin approval screen. DOM-wiring only (no
@@ -56,11 +64,16 @@ export function createBoardsPanel(
   let boards: BoardView[] = [];
   let message = "";
   let selectedTalkIndex = 0;
+  // Questions a board's occupant has pulled up with their password (E,
+  // "hỏi pháp") — null until they ask to see them, cleared when leaving
+  // the board so a later visitor never sees a stale list.
+  let questionsView: Question[] | null = null;
 
   function openPanel(next: View): void {
     view = next;
     message = "";
     selectedTalkIndex = 0;
+    questionsView = null;
     panel.hidden = false;
     toggle.setAttribute("aria-expanded", "true");
     void refresh();
@@ -143,9 +156,20 @@ export function createBoardsPanel(
     return form;
   }
 
+  // The 4 named cốc only (owner, 2026-11-10: "xem bài giảng của các vị
+  // trong cốc") — the open "Thuyết Pháp" cốc and the hall projector (which
+  // IS a talk list) don't get a second one.
+  function hasOwnTalks(board: BoardView): boolean {
+    return !board.registrable && board.type === "text";
+  }
+
   function renderEditForm(board: BoardView): HTMLElement {
     const form = document.createElement("form");
     form.className = "boards__form";
+    const title = document.createElement("input");
+    title.type = "text";
+    title.maxLength = 60;
+    title.value = board.title;
     const content = document.createElement("textarea");
     content.className = "boards__content-input";
     content.value = board.body;
@@ -153,7 +177,16 @@ export function createBoardsPanel(
     content.placeholder =
       board.type === "video"
         ? "Mỗi dòng một bài: Tên bài | link YouTube\nVí dụ: Vô thường | https://youtu.be/..."
-        : "Viết câu nói hoặc bài pháp ở đây...";
+        : board.type === "image"
+          ? "Mỗi dòng một ảnh: tên-file.jpg | Chú thích\n(đưa file ảnh vào app/public/thirdparty/phap-cu/)"
+          : "Viết câu nói hoặc bài pháp ở đây...";
+    const talks = hasOwnTalks(board) ? document.createElement("textarea") : null;
+    if (talks) {
+      talks.className = "boards__content-input";
+      talks.value = board.talks;
+      talks.rows = 4;
+      talks.placeholder = "Mỗi dòng một bài giảng: Tên bài | link YouTube";
+    }
     const password = document.createElement("input");
     password.type = "password";
     password.value = storage.getItem(passwordKey(board.id)) ?? "";
@@ -161,14 +194,28 @@ export function createBoardsPanel(
     const submit = document.createElement("button");
     submit.type = "submit";
     submit.textContent = "Lưu";
-    const fields = board.requiresPassword
-      ? [row("Nội dung", content), row("Mật khẩu", password), submit]
-      : [row("Nội dung", content), submit];
+    // Only a text cốc can receive questions (renderAskForm, same
+    // condition) — the hall projector and the chánh điện image banner
+    // have no one to answer them.
+    const viewQuestions = board.type === "text" ? document.createElement("button") : null;
+    if (viewQuestions) {
+      viewQuestions.type = "button";
+      viewQuestions.textContent = "Xem câu hỏi đã nhận";
+    }
+    const fields = [
+      row("Tên cốc", title),
+      row("Nội dung", content),
+      ...(talks ? [row("Bài giảng", talks)] : []),
+      ...(board.requiresPassword ? [row("Mật khẩu", password)] : []),
+      submit,
+      ...(viewQuestions ? [viewQuestions] : []),
+    ];
     form.append(...fields);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       void (async () => {
-        const result = await client.edit(board.id, board.requiresPassword ? password.value : "", content.value);
+        const pw = board.requiresPassword ? password.value : "";
+        const result = await client.edit(board.id, pw, content.value, talks?.value, title.value);
         if (result === "ok") {
           storage.setItem(passwordKey(board.id), password.value);
           message = "Đã lưu.";
@@ -180,13 +227,91 @@ export function createBoardsPanel(
         await refresh();
       })();
     });
+    viewQuestions?.addEventListener("click", () => {
+      void (async () => {
+        const result = await client.readQuestions(board.id, board.requiresPassword ? password.value : "");
+        if (result.outcome === "ok") {
+          questionsView = result.questions;
+          message = result.questions.length === 0 ? "Chưa có câu hỏi nào." : "";
+        } else {
+          questionsView = null;
+          message = "Sai mật khẩu, không xem được câu hỏi.";
+        }
+        render();
+      })();
+    });
     return form;
   }
 
-  function renderVideos(board: BoardView): HTMLElement {
+  function renderAskForm(board: BoardView): HTMLElement {
+    const form = document.createElement("form");
+    form.className = "boards__form";
+    const name = document.createElement("input");
+    name.type = "text";
+    name.maxLength = 60;
+    name.required = true;
+    const text = document.createElement("textarea");
+    text.rows = 3;
+    text.maxLength = 500;
+    text.required = true;
+    text.placeholder = "Điều bạn muốn hỏi...";
+    const submit = document.createElement("button");
+    submit.type = "submit";
+    submit.textContent = "Gửi câu hỏi (chỉ chủ cốc đọc được)";
+    form.append(row("Tên của bạn", name), row("Câu hỏi", text), submit);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void (async () => {
+        const result = await client.ask(board.id, name.value, text.value);
+        message = result === "ok" ? "Đã gửi câu hỏi." : "Không gửi được, thử lại sau.";
+        if (result === "ok") text.value = "";
+        render();
+      })();
+    });
+    return form;
+  }
+
+  function renderQuoteImageList(body: string): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = "boards__content";
+    const images = parseQuoteImages(body);
+    if (images.length === 0) {
+      const p = document.createElement("p");
+      p.textContent = "Chưa có ảnh nào.";
+      wrap.append(p);
+      return wrap;
+    }
+    const list = document.createElement("ul");
+    for (const image of images) {
+      const li = document.createElement("li");
+      li.textContent = image.caption ? `${image.file} — ${image.caption}` : image.file;
+      list.append(li);
+    }
+    wrap.append(list);
+    return wrap;
+  }
+
+  function renderQuestions(questions: Question[]): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = "boards__questions";
+    const heading = document.createElement("h3");
+    heading.textContent = "Câu hỏi đã nhận";
+    wrap.append(heading);
+    for (const question of questions) {
+      const item = document.createElement("p");
+      item.className = "boards__question";
+      const from = document.createElement("strong");
+      from.textContent = `${question.name}: `;
+      item.append(from, document.createTextNode(question.text));
+      wrap.append(item);
+    }
+    return wrap;
+  }
+
+  function renderVideos(talksText: string): HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "boards__videos";
-    const talks = parseTalks(board.body);
+    const talks = parseTalks(talksText);
     if (talks.length === 0) {
       const p = document.createElement("p");
       p.textContent = "Chưa có bài giảng nào.";
@@ -239,13 +364,18 @@ export function createBoardsPanel(
     if (board.registrable && board.occupantName === null) {
       if (board.pendingName === null) parts.push(renderRegisterForm(board));
     } else if (board.type === "video") {
-      parts.push(renderVideos(board));
+      parts.push(renderVideos(board.body));
       parts.push(renderEditForm(board));
+    } else if (board.type === "image") {
+      parts.push(renderQuoteImageList(board.body), renderEditForm(board));
     } else {
       const content = document.createElement("p");
       content.className = "boards__content";
       content.textContent = board.body || "(chưa có nội dung)";
-      parts.push(content, renderEditForm(board));
+      parts.push(content);
+      if (hasOwnTalks(board)) parts.push(renderVideos(board.talks));
+      parts.push(renderAskForm(board), renderEditForm(board));
+      if (questionsView) parts.push(renderQuestions(questionsView));
     }
     body.replaceChildren(...parts);
   }

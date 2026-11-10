@@ -51,15 +51,34 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
 }
 
-function parseEditRequest(value: unknown): { password: string; body: string } | null {
+function parseEditRequest(
+  value: unknown,
+): { password: string; body: string; talks?: string; title?: string } | null {
   const v = asRecord(value);
   if (!v) return null;
-  const { password, body } = v;
+  const { password, body, talks, title } = v;
   // Empty is valid: boards.ts ignores the password entirely for a board
   // that doesn't require one (the hall projector).
   if (typeof password !== "string" || password.length > 200) return null;
   if (typeof body !== "string" || body.length > MAX_BODY_BYTES) return null;
-  return { password, body };
+  if (talks !== undefined && (typeof talks !== "string" || talks.length > MAX_BODY_BYTES)) return null;
+  if (title !== undefined && (typeof title !== "string" || title.length > MAX_NAME_LENGTH)) return null;
+  return {
+    password,
+    body,
+    ...(talks !== undefined ? { talks } : {}),
+    ...(title !== undefined ? { title } : {}),
+  };
+}
+
+function parseAskRequest(value: unknown): { name: string; text: string } | null {
+  const v = asRecord(value);
+  if (!v) return null;
+  const name = typeof v.name === "string" ? v.name.trim() : "";
+  const text = typeof v.text === "string" ? v.text.trim() : "";
+  if (name.length === 0 || name.length > MAX_NAME_LENGTH) return null;
+  if (text.length === 0 || text.length > MAX_NOTE_LENGTH) return null;
+  return { name, text };
 }
 
 function parseRegisterRequest(value: unknown): { name: string; note: string } | null {
@@ -84,6 +103,8 @@ type Route =
   | { kind: "boards" }
   | { kind: "board"; id: string }
   | { kind: "register"; id: string }
+  | { kind: "ask"; id: string }
+  | { kind: "questions"; id: string }
   | { kind: "admin-pending" }
   | { kind: "admin-approve"; id: string }
   | { kind: "admin-reject"; id: string }
@@ -95,6 +116,8 @@ function matchRoute(pathname: string): Route {
     if (parts.length === 1) return { kind: "boards" };
     if (parts.length === 2 && parts[1]) return { kind: "board", id: parts[1] };
     if (parts.length === 3 && parts[1] && parts[2] === "register") return { kind: "register", id: parts[1] };
+    if (parts.length === 3 && parts[1] && parts[2] === "ask") return { kind: "ask", id: parts[1] };
+    if (parts.length === 3 && parts[1] && parts[2] === "questions") return { kind: "questions", id: parts[1] };
     return null;
   }
   if (parts[0] === "admin") {
@@ -146,12 +169,43 @@ export function createBoardsRequestListener(
         (value) => {
           const parsed = parseEditRequest(value);
           if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          const result = store.edit(route.id, parsed.password, parsed.body);
+          const result = store.edit(route.id, parsed.password, parsed.body, parsed.talks, parsed.title);
           if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
           if (result === "wrong-password") return sendJson(res, 403, { error: "wrong-password" });
           if (result === "not-assigned") return sendJson(res, 409, { error: "not-assigned" });
           persist();
           sendJson(res, 200, { ok: true });
+        },
+        () => sendJson(res, 400, { error: "invalid-request" }),
+      );
+      return;
+    }
+
+    if (req.method === "POST" && route.kind === "ask") {
+      readJsonBody(req).then(
+        (value) => {
+          const parsed = parseAskRequest(value);
+          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
+          const result = store.ask(route.id, parsed.name, parsed.text);
+          if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
+          if (result === "not-assigned") return sendJson(res, 409, { error: "not-assigned" });
+          persist();
+          sendJson(res, 200, { ok: true });
+        },
+        () => sendJson(res, 400, { error: "invalid-request" }),
+      );
+      return;
+    }
+
+    if (req.method === "POST" && route.kind === "questions") {
+      readJsonBody(req).then(
+        (value) => {
+          const parsed = parsePasswordRequest(value);
+          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
+          const result = store.readQuestions(route.id, parsed.password);
+          if (result.outcome === "not-found") return sendJson(res, 404, { error: "not-found" });
+          if (result.outcome === "wrong-password") return sendJson(res, 403, { error: "wrong-password" });
+          sendJson(res, 200, { questions: result.questions });
         },
         () => sendJson(res, 400, { error: "invalid-request" }),
       );

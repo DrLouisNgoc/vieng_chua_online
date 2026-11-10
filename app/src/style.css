@@ -68,6 +68,26 @@ body {
   border: 1px solid oklch(100% 0 0 / 0.35);
 }
 
+.music-toggle {
+  margin-left: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-ink);
+  background: oklch(93% 0.02 85 / 0.92);
+  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.background-music__frame {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0;
+  overflow: hidden;
+}
+
 .room-label {
   font-size: 0.9rem;
   font-weight: 600;
@@ -663,6 +683,26 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.boards__questions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  background: oklch(28% 0.03 70 / 0.6);
+  border-radius: 0.6rem;
+}
+
+.boards__questions h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.boards__question {
+  margin: 0;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
 }
 
 .boards__video-pick {

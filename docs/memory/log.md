@@ -169,3 +169,34 @@
   live deploy is public (no access gate), which decision 0001 explicitly
   ruled out because of the still-unreplaced sansatemple.com copyrighted
   assets — owner chose to accept that risk rather than gate access.
+- 2026-11-10 (later, new session): synced to origin/main (6 commits,
+  fast-forward — Milestone 9 deploy + CI/CD, done on another
+  machine/session). Found and flagged a leftover local
+  `chua@103.126.162.55/` folder (scp/rsync debris, not real content).
+  Owner then requested 4 more features live, interviewed in one round
+  (AskUserQuestion): a bell toll broadcast to everyone on entry; a
+  YouTube embed as background music; private "hỏi pháp" questions per
+  cốc (only the cốc's own password reads them); a "bài giảng" talk list
+  for each of the 4 named cốc specifically (not the open ones); and a
+  chánh điện plaque for the owner's own quote photos (new "image" board
+  type, "Lời Pháp Chánh Điện"). Mid-build, owner also asked to rename a
+  cốc's title from its own edit form — added (first password sets it,
+  same as the body). Built with TDD: server/src/boards.ts
+  (ask/readQuestions, talks/title on edit, "image" BoardType,
+  backward-compatible with an older boards.json), boardsHttp.ts (new
+  /ask, /questions routes), protocol.ts (+"bell"), server.ts (broadcasts
+  it on join); app/src/background-music.ts (new),
+  boards-client.ts/boards-panel.ts (title input, talks textarea, ask
+  form, questions viewer, quote-image list), presence.ts/visitor-protocol.ts
+  (+"bell"), temple-grounds.ts (phap cú plaque + placeholder),
+  main.ts/scene.ts (wiring). Fixed two real bugs found while building:
+  `scripts/dev.mjs` could inherit an ambient `PORT` env var into the
+  presence/boards server child, silently moving it off 8787 (now pinned);
+  a TS discriminated union with a unioned discriminant on one member
+  broke narrowing (`ReadQuestionsResult`, split into one member per
+  literal). App 241 + server 121 tests pass, tsc clean both; verified
+  live in the running dev app (entered, tolled the bell on another
+  "join", toggled music and confirmed the iframe's `mute` param flips,
+  renamed + wrote + saved a cốc, asked and read back a question,
+  opened the new image board's edit form). Not committed yet — asked
+  the owner first, since a later push auto-deploys to chua.io.vn.

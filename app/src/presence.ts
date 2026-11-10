@@ -26,6 +26,9 @@ export interface PresenceClientOptions {
   // already chatting before this client connected.
   onChat?: (message: ChatEntry) => void;
   onChatHistory?: (messages: ChatEntry[]) => void;
+  // One bell toll for everyone present, when any visitor (including this
+  // one) joins.
+  onBell?: () => void;
   reconnectDelayMs?: number;
   now?: () => number;
 }
@@ -94,6 +97,9 @@ export function createPresenceClient(
           break;
         case "chat-history":
           options.onChatHistory?.(message.messages);
+          break;
+        case "bell":
+          options.onBell?.();
           break;
       }
     };

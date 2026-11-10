@@ -46,6 +46,7 @@ describe("boards HTTP API", () => {
       title: "Cốc A",
       type: "text",
       body: "",
+      talks: "",
       registrable: false,
       requiresPassword: true,
       occupantName: null,
@@ -85,6 +86,36 @@ describe("boards HTTP API", () => {
       body: "{not json",
     });
     expect(res.status).toBe(400);
+  });
+
+  it("edit can also rename the board and set its talks list", async () => {
+    const { url } = start();
+    await postJson(`${url}/boards/a`, { password: "bimat", body: "Xin chào", talks: "Vô thường | https://x", title: "Tên mới" });
+    const board = await (await fetch(`${url}/boards/a`)).json();
+    expect(board).toMatchObject({ title: "Tên mới", talks: "Vô thường | https://x" });
+  });
+
+  it("leaves a question for the board's occupant, readable only with the board's password", async () => {
+    const { url } = start();
+    await postJson(`${url}/boards/a`, { password: "bimat", body: "Xin chào" });
+    const ask = await postJson(`${url}/boards/a/ask`, { name: "Khách", text: "Thưa thầy, con nên bắt đầu từ đâu?" });
+    expect(ask.status).toBe(200);
+
+    const wrong = await postJson(`${url}/boards/a/questions`, { password: "sai" });
+    expect(wrong.status).toBe(403);
+
+    const right = await postJson(`${url}/boards/a/questions`, { password: "bimat" });
+    expect(right.status).toBe(200);
+    expect(await right.json()).toEqual({
+      questions: [{ name: "Khách", text: "Thưa thầy, con nên bắt đầu từ đâu?" }],
+    });
+  });
+
+  it("409s asking an open cốc with no occupant yet, 400s a malformed ask", async () => {
+    const { url } = start();
+    const res = await postJson(`${url}/boards/o/ask`, { name: "Khách", text: "x" });
+    expect(res.status).toBe(409);
+    expect((await postJson(`${url}/boards/a/ask`, { name: "", text: "x" })).status).toBe(400);
   });
 
   it("409s editing an open cốc with no occupant yet", async () => {

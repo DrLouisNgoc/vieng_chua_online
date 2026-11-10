@@ -13,6 +13,7 @@ describe("createBoardStore: fixed (non-registrable) boards", () => {
         title: "Cốc A",
         type: "text",
         body: "",
+        talks: "",
         registrable: false,
         requiresPassword: true,
         occupantName: null,
@@ -49,6 +50,50 @@ describe("createBoardStore: fixed (non-registrable) boards", () => {
     store.edit("a", "bimat123", "Xin chào");
     expect(store.edit("a", "wrong", "Hack")).toBe("wrong-password");
     expect(store.get("a")?.body).toBe("Xin chào");
+  });
+
+  it("edit can also set the talks field, with the same password", () => {
+    const store = createBoardStore(seedBoards([fixedSeed]));
+    store.edit("a", "bimat123", "Xin chào", "Vô thường | https://youtu.be/abc");
+    expect(store.get("a")).toMatchObject({ body: "Xin chào", talks: "Vô thường | https://youtu.be/abc" });
+    expect(store.edit("a", "bimat123", "Xin chào 2")).toBe("ok");
+    expect(store.get("a")?.talks).toBe("Vô thường | https://youtu.be/abc");
+  });
+
+  it("edit can rename the board, keeping the old name if left blank", () => {
+    const store = createBoardStore(seedBoards([fixedSeed]));
+    store.edit("a", "bimat123", "Xin chào", undefined, "Cốc Mới");
+    expect(store.get("a")?.title).toBe("Cốc Mới");
+    store.edit("a", "bimat123", "Xin chào 2", undefined, "   ");
+    expect(store.get("a")?.title).toBe("Cốc Mới");
+  });
+
+  it("ask requires no password and leaves a private question", () => {
+    const store = createBoardStore(seedBoards([fixedSeed]));
+    expect(store.ask("a", "Khách", "Thưa thầy, làm sao để bớt lo âu?")).toBe("ok");
+    expect(store.get("a")).not.toHaveProperty("questions");
+  });
+
+  it("readQuestions needs the board's password and never the plain one", () => {
+    const store = createBoardStore(seedBoards([fixedSeed]));
+    store.ask("a", "Khách", "Câu hỏi 1");
+    expect(store.readQuestions("a", "anything")).toEqual({ outcome: "wrong-password" });
+    store.edit("a", "bimat123", "Xin chào");
+    expect(store.readQuestions("a", "wrong")).toEqual({ outcome: "wrong-password" });
+    expect(store.readQuestions("a", "bimat123")).toEqual({
+      outcome: "ok",
+      questions: [{ name: "Khách", text: "Câu hỏi 1" }],
+    });
+  });
+
+  it("ask reports not-found for an unknown board", () => {
+    const store = createBoardStore(seedBoards([fixedSeed]));
+    expect(store.ask("nope", "Khách", "x")).toBe("not-found");
+  });
+
+  it("ask reports not-assigned for an open cốc with no occupant yet", () => {
+    const store = createBoardStore(seedBoards([openSeed]));
+    expect(store.ask("o", "Khách", "x")).toBe("not-assigned");
   });
 
   it("never exposes the password hash through list/get", () => {
@@ -128,7 +173,7 @@ describe("createBoardStore: open (registrable) cốc", () => {
 });
 
 describe("mergeWithSeed", () => {
-  it("keeps persisted body/password/occupant but adopts the seed's title/type", () => {
+  it("keeps persisted body/title/password/occupant but adopts the seed's type", () => {
     const persisted = [
       {
         id: "a",
@@ -145,14 +190,16 @@ describe("mergeWithSeed", () => {
     expect(merged).toEqual([
       {
         id: "a",
-        title: "Cốc A",
+        title: "old title",
         type: "text",
         body: "Nội dung cũ",
+        talks: "",
         passwordHash: "s:h",
         registrable: false,
         requiresPassword: true,
         occupantName: null,
         pending: null,
+        questions: [],
       },
     ]);
   });
@@ -167,11 +214,33 @@ describe("mergeWithSeed", () => {
         registrable: false,
         requiresPassword: true,
         body: "",
+        talks: "",
         passwordHash: null,
         occupantName: null,
         pending: null,
+        questions: [],
       },
     ]);
+  });
+
+  it("keeps a persisted rename instead of reverting to the seed's title", () => {
+    const persisted = [
+      {
+        id: "a",
+        title: "Cốc Đã Đổi Tên",
+        type: "text" as const,
+        body: "Nội dung cũ",
+        talks: "",
+        passwordHash: "s:h",
+        registrable: false,
+        requiresPassword: true,
+        occupantName: null,
+        pending: null,
+        questions: [],
+      },
+    ];
+    const merged = mergeWithSeed(persisted, [fixedSeed]);
+    expect(merged[0]?.title).toBe("Cốc Đã Đổi Tên");
   });
 
   it("drops a persisted board whose id is no longer in the seed list", () => {
@@ -191,9 +260,11 @@ describe("mergeWithSeed", () => {
         registrable: false,
         requiresPassword: true,
         body: "",
+        talks: "",
         passwordHash: null,
         occupantName: null,
         pending: null,
+        questions: [],
       },
     ]);
   });
@@ -217,9 +288,9 @@ describe("mergeWithSeed", () => {
 });
 
 describe("BOARD_SEEDS", () => {
-  it("has the 4 named cốc, the hall projector and 4 open cốc, each with a unique id", () => {
-    expect(BOARD_SEEDS).toHaveLength(9);
-    expect(new Set(BOARD_SEEDS.map((b) => b.id)).size).toBe(9);
+  it("has the 4 named cốc, the hall projector, 4 open cốc and the chánh điện quote banner, each with a unique id", () => {
+    expect(BOARD_SEEDS).toHaveLength(10);
+    expect(new Set(BOARD_SEEDS.map((b) => b.id)).size).toBe(10);
     expect(BOARD_SEEDS.filter((b) => b.registrable)).toHaveLength(4);
   });
 

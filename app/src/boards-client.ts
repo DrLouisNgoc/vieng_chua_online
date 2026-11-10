@@ -31,17 +31,43 @@ export function parseTalks(body: string): Talk[] {
     });
 }
 
-export type BoardType = "text" | "video";
+export type BoardType = "text" | "video" | "image";
+
+export interface QuoteImage {
+  file: string;
+  caption: string;
+}
+
+// The chánh điện quote banner's body: one photo per line, "tên-file.jpg |
+// Chú thích" (owner, 2026-11-10: "treo một số câu nói hay của sư phụ" —
+// the owner's own photos, served from app/public/thirdparty/phap-cu/).
+export function parseQuoteImages(body: string): QuoteImage[] {
+  return body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const bar = line.indexOf("|");
+      if (bar === -1) return { file: line, caption: "" };
+      return { file: line.slice(0, bar).trim(), caption: line.slice(bar + 1).trim() };
+    });
+}
 
 export interface BoardView {
   id: string;
   title: string;
   type: BoardType;
   body: string;
+  talks: string;
   registrable: boolean;
   requiresPassword: boolean;
   occupantName: string | null;
   pendingName: string | null;
+}
+
+export interface Question {
+  name: string;
+  text: string;
 }
 
 export interface AdminPendingEntry {
@@ -63,11 +89,17 @@ export type AdminDecisionOutcome = "ok" | "wrong-password" | "not-found" | "no-p
 export type AdminPendingResult =
   | { outcome: "ok"; registrations: AdminPendingEntry[] }
   | { outcome: "wrong-password" | "error" };
+export type AskOutcome = "ok" | "not-found" | "not-assigned" | "error";
+export type ReadQuestionsResult =
+  | { outcome: "ok"; questions: Question[] }
+  | { outcome: "wrong-password" | "not-found" | "error" };
 
 export interface BoardsClient {
   list: () => Promise<BoardView[]>;
-  edit: (id: string, password: string, body: string) => Promise<EditOutcome>;
+  edit: (id: string, password: string, body: string, talks?: string, title?: string) => Promise<EditOutcome>;
   register: (id: string, name: string, note: string) => Promise<RegisterOutcome>;
+  ask: (id: string, name: string, text: string) => Promise<AskOutcome>;
+  readQuestions: (id: string, password: string) => Promise<ReadQuestionsResult>;
   adminPending: (password: string) => Promise<AdminPendingResult>;
   adminApprove: (id: string, password: string) => Promise<AdminDecisionOutcome>;
   adminReject: (id: string, password: string) => Promise<AdminDecisionOutcome>;
@@ -106,12 +138,36 @@ export function createBoardsClient(baseUrl: string, fetchImpl: typeof fetch = fe
       }
     },
 
-    async edit(id, password, body) {
-      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}`, { password, body });
+    async edit(id, password, body, talks, title) {
+      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}`, {
+        password,
+        body,
+        ...(talks !== undefined ? { talks } : {}),
+        ...(title !== undefined ? { title } : {}),
+      });
       if (status === 200) return "ok";
       const error = errorField(json);
       if (error === "wrong-password" || error === "not-found" || error === "not-assigned") return error;
       return "error";
+    },
+
+    async ask(id, name, text) {
+      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/ask`, { name, text });
+      if (status === 200) return "ok";
+      const error = errorField(json);
+      if (error === "not-found" || error === "not-assigned") return error;
+      return "error";
+    },
+
+    async readQuestions(id, password) {
+      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/questions`, { password });
+      if (status === 200 && typeof json === "object" && json !== null) {
+        const questions = (json as { questions?: Question[] }).questions;
+        if (Array.isArray(questions)) return { outcome: "ok", questions };
+      }
+      const error = errorField(json);
+      if (error === "wrong-password" || error === "not-found") return { outcome: error };
+      return { outcome: "error" };
     },
 
     async register(id, name, note) {

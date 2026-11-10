@@ -7,7 +7,21 @@ owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
 ## Status (2026-11-10)
-Milestones 1-8 done. **Milestone 9 (deploy) is now live and public**:
+Milestones 1-9 done. **Milestone 10 (not in the original plan; owner
+requested it live, same session) built, not yet committed**: a bell toll
+broadcast to everyone on entry, background music (a hidden YouTube embed
+of a song the owner picked), private "hỏi pháp" questions per cốc, a
+"bài giảng" talk list for each of the 4 named cốc, renaming a cốc's title
+through its own edit form, and a chánh điện plaque for the owner's own
+quote photos. Scope, the 4 live-interview answers and rulings:
+docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md. App 241 +
+server 121 tests pass, typecheck clean both; verified live in the running
+app (dev server). **Not committed or pushed yet** — deploy auto-runs on
+push to `main` (CI/CD, decision 0011's guide), so pushing needs the
+owner's explicit go-ahead first (AGENTS.md red tier), separately from
+committing locally.
+
+Milestone 9 (deploy) is live and public:
 `https://chua.io.vn` (VPS, user `chua`, Caddy reverse-proxying the
 node server + serving `app/dist`, systemd service `chua-server`, SSH
 deploy key for `git pull`). This is a *public* deploy (no VPN/login) —
@@ -51,6 +65,21 @@ What the app does now:
   (`BoardSeed.body`, mergeWithSeed keeps whatever's already in
   boards.json once it exists). Public chat (Milestone 8). See "Next"
   below for what the owner still has to do.
+- (Milestone 10) A bell toll broadcasts to every connected visitor
+  whenever anyone joins (server "bell" message, ambience.ringBell() —
+  silent until the owner drops `bell-gong.mp3`, see "Next"). A hidden,
+  looping YouTube embed plays background music once the visitor clicks
+  the header's "🔈/🔊 Nhạc nền" toggle (muted by default — browsers won't
+  autoplay sound without a click; `BACKGROUND_MUSIC_VIDEO_ID` in
+  background-music.ts, the owner's own song choice). Each cốc has a
+  private "Hỏi pháp" form (visitors ask, only the cốc's own password
+  reads the answers) and, for the 4 named cốc only, their own "bài
+  giảng" talk list alongside their text content (same password, second
+  textarea). A cốc's title is now editable from its own edit form (first
+  password sets it, same as the body). New "Lời Pháp Chánh Điện" board
+  (type "image") holds a list of the owner's own quote photos
+  (filename | caption) that cycle on a plaque in chánh điện — a plain
+  placeholder shows until photos are listed.
 
 ## Run it
 `npm run dev` in the project root starts the server (ws + boards HTTP on
@@ -58,7 +87,7 @@ What the app does now:
 `app/public/sansatemple/` must be populated (gitignored, decision 0006):
 `scripts/fetch-sansatemple-assets.sh`. Board/chat content persists to
 `server/data/boards.json` (gitignored — real content, back it up yourself).
-Tests: `npm test` in app/ (234 pass) and server/ (110 pass); `npx tsc --noEmit -p .` clean in both.
+Tests: `npm test` in app/ (241 pass) and server/ (121 pass); `npx tsc --noEmit -p .` clean in both.
 The admin password (boards approval panel) and each board's own password
 are both "first login/edit sets it" (adminAuth.ts, boards.ts) — no
 recovery, only reset: clear `adminPasswordHash` (or a board's
@@ -86,6 +115,9 @@ password — go set it again right away after resetting on a live deploy.
   `bead-counter.ts`, `leaf-field.ts` — pure, unit-tested;
   `interaction-runtime.ts` (wiring), `interaction-props.ts` (meshes),
   `interaction-hud.ts` (DOM).
+  Milestone 10: `background-music.ts` (pure embed-URL builder + DOM
+  wiring, no unit test on the wiring half — same convention as
+  boards-panel.ts).
   `temple-grounds.test.ts` builds the whole grounds in Node.
   Milestone 8: `board-proximity.ts` (pure, which cốc/projector is in
   reach), `boards-client.ts` (fetch wrapper for the server's boards API),
@@ -98,15 +130,26 @@ password — go set it again right away after resetting on a live deploy.
   Also expected: `nguyen-tue.jpg` (Thầy Nguyên Tuệ's photo for the hall
   frame; a placeholder shows until it's there, no code change needed).
 
-## Code map (server/src) — Milestone 8 additions
+## Code map (server/src)
 - `boards.ts` — pure board store: list/get/edit/register/approve/reject,
-  `BOARD_SEEDS` (the 9 board ids/titles). `passwordHash.ts` (scrypt,
-  shared with `adminAuth.ts`). `boardsFile.ts` (JSON persistence,
-  read-or-null / write). `boardsHttp.ts` (the HTTP routes, no framework).
+  `BOARD_SEEDS` (the 10 board ids/titles, Milestone 10 added
+  "loi-phap-chanh-dien"). `passwordHash.ts` (scrypt, shared with
+  `adminAuth.ts`). `boardsFile.ts` (JSON persistence, read-or-null /
+  write). `boardsHttp.ts` (the HTTP routes, no framework).
+  Milestone 10: `edit()` grew optional `talks`/`title` params (same
+  password as body); `ask()`/`readQuestions()` added (private per-board
+  questions, capped at 100, dropped oldest-first); `BoardType` grew
+  `"image"`. `mergeWithSeed`'s `isStoredBoard` treats `talks`/`questions`
+  as optional so an older `boards.json` (pre-Milestone-10, e.g. the live
+  deploy's) still merges cleanly — don't make them required there.
 - `chatRoom.ts` — pure 50-message ring buffer. `visitorRoom.ts` gained
   `nameOf(id)` so a chat message can be attributed to the sender's name.
-- `server.ts` now runs an `http.Server` (boards + admin routes) with the
-  WebSocketServer attached via the `server` option, both on port 8787.
+- `server.ts` runs an `http.Server` (boards + admin routes) with the
+  WebSocketServer attached via the `server` option, both on port 8787
+  (Milestone 10: `scripts/dev.mjs` now pins `PORT=8787` for this child
+  process only — see its own comment for why).
+  Milestone 10: broadcasts `{type:"bell"}` to every connected client
+  whenever any client's "join" message is accepted.
 
 ## Decisions (docs/memory/decisions/) — read before re-deciding
 0001 personal use only · 0002 Electron (superseded) · 0003 keep original
@@ -185,6 +228,22 @@ supersedes 0001's "no public deploy"**.
   (`/boards*`, `/admin*`, same as `/ws*`) or Caddy serves them as static
   files (also 404). Fixed in files 07/09 2026-11-10; owner's VPS still
   needs the Caddyfile + build command re-run to pick it up.
+- This app's `preview_start`/`npm run dev` tooling can inject an ambient
+  `PORT` env var meant for a single dev server; `scripts/dev.mjs` spawns
+  *two* (server on 8787, Vite on 5173), so an inherited `PORT` can push
+  the presence/boards server onto the wrong port (silently breaking every
+  `ws://localhost:8787` / `http://localhost:8787` default in the app).
+  Fixed by pinning `PORT=8787` only for the server child in
+  `scripts/dev.mjs`, regardless of what launched the parent.
+- A TypeScript discriminated union needs every member's discriminant to
+  be a single literal type (not itself a union, e.g.
+  `{outcome:"a"|"b"}`) for narrowing-by-elimination (`if (x.outcome ===
+  "a") return; use(x.other)`) to type-check — split into one member per
+  literal instead (`ReadQuestionsResult` in boards.ts).
+- Browsers block automatic audio with sound; only a muted autoplay is
+  allowed without a prior click. The background-music toggle starts
+  muted and reloads the iframe's `src` with `mute=0` on a real click —
+  that direct user gesture is usually enough to let the sound through.
 
 ## Next (pick up here)
 0. **Deploy (Milestone 9) is live** at `chua.io.vn`, see decision 0011 and
@@ -194,7 +253,10 @@ supersedes 0001's "no public deploy"**.
      `scripts/fetch-sansatemple-assets.sh` there and `scp` thirdparty/
      files across after every fresh clone (file 07 covers this). Confirm
      `nguyen-tue.jpg` actually made it onto the live VPS — last discussed
-     but not confirmed done.
+     but not confirmed done. A leftover local folder literally named
+     `chua@103.126.162.55/` (empty subdirs + one duplicate `nguyen-tue.jpg`)
+     turned up on this machine 2026-11-10 — debris from a mistyped
+     scp/rsync, not real content; safe to delete, ask the owner first.
    - No access gate in front of `chua.io.vn` (decision 0011, accepted
      risk) — if the owner changes their mind, add Caddy Basic Auth or
      Tailscale; don't do it unasked, it's a reachability change people
@@ -202,6 +264,22 @@ supersedes 0001's "no public deploy"**.
    - Admin password and the 4 named cốc passwords: "first submit sets
      it" — owner should set these themselves on the live site now that
      it's public, before someone else does (see "Run it" above).
+0b. **Milestone 10 (bell, nhạc nền, hỏi pháp, bài giảng theo cốc, đổi
+   tên cốc, câu nói hay chánh điện) is built on this machine, tests
+   green, verified live in dev — not committed yet.** See
+   docs/specs/milestone-10-chuong-nhac-hoi-phap-cau-noi/status.md.
+   Before committing: owner's go-ahead (asked this session). Still open
+   either way:
+   - Owner to drop `bell-gong.mp3` into
+     `app/public/thirdparty/audio/` (docs/assets/third-party-assets.md)
+     for the entry bell to actually have sound — silent (console-warn
+     only) until then, same as the other optional sounds.
+   - Owner to drop quote photos into `app/public/thirdparty/phap-cu/`
+     and list them (filename | chú thích, one per line) on the "Lời Pháp
+     Chánh Điện" board — a plain placeholder plaque shows until then.
+   - Pushing to `main` auto-deploys to the live `chua.io.vn` (CI/CD) —
+     needs the owner's explicit go-ahead, separate from committing
+     locally (AGENTS.md red tier).
 1. Milestone 8 follow-ups, still open: download 3 CC0 sound files
    (docs/assets/third-party-assets.md) and proofread the Tâm Kinh text
    (app/src/chant-texts.ts) — carried over from Milestone 7.

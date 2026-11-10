@@ -34,7 +34,8 @@ export type ServerMessage =
   | { type: "visitors"; visitors: VisitorView[] }
   | { type: "seat-refused"; seatIndex: number }
   | { type: "chat"; message: ChatEntry }
-  | { type: "chat-history"; messages: ChatEntry[] };
+  | { type: "chat-history"; messages: ChatEntry[] }
+  | { type: "bell" };
 
 export const STATE_INTERVAL_MS = 100;
 export const MAX_CHAT_LENGTH = 300;
@@ -148,6 +149,8 @@ export function parseServerMessage(text: string): ServerMessage | null {
       return Number.isInteger(m.count) ? { type: "presence", count: m.count as number } : null;
     case "welcome":
       return typeof m.id === "string" ? { type: "welcome", id: m.id } : null;
+    case "bell":
+      return { type: "bell" };
     case "seat-refused":
       return Number.isInteger(m.seatIndex)
         ? { type: "seat-refused", seatIndex: m.seatIndex as number }

@@ -12,7 +12,7 @@
 // (which, like a fixed board, sets its password on that first edit).
 import { makePasswordHash, verifyPassword } from "./passwordHash.js";
 
-export type BoardType = "text" | "video";
+export type BoardType = "text" | "video" | "image";
 
 export interface BoardSeed {
   id: string;
@@ -26,6 +26,13 @@ export interface BoardSeed {
   // Ignored once the board exists in the data file (mergeWithSeed keeps
   // the persisted body) — defaults to "".
   body?: string;
+  // A second, independent content field: the 4 named cốc's own "bài
+  // giảng" talk list (owner, 2026-11-10: "xem bài giảng của các vị trong
+  // cốc"), same one-line-per-talk format as the hall projector's body
+  // ("Tên bài | link"), edited with the same password. Only the UI
+  // decides which boards show this (named text cốc) — the store itself
+  // treats it the same for every board. Defaults to "".
+  talks?: string;
 }
 
 export interface PendingRegistration {
@@ -33,11 +40,23 @@ export interface PendingRegistration {
   note: string;
 }
 
+// A question a visitor left for this board's occupant (owner, 2026-11-10:
+// "ấn vào để hỏi pháp"). Private: only readQuestions, with the board's own
+// password, can see these — never exposed via list/get.
+export interface Question {
+  name: string;
+  text: string;
+}
+
+// A talk's worth of questions is plenty; oldest drop first past this.
+const MAX_QUESTIONS_PER_BOARD = 100;
+
 export interface PublicBoard {
   id: string;
   title: string;
   type: BoardType;
   body: string;
+  talks: string;
   registrable: boolean;
   requiresPassword: boolean;
   occupantName: string | null;
@@ -52,11 +71,13 @@ export interface StoredBoard {
   title: string;
   type: BoardType;
   body: string;
+  talks: string;
   passwordHash: string | null;
   registrable: boolean;
   requiresPassword: boolean;
   occupantName: string | null;
   pending: PendingRegistration | null;
+  questions: Question[];
 }
 
 export interface AdminPendingEntry {
@@ -69,22 +90,44 @@ export interface AdminPendingEntry {
 export type EditResult = "ok" | "wrong-password" | "not-found" | "not-assigned";
 export type RegisterResult = "ok" | "not-found" | "not-registrable" | "already-pending" | "already-assigned";
 export type DecisionResult = "ok" | "not-found" | "no-pending";
+export type AskResult = "ok" | "not-found" | "not-assigned";
+export type ReadQuestionsResult =
+  | { outcome: "ok"; questions: Question[] }
+  | { outcome: "wrong-password" }
+  | { outcome: "not-found" };
 
 export interface BoardStore {
   list: () => PublicBoard[];
   get: (id: string) => PublicBoard | undefined;
-  edit: (id: string, password: string, body: string) => EditResult;
+  // title: only applied when given and non-empty — lets the occupant (or
+  // owner) rename their own cốc (owner, 2026-11-10: "update các cốc trong
+  // đó bao gồm tên và nội dung") without blanking it out.
+  edit: (id: string, password: string, body: string, talks?: string, title?: string) => EditResult;
   register: (id: string, name: string, note: string) => RegisterResult;
   listPending: () => AdminPendingEntry[];
   approve: (id: string) => DecisionResult;
   reject: (id: string) => DecisionResult;
+  // Anyone can leave a question for the board's occupant to read later.
+  ask: (id: string, name: string, text: string) => AskResult;
+  // Only with the board's own password — same one edit uses.
+  readQuestions: (id: string, password: string) => ReadQuestionsResult;
   // The on-disk shape, password hashes included — for persistence only.
   snapshot: () => StoredBoard[];
 }
 
 function toPublic(board: StoredBoard): PublicBoard {
-  const { id, title, type, body, registrable, requiresPassword, occupantName, pending } = board;
-  return { id, title, type, body, registrable, requiresPassword, occupantName, pendingName: pending?.name ?? null };
+  const { id, title, type, body, talks, registrable, requiresPassword, occupantName, pending } = board;
+  return {
+    id,
+    title,
+    type,
+    body,
+    talks,
+    registrable,
+    requiresPassword,
+    occupantName,
+    pendingName: pending?.name ?? null,
+  };
 }
 
 export function seedBoards(seeds: readonly BoardSeed[]): StoredBoard[] {
@@ -92,9 +135,11 @@ export function seedBoards(seeds: readonly BoardSeed[]): StoredBoard[] {
     ...seed,
     requiresPassword: seed.requiresPassword ?? true,
     body: seed.body ?? "",
+    talks: seed.talks ?? "",
     passwordHash: null,
     occupantName: null,
     pending: null,
+    questions: [],
   }));
 }
 
@@ -107,7 +152,7 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
       const board = boards.get(id);
       return board ? toPublic(board) : undefined;
     },
-    edit(id, password, body) {
+    edit(id, password, body, talks, title) {
       const board = boards.get(id);
       if (!board) return "not-found";
       if (board.registrable && board.occupantName === null) return "not-assigned";
@@ -119,6 +164,9 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
         }
       }
       board.body = body;
+      if (talks !== undefined) board.talks = talks;
+      const trimmedTitle = title?.trim();
+      if (trimmedTitle) board.title = trimmedTitle;
       return "ok";
     },
     register(id, name, note) {
@@ -149,6 +197,22 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
       board.pending = null;
       return "ok";
     },
+    ask(id, name, text) {
+      const board = boards.get(id);
+      if (!board) return "not-found";
+      if (board.registrable && board.occupantName === null) return "not-assigned";
+      board.questions.push({ name, text });
+      if (board.questions.length > MAX_QUESTIONS_PER_BOARD) board.questions.shift();
+      return "ok";
+    },
+    readQuestions(id, password) {
+      const board = boards.get(id);
+      if (!board) return { outcome: "not-found" };
+      if (board.requiresPassword && (board.passwordHash === null || !verifyPassword(password, board.passwordHash))) {
+        return { outcome: "wrong-password" };
+      }
+      return { outcome: "ok", questions: board.questions };
+    },
     snapshot: () => [...boards.values()].map((board) => ({ ...board })),
   };
 }
@@ -159,19 +223,30 @@ function isPendingRegistration(value: unknown): value is PendingRegistration {
   return typeof v.name === "string" && typeof v.note === "string";
 }
 
+function isQuestion(value: unknown): value is Question {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.name === "string" && typeof v.text === "string";
+}
+
 function isStoredBoard(value: unknown): value is StoredBoard {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
     typeof v.id === "string" &&
     typeof v.title === "string" &&
-    (v.type === "text" || v.type === "video") &&
+    (v.type === "text" || v.type === "video" || v.type === "image") &&
     typeof v.body === "string" &&
+    // Added after boards.json files already existed on a live deploy —
+    // both stay optional here so an older file still merges cleanly
+    // (mergeWithSeed fills in "" / [] for whichever is missing).
+    (v.talks === undefined || typeof v.talks === "string") &&
     (v.passwordHash === null || typeof v.passwordHash === "string") &&
     typeof v.registrable === "boolean" &&
     (v.requiresPassword === undefined || typeof v.requiresPassword === "boolean") &&
     (v.occupantName === null || typeof v.occupantName === "string") &&
-    (v.pending === null || isPendingRegistration(v.pending))
+    (v.pending === null || isPendingRegistration(v.pending)) &&
+    (v.questions === undefined || (Array.isArray(v.questions) && v.questions.every(isQuestion)))
   );
 }
 
@@ -188,13 +263,27 @@ export function mergeWithSeed(persisted: unknown, seeds: readonly BoardSeed[]): 
     return existing
       ? {
           ...seed,
+          // Once persisted, a renamed cốc's title sticks (same rule as
+          // body below) rather than reverting to the seed's name.
+          title: existing.title,
           requiresPassword,
           body: existing.body,
+          talks: existing.talks ?? "",
           passwordHash: existing.passwordHash,
           occupantName: existing.occupantName,
           pending: existing.pending,
+          questions: existing.questions ?? [],
         }
-      : { ...seed, requiresPassword, body: seed.body ?? "", passwordHash: null, occupantName: null, pending: null };
+      : {
+          ...seed,
+          requiresPassword,
+          body: seed.body ?? "",
+          talks: seed.talks ?? "",
+          passwordHash: null,
+          occupantName: null,
+          pending: null,
+          questions: [],
+        };
   });
 }
 
@@ -215,4 +304,14 @@ export const BOARD_SEEDS: BoardSeed[] = [
   { id: "coc-mo-2", title: "Cốc Thuyết Pháp 2", type: "text", registrable: true },
   { id: "coc-mo-3", title: "Cốc Thuyết Pháp 3", type: "text", registrable: true },
   { id: "coc-mo-4", title: "Cốc Thuyết Pháp 4", type: "text", registrable: true },
+  {
+    id: "loi-phap-chanh-dien",
+    title: "Lời Pháp Chánh Điện",
+    type: "image",
+    registrable: false,
+    // One line per photo: "tên-file.jpg | Chú thích (không bắt buộc)".
+    // Files go in app/public/thirdparty/phap-cu/ (decision 0009, owner's
+    // own photos of câu pháp cú/kinh — not text this app writes).
+    body: "",
+  },
 ];

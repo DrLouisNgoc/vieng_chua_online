@@ -60,6 +60,10 @@ describe("parseServerMessage", () => {
     });
   });
 
+  it("parses a bell toll", () => {
+    expect(parseServerMessage('{"type":"bell"}')).toEqual({ type: "bell" });
+  });
+
   it("parses visitors and drops malformed entries", () => {
     const parsed = parseServerMessage(
       JSON.stringify({ type: "visitors", visitors: [view, { ...view, id: 5 }, { ...view, activity: "flying" }] }),

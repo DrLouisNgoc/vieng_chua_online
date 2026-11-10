@@ -226,6 +226,15 @@ describe("visitor messages", () => {
     expect(onChat).toHaveBeenCalledWith(entry);
   });
 
+  it("calls onBell when the server tolls the bell", () => {
+    const onBell = vi.fn();
+    client({ onBell });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    socket.message({ type: "bell" });
+    expect(onBell).toHaveBeenCalledTimes(1);
+  });
+
   it("sends chat only once joined", () => {
     const c = client();
     const socket = FakeWebSocket.instances[0];

@@ -71,7 +71,10 @@ export type ServerMessage =
   | { type: "visitors"; visitors: VisitorView[] }
   | { type: "seat-refused"; seatIndex: number }
   | { type: "chat"; message: ChatEntry }
-  | { type: "chat-history"; messages: ChatEntry[] };
+  | { type: "chat-history"; messages: ChatEntry[] }
+  // One bell toll, broadcast to everyone present when a visitor joins
+  // (owner, 2026-11-10: "ai vào có 1 hồi chuông cho tôi").
+  | { type: "bell" };
 
 type Fields = Record<string, unknown>;
 

@@ -83,6 +83,9 @@ export interface TempleGrounds {
   // thumbnail) until E opens the real player; null clears it back to a
   // plain dark screen.
   setProjectorPreview: (imageUrl: string | null) => void;
+  // The chánh điện quote banner (owner, 2026-11-10: "treo một số câu nói
+  // hay của sư phụ"); null shows the placeholder plaque.
+  setPhapCuImage: (imageUrl: string | null) => void;
 }
 
 const PALETTE = {
@@ -264,6 +267,8 @@ export async function buildTempleGrounds(
   grounds.add(buildSeats());
   const projector = buildHallProjector();
   grounds.add(projector.group);
+  const phapCuBanner = buildPhapCuBanner();
+  grounds.add(phapCuBanner.group);
   const lanterns = buildLanterns();
   grounds.add(lanterns.group);
 
@@ -275,6 +280,7 @@ export async function buildTempleGrounds(
     },
     setNight: lanterns.setNight,
     setProjectorPreview: projector.setPreview,
+    setPhapCuImage: phapCuBanner.setImage,
   };
 
   // ---- roof helpers -------------------------------------------------------
@@ -1021,6 +1027,72 @@ export async function buildTempleGrounds(
     }
 
     return { group, setPreview };
+  }
+
+  // A small plaque on the hall's side wall for the owner's own collection
+  // of quotes/sayings (owner, 2026-11-10: "treo một số câu nói hay của sư
+  // phụ" — photos the owner provides, not text this app writes). Shows a
+  // plain placeholder until main.ts resolves one from the
+  // "loi-phap-chanh-dien" board and calls setImage.
+  function buildPhapCuBanner(): { group: Group; setImage: (imageUrl: string | null) => void } {
+    const group = new Group();
+    group.name = "loi-phap-chanh-dien";
+    const x = HALL.minX + HALL.wallThickness + 0.1;
+    const z = -25;
+    const y = HALL.platformHeight;
+    const frameWidth = 1.6;
+    const frameHeight = 1.1;
+    const frameMaterial = new MeshStandardMaterial({ color: PALETTE.gold, metalness: 0.3, roughness: 0.5 });
+    add(group, new BoxGeometry(0.08, frameHeight + 0.16, frameWidth + 0.16), frameMaterial, x, y + frameHeight / 2 + 1.2, z);
+    const plaqueMaterial = new MeshStandardMaterial({ map: quotePlaceholder() });
+    const plaque = add(
+      group,
+      new PlaneGeometry(frameWidth, frameHeight),
+      plaqueMaterial,
+      x + 0.05,
+      y + frameHeight / 2 + 1.2,
+      z,
+    );
+    plaque.rotation.y = Math.PI / 2;
+    plaque.castShadow = false;
+
+    function setImage(imageUrl: string | null): void {
+      if (!imageUrl) {
+        plaqueMaterial.map = quotePlaceholder();
+        plaqueMaterial.needsUpdate = true;
+        return;
+      }
+      textureLoader.load(imageUrl, (texture) => {
+        texture.colorSpace = SRGBColorSpace;
+        plaqueMaterial.map = texture;
+        plaqueMaterial.needsUpdate = true;
+      });
+    }
+
+    return { group, setImage };
+  }
+
+  // Plain placeholder (no scripture text — that comes from the owner's
+  // own photos) shown until a quote image loads.
+  function quotePlaceholder(): CanvasTexture {
+    const canvas = document.createElement("canvas");
+    canvas.width = 480;
+    canvas.height = 330;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#e9e0c9";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#b8a978";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+      ctx.fillStyle = "#8a7a52";
+      ctx.font = "bold 26px 'Segoe UI', Roboto, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Lời Pháp", canvas.width / 2, canvas.height / 2);
+    }
+    const texture = new CanvasTexture(canvas);
+    texture.colorSpace = SRGBColorSpace;
+    return texture;
   }
 
   // ---- pond with lotus and koi --------------------------------------------

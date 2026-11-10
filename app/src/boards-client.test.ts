@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createBoardsClient, parseTalks, youtubeVideoId } from "./boards-client";
+import { createBoardsClient, parseQuoteImages, parseTalks, youtubeVideoId } from "./boards-client";
 
 describe("youtubeVideoId", () => {
   it("extracts the id from a watch URL with extra query params", () => {
@@ -41,6 +41,22 @@ describe("parseTalks", () => {
   });
 });
 
+describe("parseQuoteImages", () => {
+  it("splits filename and caption on the first '|'", () => {
+    expect(parseQuoteImages("vo-thuong.jpg | Vô thường là bản chất của vạn pháp")).toEqual([
+      { file: "vo-thuong.jpg", caption: "Vô thường là bản chất của vạn pháp" },
+    ]);
+  });
+
+  it("treats a line with no '|' as a filename with no caption", () => {
+    expect(parseQuoteImages("tam-kinh.jpg")).toEqual([{ file: "tam-kinh.jpg", caption: "" }]);
+  });
+
+  it("returns [] for empty input", () => {
+    expect(parseQuoteImages("")).toEqual([]);
+  });
+});
+
 function fakeFetch(status: number, json: unknown): typeof fetch {
   return vi.fn(async () => ({
     ok: status >= 200 && status < 300,
@@ -54,6 +70,7 @@ const board = {
   title: "Cốc A",
   type: "text" as const,
   body: "",
+  talks: "",
   registrable: false,
   occupantName: null,
   pendingName: null,
