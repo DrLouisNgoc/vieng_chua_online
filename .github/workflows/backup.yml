@@ -1,0 +1,53 @@
+# Nightly backup of server/data (cốc content, hỏi pháp Q&A, password
+# hashes, pháp danh locks) — the only data that exists nowhere but the VPS
+# (decision 0013). Two copies: a 14-day rolling one on the VPS itself, and
+# a 90-day private artifact on GitHub (Actions → this run → Artifacts).
+# Restore: docs/for-owner/huong_dan/12-duy-tri-lau-dai.md.
+name: Backup server data
+
+on:
+  schedule:
+    - cron: "30 19 * * *" # 02:30 Vietnam time (UTC+7)
+  workflow_dispatch:
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Archive server/data on the VPS and download it
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # data/*.json are written by atomic rename, so tar never sees a half-written file.
+          ssh -i ~/.ssh/id_ci "$VPS_USER@$VPS_HOST" '
+            set -eu
+            mkdir -p /opt/chua/backups
+            file=/opt/chua/backups/server-data-$(date -u +%Y-%m-%d).tar.gz
+            tar -czf "$file" -C /opt/chua/server data
+            find /opt/chua/backups -name "server-data-*.tar.gz" -mtime +14 -delete
+            cat "$file"
+          ' > server-data.tar.gz
+          # Fail loudly on an empty or broken archive instead of keeping it as a "backup".
+          tar -tzf server-data.tar.gz | grep -q 'data/boards.json'
+          rm -f ~/.ssh/id_ci
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: server-data-${{ github.run_number }}
+          path: server-data.tar.gz
+          retention-days: 90
+          if-no-files-found: error

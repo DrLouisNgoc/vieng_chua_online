@@ -1,0 +1,29 @@
+# Is chua.io.vn up? A red run means the site was down for a few minutes in
+# a row; GitHub emails whoever last changed this schedule (decision 0013).
+# Hourly, not every 15 min: each run bills at least one Actions minute, and
+# 96 runs a day alone would exceed the private repo's free 2000 min/month.
+name: Uptime
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Page and API answer
+        run: |
+          # /boards is served by the Node server, so it also proves the server
+          # (and therefore /ws, same process) is up behind Caddy.
+          for url in https://chua.io.vn/ https://chua.io.vn/boards; do
+            if ! curl -fsS -o /dev/null --max-time 20 --retry 3 --retry-delay 20 --retry-all-errors "$url"; then
+              echo "::error::$url did not answer"
+              exit 1
+            fi
+          done
+          echo "chua.io.vn is up"

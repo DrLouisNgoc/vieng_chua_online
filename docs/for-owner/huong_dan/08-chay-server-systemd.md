@@ -20,18 +20,38 @@ After=network.target
 WorkingDirectory=/opt/chua/server
 ExecStart=/usr/bin/npm start
 Restart=always
+RestartSec=2
+TimeoutStopSec=10
 Environment=PORT=8787
+Environment=ALLOWED_ORIGIN=https://chua.io.vn
 User=chua
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
+sudo systemctl daemon-reload
 sudo systemctl enable --now chua-server
+sudo systemctl restart chua-server
 ```
 
-`User=chua`: để server chạy bằng user `chua`, không phải root (mặc định
-`systemd` chạy service bằng root nếu không ghi dòng này).
+Giải thích các dòng:
+- `User=chua`: server chạy bằng user `chua`, không phải root (mặc định
+  `systemd` chạy service bằng root nếu không ghi dòng này).
+- `ALLOWED_ORIGIN`: chỉ cho trang `https://chua.io.vn` mở kết nối WebSocket
+  (file [06](06-gia-co-server.md)). Thiếu dòng này thì trang web khác cũng
+  nối vào được. **Bản cũ của file này thiếu dòng này** — kiểm tra máy đang
+  chạy: `systemctl show chua-server -p Environment` phải thấy `ALLOWED_ORIGIN`.
+- `NoNewPrivileges`, `PrivateTmp`, `ProtectSystem=full`: nếu server bị khai
+  thác lỗi, nó không leo lên quyền root được và không sửa được `/usr`, `/etc`.
+- `TimeoutStopSec=10`: lúc deploy, server có tối đa 10 giây để đóng kết nối
+  cho khách (khách tự nối lại) trước khi bị tắt hẳn.
+
+Đã cài bản cũ rồi thì chỉ cần dán lại cả khối trên. Sau đó kiểm tra
+`https://chua.io.vn` vẫn vào được, đi lại thấy người khác bình thường.
 
 ## Kiểm tra server đã chạy chưa
 

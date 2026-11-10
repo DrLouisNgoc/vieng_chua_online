@@ -1,0 +1,28 @@
+# Weekly dependency upgrade PRs, grouped so there are few of them. They run
+# CI like any PR but are never merged by CI (its token cannot): an owner
+# checks CI is green and merges.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      server-minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      app-minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

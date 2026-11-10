@@ -4,3 +4,8 @@ app/public/sansatemple/
 app/public/thirdparty/
 # Owner's reference screenshots (other sites/temples): look-only, never committed
 reference/
+
+# Commit currently live on the VPS, written by deploy.sh
+/DEPLOYED
+# Nightly server/data archives on the VPS (backup.yml)
+/backups/

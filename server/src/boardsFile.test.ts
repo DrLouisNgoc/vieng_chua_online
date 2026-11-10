@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { readBoardsFile, writeBoardsFile } from "./boardsFile.js";
 
 const dirs: string[] = [];
@@ -26,11 +26,19 @@ describe("boardsFile", () => {
     expect(readBoardsFile(path)).toEqual([{ id: "a" }]);
   });
 
-  it("returns null for a file that is not valid JSON", () => {
+  it("leaves only the target file behind after a write (no temp files)", () => {
+    const path = tempPath("boards.json");
+    writeBoardsFile(path, { v: 1 });
+    writeBoardsFile(path, { v: 2 });
+    expect(readdirSync(dirname(path))).toEqual(["boards.json"]);
+    expect(readBoardsFile(path)).toEqual({ v: 2 });
+  });
+
+  it("refuses to load a file that is not valid JSON instead of silently starting empty", () => {
+    // Starting empty would reset every board to its seed and drop the admin
+    // password hash on the next write — real content lost for good.
     const path = tempPath("broken.json");
-    writeBoardsFile(path, "will be overwritten");
-    // overwrite with invalid JSON directly
     writeFileSync(path, "{not json", "utf8");
-    expect(readBoardsFile(path)).toBeNull();
+    expect(() => readBoardsFile(path)).toThrow(/broken\.json/);
   });
 });

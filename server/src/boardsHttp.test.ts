@@ -3,7 +3,7 @@ import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createAdminAuth } from "./adminAuth.js";
 import { createBoardStore, seedBoards } from "./boards.js";
-import { createBoardsRequestListener } from "./boardsHttp.js";
+import { createBoardsRequestListener, type RequestLimits } from "./boardsHttp.js";
 
 let server: Server | undefined;
 
@@ -12,7 +12,7 @@ afterEach(async () => {
   server = undefined;
 });
 
-function start() {
+function start(limits?: Partial<RequestLimits>) {
   const store = createBoardStore(
     seedBoards([
       { id: "a", title: "Cốc A", type: "text", registrable: false },
@@ -21,16 +21,19 @@ function start() {
   );
   const adminAuth = createAdminAuth(null);
   const persisted: unknown[] = [];
-  server = createServer(createBoardsRequestListener(store, adminAuth, () => persisted.push(store.snapshot())));
+  server = createServer(
+    createBoardsRequestListener(store, adminAuth, () => persisted.push(store.snapshot()), limits),
+  );
   server.listen(0);
   const { port } = server.address() as AddressInfo;
   return { url: `http://127.0.0.1:${port}`, persisted };
 }
 
-function postJson(url: string, body: unknown) {
+// `ip` simulates Caddy's X-Forwarded-For for a given visitor.
+function postJson(url: string, body: unknown, ip = "198.51.100.1") {
   return fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-Forwarded-For": ip },
     body: JSON.stringify(body),
   });
 }
@@ -206,6 +209,41 @@ describe("boards HTTP API", () => {
     const { url } = start();
     const res = await postJson(`${url}/admin/approve/o`, { password: "adminpass" });
     expect(res.status).toBe(409);
+  });
+
+  it("locks out an ip after too many wrong passwords, even when it then tries the right one", async () => {
+    const { url } = start({ passwordFailuresPerWindow: 3 });
+    await postJson(`${url}/admin/pending`, { password: "adminpass" }); // first login sets it
+    for (let i = 0; i < 3; i++) {
+      expect((await postJson(`${url}/admin/pending`, { password: `guess${i}` })).status).toBe(403);
+    }
+    const locked = await postJson(`${url}/admin/pending`, { password: "adminpass" });
+    expect(locked.status).toBe(429);
+    expect(await locked.json()).toEqual({ error: "too-many-requests" });
+  });
+
+  it("counts wrong passwords on cốc boards toward the same lockout", async () => {
+    const { url } = start({ passwordFailuresPerWindow: 2 });
+    await postJson(`${url}/boards/a`, { password: "bimat", body: "Xin chào" });
+    await postJson(`${url}/boards/a/questions`, { password: "sai" });
+    await postJson(`${url}/boards/a`, { password: "sai", body: "x" });
+    expect((await postJson(`${url}/boards/a/questions`, { password: "bimat" })).status).toBe(429);
+  });
+
+  it("does not lock out a different visitor", async () => {
+    const { url } = start({ passwordFailuresPerWindow: 1 });
+    await postJson(`${url}/admin/pending`, { password: "adminpass" }, "198.51.100.2");
+    await postJson(`${url}/admin/pending`, { password: "sai" }, "198.51.100.3");
+    expect((await postJson(`${url}/admin/pending`, { password: "adminpass" }, "198.51.100.2")).status).toBe(200);
+  });
+
+  it("caps how many writes one ip can send in a window", async () => {
+    const { url } = start({ postsPerWindow: 2 });
+    await postJson(`${url}/boards/a`, { password: "bimat", body: "Xin chào" });
+    await postJson(`${url}/boards/a/ask`, { name: "Khách", text: "Câu 1" });
+    const flooded = await postJson(`${url}/boards/a/ask`, { name: "Khách", text: "Câu 2" });
+    expect(flooded.status).toBe(429);
+    expect(flooded.headers.get("retry-after")).not.toBeNull();
   });
 
   it("answers CORS preflight", async () => {

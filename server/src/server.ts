@@ -1,5 +1,4 @@
 import { createServer } from "node:http";
-import type { IncomingMessage } from "node:http";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -7,6 +6,7 @@ import { createAdminAuth } from "./adminAuth.js";
 import { BOARD_SEEDS, createBoardStore, mergeWithSeed } from "./boards.js";
 import { createBoardsRequestListener } from "./boardsHttp.js";
 import { readBoardsFile, writeBoardsFile } from "./boardsFile.js";
+import { clientIp } from "./clientIp.js";
 import { createChatRoom } from "./chatRoom.js";
 import { createPresenceRoom } from "./presenceRoom.js";
 import { parseClientMessage, type ServerMessage } from "./protocol.js";
@@ -17,17 +17,6 @@ const DEFAULT_PORT = 8787;
 const DEFAULT_BOARDS_FILE = (): string => join(process.cwd(), "data", "boards.json");
 const DEFAULT_VISITOR_NAMES_FILE = (): string => join(process.cwd(), "data", "visitor-names.json");
 
-// Caddy's reverse_proxy sets X-Forwarded-For automatically (docs/for-owner
-// /huong_dan/09-cau-hinh-caddy.md); without it, every real visitor behind
-// the proxy would share the proxy's own loopback address as their "ip".
-function clientIp(request: IncomingMessage): string {
-  const forwarded = request.headers["x-forwarded-for"];
-  const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-  if (typeof first === "string" && first.length > 0) {
-    return first.split(",")[0]?.trim() || first;
-  }
-  return request.socket.remoteAddress ?? "unknown";
-}
 // A join or state message is ~250 bytes; anything far bigger is not ours.
 const MAX_PAYLOAD_BYTES = 2048;
 const TICK_MS = 100;
@@ -37,6 +26,9 @@ const MAX_CONNECTIONS_PER_IP = 8;
 // anyone joining (owner, 2026-11-10: "âm thanh chuông tự động đánh...
 // cứ 1 tiếng đánh 1 lần").
 const DEFAULT_BELL_INTERVAL_MS = 60 * 60 * 1000;
+// WebSocket close code 1001 "going away" (RFC 6455 §7.4.1).
+const GOING_AWAY = 1001;
+const SHUTDOWN_GRACE_MS = 3000;
 
 function send(socket: WebSocket, message: ServerMessage): void {
   if (socket.readyState === socket.OPEN) socket.send(JSON.stringify(message));
@@ -128,7 +120,7 @@ export function startPresenceServer(
   wss.on("close", () => clearInterval(hourlyBell));
 
   wss.on("connection", (socket, request) => {
-    const ip = request.socket.remoteAddress ?? "unknown";
+    const ip = clientIp(request);
     const connectionCount = (connectionsByIp.get(ip) ?? 0) + 1;
     if (connectionCount > MAX_CONNECTIONS_PER_IP) {
       socket.close(1008, "too many connections from this address");
@@ -136,14 +128,10 @@ export function startPresenceServer(
     }
     connectionsByIp.set(ip, connectionCount);
 
-    // May differ from `ip` above in production (behind Caddy, `ip` is the
-    // proxy's own address) — only this one is used for the pháp danh lock.
-    const identityIp = clientIp(request);
-
     clients.add(socket);
     const visitorId = presence.join();
     const allowed = createRateLimit();
-    send(socket, { type: "name-lock", name: visitorNames.nameFor(identityIp) });
+    send(socket, { type: "name-lock", name: visitorNames.nameFor(ip) });
     broadcast(clients, { type: "presence", count: presence.count });
 
     socket.on("message", (data) => {
@@ -151,13 +139,13 @@ export function startPresenceServer(
       const message = parseClientMessage(String(data));
       if (!message) return;
       if (message.type === "join") {
-        const lockedName = visitorNames.nameFor(identityIp);
+        const lockedName = visitorNames.nameFor(ip);
         if (lockedName === null) {
           if (isDefaultName(message.name)) {
             send(socket, { type: "join-refused", reason: "default-name" });
             return;
           }
-          visitorNames.register(identityIp, message.name);
+          visitorNames.register(ip, message.name);
           persistVisitorNames();
         }
         visitors.join(visitorId, lockedName ?? message.name, message.colorIndex);
@@ -199,12 +187,28 @@ export function startPresenceServer(
   return wss;
 }
 
+// systemd sends SIGTERM on every stop/restart, i.e. on every deploy. Close
+// each visitor with 1001 "going away" (the client reconnects on close)
+// rather than letting the process die under them, then free the port.
+export function stopPresenceServer(wss: WebSocketServer): Promise<void> {
+  for (const client of wss.clients) client.close(GOING_AWAY, "server restarting");
+  return new Promise((resolve) => wss.close(() => resolve()));
+}
+
 const isMainModule =
   process.argv[1] !== undefined &&
   import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isMainModule) {
   const port = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT;
-  startPresenceServer(port);
+  const wss = startPresenceServer(port);
   console.error(`Presence server listening on ws://localhost:${port}`);
+  for (const signal of ["SIGTERM", "SIGINT"] as const) {
+    process.once(signal, () => {
+      // A visitor socket that never finishes its close handshake must not
+      // hold up the restart.
+      setTimeout(() => process.exit(0), SHUTDOWN_GRACE_MS).unref();
+      void stopPresenceServer(wss).then(() => process.exit(0));
+    });
+  }
 }

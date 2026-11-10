@@ -1,18 +1,13 @@
 # Memory index
 
-- [handoff.md](handoff.md) — read this first when resuming work.
-- [../product/vieng-chua-online.prd.md](../product/vieng-chua-online.prd.md)
-  — the PRD (problem, MVP, milestones).
-- [decisions/](decisions/) — 0001 personal-use-only, 0002 Electron stack
-  (superseded by 0005), 0003 keep original assets / translate text, 0004 own
-  backend server, 0005 web app not Electron, 0006 assets are a gitignored
-  local cache, 0007 chuasen.com as a narrowly-scoped secondary UX reference,
-  0008 procedural temple grounds / chuasen.com source referenced, not
-  copied wholesale, 0009 licensed third-party assets allowed, 0010 runtime robe tint
-  (amends 0003).
-- [../assets/third-party-assets.md](../assets/third-party-assets.md) —
-  source and licence of every third-party asset file.
-- [../specs/milestone-4-movement-character-screen/status.md](../specs/milestone-4-movement-character-screen/status.md)
-  — current Milestone 4 state, rulings, open problems.
-- [open-questions.md](open-questions.md) — unresolved items.
-- [log.md](log.md) — one-line-per-session history.
+- [handoff.md](handoff.md) — read first: current state and open work.
+- [../architecture.md](../architecture.md) — one line per source file; [../conventions.md](../conventions.md).
+- [lessons.md](lessons.md) — gotchas by topic; grep before touching 3D, proxy/ip, audio, deploy.
+- [decisions/](decisions/) — 0001 personal-use-only (amended by 0011), 0002 Electron (superseded by 0005),
+  0003 keep original assets / translate text, 0004 own backend, 0005 web app, 0006 assets are a gitignored
+  cache, 0007 chuasen.com narrow UX reference, 0008 procedural grounds, 0009 licensed third-party assets,
+  0010 runtime robe tint, 0011 public deploy, 0012 two-owner workflow, 0013 backups + uptime on GitHub Actions, 0014 no branch lock, CI merges green PRs.
+- [open-questions.md](open-questions.md) — waiting for an owner's answer.
+- [archive/](archive/) — old handoff and session log (history; read only when needed).
+- [../product/vieng-chua-online.prd.md](../product/vieng-chua-online.prd.md) — the PRD.
+- [../assets/third-party-assets.md](../assets/third-party-assets.md) — source and licence of every asset file.
