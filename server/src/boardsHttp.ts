@@ -3,9 +3,22 @@
 // for an open cốc, and the owner's admin approval panel.
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AdminAuth } from "./adminAuth.js";
-import type { BoardStore } from "./boards.js";
+import type { AnswerResult, AskResult, BoardStore, DecisionResult, EditResult, RegisterResult } from "./boards.js";
 import { clientIp } from "./clientIp.js";
 import { createWindowCounter } from "./rateLimit.js";
+
+const INVALID_REQUEST = { error: "invalid-request" };
+const NOT_FOUND = { error: "not-found" };
+
+type WriteResult = EditResult | RegisterResult | DecisionResult | AskResult | AnswerResult;
+const FAILURE_STATUS: Record<Exclude<WriteResult, "ok" | "wrong-password">, number> = {
+  "not-found": 404,
+  "not-assigned": 409,
+  "not-registrable": 409,
+  "already-pending": 409,
+  "already-assigned": 409,
+  "no-pending": 409,
+};
 
 // A dharma talk is a few paragraphs plus a handful of YouTube links; this
 // is generous headroom while still bounding memory per request.
@@ -188,7 +201,7 @@ export function createBoardsRequestListener(
     const url = new URL(req.url ?? "/", "http://localhost");
     const route = matchRoute(url.pathname);
     if (!route) {
-      sendJson(res, 404, { error: "not-found" });
+      sendJson(res, 404, NOT_FOUND);
       return;
     }
 
@@ -213,131 +226,80 @@ export function createBoardsRequestListener(
     if (req.method === "GET" && route.kind === "board") {
       const board = store.get(route.id);
       if (!board) {
-        sendJson(res, 404, { error: "not-found" });
+        sendJson(res, 404, NOT_FOUND);
         return;
       }
       sendJson(res, 200, board);
       return;
     }
 
-    if (req.method === "POST" && route.kind === "board") {
+    // Reads the body, answers 400 if it is not JSON or not the expected shape,
+    // otherwise hands the parsed request to `act`.
+    const handlePost = <T>(parse: (value: unknown) => T | null, act: (input: T) => void): void => {
       readJsonBody(req).then(
         (value) => {
-          const parsed = parseEditRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          const result = store.edit(route.id, parsed.password, parsed.body, parsed.talks, parsed.title);
-          if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "wrong-password") return rejectPassword();
-          if (result === "not-assigned") return sendJson(res, 409, { error: "not-assigned" });
-          persist();
-          sendJson(res, 200, { ok: true });
+          const input = parse(value);
+          if (!input) return sendJson(res, 400, INVALID_REQUEST);
+          act(input);
         },
-        () => sendJson(res, 400, { error: "invalid-request" }),
+        () => sendJson(res, 400, INVALID_REQUEST),
       );
-      return;
+    };
+    // "ok" saves and answers 200; every failure maps to its status code.
+    const finishWrite = (result: WriteResult): void => {
+      if (result === "ok") {
+        persist();
+        sendJson(res, 200, { ok: true });
+        return;
+      }
+      if (result === "wrong-password") return rejectPassword();
+      sendJson(res, FAILURE_STATUS[result], { error: result });
+    };
+    const isAdmin = (password: string): boolean => {
+      if (adminAuth.authenticate(password) === "ok") return true;
+      rejectPassword();
+      return false;
+    };
+
+    if (req.method === "POST") {
+      switch (route.kind) {
+        case "board":
+          return handlePost(parseEditRequest, ({ password, body, talks, title }) =>
+            finishWrite(store.edit(route.id, password, body, talks, title)),
+          );
+        case "ask":
+          return handlePost(parseAskRequest, ({ name, text }) => finishWrite(store.ask(route.id, name, text)));
+        case "answer":
+          return handlePost(parseAnswerRequest, ({ password, questionId, answer }) =>
+            finishWrite(store.answer(route.id, password, questionId, answer)),
+          );
+        case "register":
+          return handlePost(parseRegisterRequest, ({ name, note }) =>
+            finishWrite(store.register(route.id, name, note)),
+          );
+        case "questions":
+          return handlePost(parsePasswordRequest, ({ password }) => {
+            const result = store.readQuestions(route.id, password);
+            if (result.outcome === "not-found") return sendJson(res, 404, NOT_FOUND);
+            if (result.outcome === "wrong-password") return rejectPassword();
+            sendJson(res, 200, { questions: result.questions });
+          });
+        case "admin-pending":
+          return handlePost(parsePasswordRequest, ({ password }) => {
+            if (!isAdmin(password)) return;
+            persist(); // first login may have just set the admin password
+            sendJson(res, 200, { registrations: store.listPending() });
+          });
+        case "admin-approve":
+        case "admin-reject": {
+          const decide = route.kind === "admin-approve" ? store.approve : store.reject;
+          return handlePost(parsePasswordRequest, ({ password }) => {
+            if (isAdmin(password)) finishWrite(decide(route.id));
+          });
+        }
+      }
     }
 
-    if (req.method === "POST" && route.kind === "ask") {
-      readJsonBody(req).then(
-        (value) => {
-          const parsed = parseAskRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          const result = store.ask(route.id, parsed.name, parsed.text);
-          if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "not-assigned") return sendJson(res, 409, { error: "not-assigned" });
-          persist();
-          sendJson(res, 200, { ok: true });
-        },
-        () => sendJson(res, 400, { error: "invalid-request" }),
-      );
-      return;
-    }
-
-    if (req.method === "POST" && route.kind === "questions") {
-      readJsonBody(req).then(
-        (value) => {
-          const parsed = parsePasswordRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          const result = store.readQuestions(route.id, parsed.password);
-          if (result.outcome === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result.outcome === "wrong-password") return rejectPassword();
-          sendJson(res, 200, { questions: result.questions });
-        },
-        () => sendJson(res, 400, { error: "invalid-request" }),
-      );
-      return;
-    }
-
-    if (req.method === "POST" && route.kind === "answer") {
-      readJsonBody(req).then(
-        (value) => {
-          const parsed = parseAnswerRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          const result = store.answer(route.id, parsed.password, parsed.questionId, parsed.answer);
-          if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "wrong-password") return rejectPassword();
-          persist();
-          sendJson(res, 200, { ok: true });
-        },
-        () => sendJson(res, 400, { error: "invalid-request" }),
-      );
-      return;
-    }
-
-    if (req.method === "POST" && route.kind === "register") {
-      readJsonBody(req).then(
-        (value) => {
-          const parsed = parseRegisterRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          const result = store.register(route.id, parsed.name, parsed.note);
-          if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "not-registrable") return sendJson(res, 409, { error: "not-registrable" });
-          if (result === "already-pending") return sendJson(res, 409, { error: "already-pending" });
-          if (result === "already-assigned") return sendJson(res, 409, { error: "already-assigned" });
-          persist();
-          sendJson(res, 200, { ok: true });
-        },
-        () => sendJson(res, 400, { error: "invalid-request" }),
-      );
-      return;
-    }
-
-    if (req.method === "POST" && route.kind === "admin-pending") {
-      readJsonBody(req).then(
-        (value) => {
-          const parsed = parsePasswordRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          if (adminAuth.authenticate(parsed.password) === "wrong-password") {
-            return rejectPassword();
-          }
-          persist(); // first login may have just set the admin password
-          sendJson(res, 200, { registrations: store.listPending() });
-        },
-        () => sendJson(res, 400, { error: "invalid-request" }),
-      );
-      return;
-    }
-
-    if (req.method === "POST" && (route.kind === "admin-approve" || route.kind === "admin-reject")) {
-      const decide = route.kind === "admin-approve" ? store.approve : store.reject;
-      readJsonBody(req).then(
-        (value) => {
-          const parsed = parsePasswordRequest(value);
-          if (!parsed) return sendJson(res, 400, { error: "invalid-request" });
-          if (adminAuth.authenticate(parsed.password) === "wrong-password") {
-            return rejectPassword();
-          }
-          const result = decide(route.id);
-          if (result === "not-found") return sendJson(res, 404, { error: "not-found" });
-          if (result === "no-pending") return sendJson(res, 409, { error: "no-pending" });
-          persist();
-          sendJson(res, 200, { ok: true });
-        },
-        () => sendJson(res, 400, { error: "invalid-request" }),
-      );
-      return;
-    }
-
-    sendJson(res, 404, { error: "not-found" });
+    sendJson(res, 404, NOT_FOUND);
   };
 }
