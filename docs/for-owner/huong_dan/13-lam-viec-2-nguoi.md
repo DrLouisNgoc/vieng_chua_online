@@ -34,7 +34,7 @@ hoặc `anh` lên Issue và PR, và commit mang tên riêng của từng máy (`
    đã tự xin đủ quyền.
 3. Trên VPS: dán `deploy.sh` bản mới theo [file 11](11-cap-nhat-deploy-lai.md), rồi chạy thử tính năng tự quay về.
 
-Các nhãn `ngoc`, `anh`, `tech-debt`, `needs-visual-check`: Claude tự tạo ở lần `/bat-dau` đầu tiên.
+Các nhãn `ngoc`, `anh`, `tech-debt`, `needs-visual-check`: đã tạo sẵn (Claude tự tạo lại nếu thiếu).
 
 ## Phần B — Máy anh trai, cài 1 lần
 
@@ -57,13 +57,21 @@ GitHub đã đăng nhập sẵn trên máy anh. Chỉ cần kiểm tra và cài 
 
 ## Phần C — Mỗi ngày, cả hai người làm giống nhau
 
-1. Mở Claude trong thư mục repo, gõ:
-   `/bat-dau sửa nút Nhạc nền bị che trên điện thoại` (tả việc bằng lời thường).
-   Claude sẽ: lấy code mới nhất → tìm hoặc tạo Issue → tạo nhánh → viết test → sửa.
+**Không cần gõ lệnh gì.** Cứ nói việc bằng lời thường, Claude tự lo cả quy trình.
+
+1. Mở Claude trong thư mục repo, nói việc cần làm, ví dụ: *"sửa nút Nhạc nền bị che trên điện thoại"*.
+   Trước khi sửa, Claude **tự** lấy code mới nhất → tìm hoặc tạo Issue → tạo nhánh → viết test → sửa.
 2. Xem Claude làm; nó hỏi thì trả lời.
-3. Xong việc, gõ: `/xong`. Claude kiểm tra → commit → push → mở PR → theo dõi CI (vài phút).
-4. CI xanh hết: **CI tự merge**, khoảng 1–3 phút sau site cập nhật. **Không cần làm gì thêm.**
-5. Việc tiếp theo: gõ `/clear` trước, rồi lại `/bat-dau ...`. Một việc một phiên thì đỡ tốn limit.
+3. Sửa xong và test xanh, Claude **tự** commit → push → mở PR → theo dõi CI (vài phút).
+4. CI xanh hết: **CI tự merge**, khoảng 1–3 phút sau site cập nhật. Claude báo lại kết quả bằng tiếng Việt.
+5. Việc tiếp theo: nên gõ `/clear` trước (xoá ngữ cảnh cũ, đỡ tốn limit), rồi nói việc mới.
+
+Chưa muốn đưa lên site ngay (chỉ thử, xem trước)? Nói rõ *"làm thử thôi, đừng đưa lên"*. Claude sẽ để dạng PR
+**draft**: CI vẫn chạy nhưng không merge.
+
+Chỉ hỏi hay nhờ giải thích, không sửa file nào: Claude không mở Issue, không tạo nhánh.
+
+(Các lệnh `/bat-dau`, `/xong`, `/refactor` vẫn dùng được nếu muốn gọi tay, nhưng không bắt buộc.)
 
 **PR có nhãn `needs-visual-check`** (đổi giao diện hoặc 3D): CI không tự merge. Người làm chạy `npm run dev`, nhìn
 tận mắt, thấy ổn và CI xanh thì vào GitHub bấm **Merge**.

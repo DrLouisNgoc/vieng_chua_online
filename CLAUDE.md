@@ -15,7 +15,19 @@ Do **not** read `docs/specs/milestone-*`, `docs/memory/archive/` or `docs/for-ow
 that milestone or guide. Before re-deciding anything, check `docs/memory/decisions/`.
 
 ## Workflow (both owners, every task)
-- Start with `/bat-dau <task>`; finish with `/xong`. Refactors use `/refactor <target>`.
+- **Automatic, no commands needed (owner, 2026-11-10: "không cần, cho tự động đi").** The owners just say what
+  they want in plain words. Whenever a message asks for any change to the repo:
+  1. **Before editing anything**, do every step of `.claude/skills/bat-dau/SKILL.md` (sync, Issue, branch,
+     minimal context, test first). For cleanup work, `.claude/skills/refactor/SKILL.md` instead.
+  2. **As soon as the change is complete** and `npm run check` passes, do every step of
+     `.claude/skills/xong/SKILL.md` **without waiting to be asked** (commit, push, PR, watch CI merge and deploy),
+     then report in Vietnamese.
+  - A question, explanation or review that changes no file needs neither.
+  - Unsure whether the owner wants it shipped yet ("thử xem", "để xem đã", a half-finished idea)? Ask once;
+    otherwise ship. Work you must leave unfinished goes up as a draft PR (`gh pr create --draft`), which CI
+    never merges.
+  - A follow-up tweak after a merge is a new small task: run both again.
+  - Typing `/bat-dau`, `/xong` or `/refactor` still works, but nobody has to.
 - **GitHub Issues is the task board.** One task = one Issue = one branch `<owner>/<issue#>-<slug>` = one small PR.
   `<owner>` is `ngoc` or `anh` (ask once per machine if `git config user.name` does not make it obvious). Both
   machines use **the same GitHub account**, so "who is on it" is the label `ngoc`/`anh` on the Issue and PR,

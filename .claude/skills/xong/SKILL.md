@@ -1,13 +1,14 @@
 ---
 name: xong
-description: Finish a task in this repo ("xong", "/xong"). Runs the full check, updates docs that must change with the code, rebases, pushes the branch, opens the PR; CI merges it by itself when every check is green and deploys (or it is flagged for a visual check). Use at the end of every task, by either owner.
+description: Finish a task in this repo. Use AUTOMATICALLY, without being asked, as soon as a requested change is complete and npm run check passes; also when typed as /xong. Updates docs that must change with the code, rebases, pushes the branch, opens the PR; CI merges it by itself when every check is green and deploys (or it is flagged for a visual check).
 ---
 
 # /xong
 
 Explain each step to the owner in one short Vietnamese sentence.
 
-1. **Not on main.** `git branch --show-current` must not be `main`. If it is, stop and run `/bat-dau` first.
+1. **Not on main.** `git branch --show-current` must not be `main`. If it is, do the bat-dau steps first
+   (Issue, branch) and move the changes onto that branch (`git switch -c <branch>` keeps uncommitted edits).
 2. **Docs that travel with the code** (same PR):
    - Source file added/moved/renamed or its job changed → its line in `docs/architecture.md`.
    - Learned a gotcha → one line in `docs/memory/lessons.md`.
