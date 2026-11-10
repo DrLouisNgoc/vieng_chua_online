@@ -9,3 +9,6 @@ reference/
 /DEPLOYED
 # Nightly server/data archives on the VPS (backup.yml)
 /backups/
+
+# Root dev tools (Prettier)
+node_modules/

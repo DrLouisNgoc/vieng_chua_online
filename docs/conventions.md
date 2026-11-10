@@ -8,6 +8,11 @@ How code in this repo is written. Match these; when a file still breaks one, lea
 - One file, one responsibility, under ~400 lines. One function under ~60 lines.
 - Tests sit next to the code: `x.ts` → `x.test.ts`.
 
+## Formatting
+- Prettier (`.prettierrc.json`: width 120, double quotes, semicolons, trailing commas). Run `npm run format`
+  (repo root, after `npm ci` there) before committing. Until the one-off reformat lands, format only the files
+  you touch: `npx prettier --write <files>`.
+
 ## Naming
 - Files: `kebab-case.ts` in `app/`, `camelCase.ts` in `server/` (existing style on each side; do not mix within a side).
 - Factories: `createX(...)` returning an interface `X` (e.g. `createBoardStore`, `createPresenceRoom`).
