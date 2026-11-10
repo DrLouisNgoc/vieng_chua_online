@@ -19,6 +19,13 @@ export interface BoardSeed {
   title: string;
   type: BoardType;
   registrable: boolean;
+  // false for the one shared board anyone can edit with no password (the
+  // hall projector's talk list). Defaults to true for every other board.
+  requiresPassword?: boolean;
+  // Starting content for a board that has never been persisted yet.
+  // Ignored once the board exists in the data file (mergeWithSeed keeps
+  // the persisted body) — defaults to "".
+  body?: string;
 }
 
 export interface PendingRegistration {
@@ -32,6 +39,7 @@ export interface PublicBoard {
   type: BoardType;
   body: string;
   registrable: boolean;
+  requiresPassword: boolean;
   occupantName: string | null;
   // Someone's name, once registered and awaiting the owner's decision —
   // visible publicly so a second visitor knows not to also register; the
@@ -46,6 +54,7 @@ export interface StoredBoard {
   body: string;
   passwordHash: string | null;
   registrable: boolean;
+  requiresPassword: boolean;
   occupantName: string | null;
   pending: PendingRegistration | null;
 }
@@ -74,14 +83,15 @@ export interface BoardStore {
 }
 
 function toPublic(board: StoredBoard): PublicBoard {
-  const { id, title, type, body, registrable, occupantName, pending } = board;
-  return { id, title, type, body, registrable, occupantName, pendingName: pending?.name ?? null };
+  const { id, title, type, body, registrable, requiresPassword, occupantName, pending } = board;
+  return { id, title, type, body, registrable, requiresPassword, occupantName, pendingName: pending?.name ?? null };
 }
 
 export function seedBoards(seeds: readonly BoardSeed[]): StoredBoard[] {
   return seeds.map((seed) => ({
     ...seed,
-    body: "",
+    requiresPassword: seed.requiresPassword ?? true,
+    body: seed.body ?? "",
     passwordHash: null,
     occupantName: null,
     pending: null,
@@ -101,10 +111,12 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
       const board = boards.get(id);
       if (!board) return "not-found";
       if (board.registrable && board.occupantName === null) return "not-assigned";
-      if (board.passwordHash === null) {
-        board.passwordHash = makePasswordHash(password);
-      } else if (!verifyPassword(password, board.passwordHash)) {
-        return "wrong-password";
+      if (board.requiresPassword) {
+        if (board.passwordHash === null) {
+          board.passwordHash = makePasswordHash(password);
+        } else if (!verifyPassword(password, board.passwordHash)) {
+          return "wrong-password";
+        }
       }
       board.body = body;
       return "ok";
@@ -157,6 +169,7 @@ function isStoredBoard(value: unknown): value is StoredBoard {
     typeof v.body === "string" &&
     (v.passwordHash === null || typeof v.passwordHash === "string") &&
     typeof v.registrable === "boolean" &&
+    (v.requiresPassword === undefined || typeof v.requiresPassword === "boolean") &&
     (v.occupantName === null || typeof v.occupantName === "string") &&
     (v.pending === null || isPendingRegistration(v.pending))
   );
@@ -171,15 +184,17 @@ export function mergeWithSeed(persisted: unknown, seeds: readonly BoardSeed[]): 
   );
   return seeds.map((seed) => {
     const existing = byId.get(seed.id);
+    const requiresPassword = seed.requiresPassword ?? true;
     return existing
       ? {
           ...seed,
+          requiresPassword,
           body: existing.body,
           passwordHash: existing.passwordHash,
           occupantName: existing.occupantName,
           pending: existing.pending,
         }
-      : { ...seed, body: "", passwordHash: null, occupantName: null, pending: null };
+      : { ...seed, requiresPassword, body: seed.body ?? "", passwordHash: null, occupantName: null, pending: null };
   });
 }
 
@@ -188,7 +203,14 @@ export const BOARD_SEEDS: BoardSeed[] = [
   { id: "coc-anh-tuan-ha", title: "Cốc Anh Tuấn Hà", type: "text", registrable: false },
   { id: "coc-su-phu", title: "Cốc Sư Nguyên Tuệ", type: "text", registrable: false },
   { id: "coc-cua-toi", title: "Cốc Khánh", type: "text", registrable: false },
-  { id: "may-chieu-chanh-dien", title: "Bài giảng Thầy Nguyên Tuệ", type: "video", registrable: false },
+  {
+    id: "may-chieu-chanh-dien",
+    title: "Bài giảng Thầy Nguyên Tuệ",
+    type: "video",
+    registrable: false,
+    requiresPassword: false,
+    body: "Bài giảng Thầy Nguyên Tuệ | https://www.youtube.com/watch?v=VsfXrl13dI4&t=4s",
+  },
   { id: "coc-mo-1", title: "Cốc Thuyết Pháp 1", type: "text", registrable: true },
   { id: "coc-mo-2", title: "Cốc Thuyết Pháp 2", type: "text", registrable: true },
   { id: "coc-mo-3", title: "Cốc Thuyết Pháp 3", type: "text", registrable: true },

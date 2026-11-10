@@ -161,11 +161,14 @@ export function createBoardsPanel(
     const submit = document.createElement("button");
     submit.type = "submit";
     submit.textContent = "Lưu";
-    form.append(row("Nội dung", content), row("Mật khẩu", password), submit);
+    const fields = board.requiresPassword
+      ? [row("Nội dung", content), row("Mật khẩu", password), submit]
+      : [row("Nội dung", content), submit];
+    form.append(...fields);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       void (async () => {
-        const result = await client.edit(board.id, password.value, content.value);
+        const result = await client.edit(board.id, board.requiresPassword ? password.value : "", content.value);
         if (result === "ok") {
           storage.setItem(passwordKey(board.id), password.value);
           message = "Đã lưu.";

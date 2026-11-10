@@ -47,6 +47,7 @@ describe("boards HTTP API", () => {
       type: "text",
       body: "",
       registrable: false,
+      requiresPassword: true,
       occupantName: null,
       pendingName: null,
     });

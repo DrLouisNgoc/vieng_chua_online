@@ -21,14 +21,14 @@ docs/product/vieng-chua-online.prd.md
   meditate on a cushion, bow, prayer beads (original sansatemple features,
   need server messages per protocol-notes.md), and sweeping the yard (new,
   not an original feature). Order not chosen yet.
-- Access control for the privately-deployed server — a URL alone isn't
-  access control. Needs a decision before Milestone 5 (deploy). Claude
-  recommended Tailscale; owner has not confirmed.
+- **Resolved, 2026-11-10** (decision 0011): no access control in front of
+  `chua.io.vn` — owner chose public reachability over an access gate,
+  accepting the copyright-exposure risk decision 0001 originally flagged.
+  Revisit only if the owner asks to add one later.
 - **Resolved** (decision 0006): extracted assets are a gitignored local
   cache.
-- Hosting provider/cost for the private cloud deployment — not chosen.
-  Claude recommended one small VPS (Hetzner / Oracle free tier) behind
-  Tailscale; owner has not confirmed.
+- **Resolved, 2026-11-10**: owner's own VPS + domain `chua.io.vn`, Caddy
+  reverse proxy, systemd service — live now (no Tailscale, see above).
 - Frame rate 11-15 fps on the owner's machine class (Intel UHD) in the big
   hall — acceptable to the owner? Main cost not identified yet.
 - Is the 76x54 hall what "gấp 10 lần" meant (10x area), or 10x each side?

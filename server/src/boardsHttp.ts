@@ -55,7 +55,9 @@ function parseEditRequest(value: unknown): { password: string; body: string } | 
   const v = asRecord(value);
   if (!v) return null;
   const { password, body } = v;
-  if (typeof password !== "string" || password.length === 0 || password.length > 200) return null;
+  // Empty is valid: boards.ts ignores the password entirely for a board
+  // that doesn't require one (the hall projector).
+  if (typeof password !== "string" || password.length > 200) return null;
   if (typeof body !== "string" || body.length > MAX_BODY_BYTES) return null;
   return { password, body };
 }

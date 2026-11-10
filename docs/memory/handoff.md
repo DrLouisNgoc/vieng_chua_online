@@ -6,13 +6,19 @@ A personal Vietnamese-localized web clone of https://sansatemple.com — a 3D
 owner-run backend, later deployed privately. Never shared/published/
 monetized. PRD: docs/product/vieng-chua-online.prd.md.
 
-## Status (2026-11-09)
-Milestones 1-7 done. Milestone 8 (cốc + bulletin boards + hall projector +
-public chat — not in the original plan, owner requested it live) built and
-merged into local `main` (no remote exists):
-docs/specs/milestone-8-coc-boards-chat/status.md. Private deploy is now
-Milestone 9. Milestone 4's own open problems (frame rate, yard ruling
-confirmation) are unrelated and still open — read
+## Status (2026-11-10)
+Milestones 1-8 done. **Milestone 9 (deploy) is now live and public**:
+`https://chua.io.vn` (VPS, user `chua`, Caddy reverse-proxying the
+node server + serving `app/dist`, systemd service `chua-server`, SSH
+deploy key for `git pull`). This is a *public* deploy (no VPN/login) —
+see decision 0011, which supersedes decision 0001's "no public deploy"
+(owner explicitly accepted the copyright-exposure risk from the
+still-unreplaced sansatemple.com assets rather than add an access gate).
+Deploy guide for the owner: `docs/for-owner/huong_dan/` (00-12, step by
+step). GitHub remote exists now: `github.com/DrLouisNgoc/vieng_chua_online`
+(private), redeploy via `/opt/chua/deploy.sh` (file 11).
+Milestone 4's own open problems (frame rate, yard ruling confirmation) are
+unrelated and still open — read
 docs/specs/milestone-4-movement-character-screen/status.md.
 
 What the app does now:
@@ -36,9 +42,15 @@ What the app does now:
 - Presence count from the owner's server in the header.
 - Day/night cycle, lanterns, chanting (3 texts), moktak autoplay (Milestone
   7). 8 cốc around the meditation hut (4 named + 4 open for registration,
-  owner-approved) and a photo+projector for Thầy Nguyên Tuệ in the hall,
-  each a password-gated content board (Milestone 8); public chat
-  (Milestone 8). See "Next" below for what the owner still has to do.
+  owner-approved) and a photo+projector for Thầy Nguyên Tuệ in the hall;
+  the 8 cốc are password-gated content boards (Milestone 8), the hall
+  projector board is **not** (owner request, 2026-11-10: "cho dán link ở
+  máy chiếu không cần mật khẩu" — `requiresPassword: false` in
+  `BOARD_SEEDS`, see boards.ts) and ships with a hardcoded default talk
+  link that only applies if the board has never been persisted yet
+  (`BoardSeed.body`, mergeWithSeed keeps whatever's already in
+  boards.json once it exists). Public chat (Milestone 8). See "Next"
+  below for what the owner still has to do.
 
 ## Run it
 `npm run dev` in the project root starts the server (ws + boards HTTP on
@@ -46,7 +58,13 @@ What the app does now:
 `app/public/sansatemple/` must be populated (gitignored, decision 0006):
 `scripts/fetch-sansatemple-assets.sh`. Board/chat content persists to
 `server/data/boards.json` (gitignored — real content, back it up yourself).
-Tests: `npm test` in app/ (234 pass) and server/ (99 pass); `npx tsc --noEmit -p .` clean in both.
+Tests: `npm test` in app/ (234 pass) and server/ (110 pass); `npx tsc --noEmit -p .` clean in both.
+The admin password (boards approval panel) and each board's own password
+are both "first login/edit sets it" (adminAuth.ts, boards.ts) — no
+recovery, only reset: clear `adminPasswordHash` (or a board's
+`passwordHash`) in `server/data/boards.json` and restart the server, next
+submit sets a new one. Whoever submits first after a reset wins the
+password — go set it again right away after resetting on a live deploy.
 
 ## Code map (app/src)
 - `temple-layout.ts` — pure plan: HALL, STAIRS, STATUES, BOUNDARY (yard
@@ -98,7 +116,9 @@ procedural grounds; **chuasen.com source is referenced** (avatar SVG,
 variant CSS mechanism, character-screen layout) **but not copied
 wholesale** (owner asked for a full copy repeatedly; declined) · 0009
 licensed third-party assets allowed (catalogued, gitignored; none yet) ·
-0010 robe tinted at runtime per visitor (amends 0003).
+0010 robe tinted at runtime per visitor (amends 0003) · **0011 public
+deploy, no access gate, accepted copyright-exposure risk — amends/
+supersedes 0001's "no public deploy"**.
 
 ## Gotchas learned
 - GLTFLoader strips "." from node names: bone "thigh.L" is "thighL".
@@ -156,47 +176,41 @@ licensed third-party assets allowed (catalogued, gitignored; none yet) ·
   như ban ngày".
 
 ## Next (pick up here)
--1. **Moving to another machine (2026-11-09):** the owner zips this folder.
-   `_chuyen-may/` (git-excluded, holds sessions, global CLAUDE.md, rules,
-   dev-team plugin source) + `CAI-DAT.bat` installs them and runs `npm ci`.
-   Not moved: MCP rea/codegraph, browser localStorage counts. Delete
-   `_chuyen-may/` once the new machine works; it holds full chat history.
-   Still open for the owner: 3 CC0 sound files, proofread Tâm Kinh.
-0. **Milestone 8 (cốc + boards + chat) is done**, see status.md for full
-   scope/rulings/open problems. Owner still has to, in no particular
-   order:
-   - Drop `app/public/thirdparty/nguyen-tue.jpg` (a placeholder shows
-     until then).
-   - Open each of the 4 named cốc once (as the owner, in the app),
-     write something, pick a password, and give that password to Cô Chi
-     Yến / Anh Tuấn Hà / Sư Phụ / themself — whoever it's for.
-   - Open the admin screen once ("Quản trị (chủ chùa)" in the boards
-     panel) to set the admin password, for approving the open cốc's
-     registrations later.
-   - Add the hall projector's YouTube link(s) through the same
-     password-gated edit box (one URL per line) — the first edit on
-     that board sets its password too.
-   - Download 3 CC0 sound files (docs/assets/third-party-assets.md) and
-     proofread the Tâm Kinh text (app/src/chant-texts.ts) — carried over
-     from Milestone 7, still open.
-   **Gate mode is auto** (AGENTS.md).
-1. Owner: confirm the two yard rulings in Milestone 4's status.md
+0. **Deploy (Milestone 9) is live** at `chua.io.vn`, see decision 0011 and
+   `docs/for-owner/huong_dan/`. Still open:
+   - `app/public/thirdparty/` and `app/public/sansatemple/` are gitignored
+     — `git pull` on the VPS does NOT bring them; re-run
+     `scripts/fetch-sansatemple-assets.sh` there and `scp` thirdparty/
+     files across after every fresh clone (file 07 covers this). Confirm
+     `nguyen-tue.jpg` actually made it onto the live VPS — last discussed
+     but not confirmed done.
+   - No access gate in front of `chua.io.vn` (decision 0011, accepted
+     risk) — if the owner changes their mind, add Caddy Basic Auth or
+     Tailscale; don't do it unasked, it's a reachability change people
+     rely on.
+   - Admin password and the 4 named cốc passwords: "first submit sets
+     it" — owner should set these themselves on the live site now that
+     it's public, before someone else does (see "Run it" above).
+1. Milestone 8 follow-ups, still open: download 3 CC0 sound files
+   (docs/assets/third-party-assets.md) and proofread the Tâm Kinh text
+   (app/src/chant-texts.ts) — carried over from Milestone 7.
+2. Owner: confirm the two yard rulings in Milestone 4's status.md
    ("x10/x5" on the gaps; "nhỏ đi 2 lần" = half the area) — asked
    2026-11-05, no answer yet.
-2. Frame rate: pines fixed, and the ~970 small meshes are now instanced
+3. Frame rate: pines fixed, and the ~970 small meshes are now instanced
    (790 -> 554 scene meshes/draw calls, -30%; branch
    perf/instance-small-props, see Milestone 4's status.md) — but the
    frame-time effect on this machine was inconclusive (noise bigger than
    the diff). Still ~22-40 fps, noisy. Next candidates, measure on an
    idle machine with a GPU profiler: light count (6 on PBR materials),
    MSAA, pixel ratio.
-3. Milestone 6 follow-ups: measure remote-visitor render cost on two
+4. Milestone 6 follow-ups: measure remote-visitor render cost on two
    real machines; owner to judge the per-visitor broom (E3) in practice.
-4. When the owner drops files in `app/public/thirdparty/` (Mixamo character
+5. When the owner drops files in `app/public/thirdparty/` (Mixamo character
    + idle/walk/run/sit/pray/bow) or `reference/`, catalogue and use them.
-5. Later: Milestone 9 private deploy (red tier). Recommendation given, not
-   confirmed: Tailscale + one small VPS.
 
 ## Constraints
-- No DRM bypass; only publicly fetchable assets. Never publish/deploy
-  publicly/monetize. Deployment, push, merge need the owner's go-ahead.
+- No DRM bypass; only publicly fetchable assets. Never monetize. Push,
+  merge, and further reachability changes (e.g. adding/removing an access
+  gate on the live deploy) need the owner's go-ahead. Public deploy itself
+  is no longer a blocked action — see decision 0011 (amends 0001).

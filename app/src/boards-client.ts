@@ -39,6 +39,7 @@ export interface BoardView {
   type: BoardType;
   body: string;
   registrable: boolean;
+  requiresPassword: boolean;
   occupantName: string | null;
   pendingName: string | null;
 }

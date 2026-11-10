@@ -8,7 +8,16 @@ describe("createBoardStore: fixed (non-registrable) boards", () => {
   it("lists seeded boards with empty body and no password exposed", () => {
     const store = createBoardStore(seedBoards([fixedSeed]));
     expect(store.list()).toEqual([
-      { id: "a", title: "Cốc A", type: "text", body: "", registrable: false, occupantName: null, pendingName: null },
+      {
+        id: "a",
+        title: "Cốc A",
+        type: "text",
+        body: "",
+        registrable: false,
+        requiresPassword: true,
+        occupantName: null,
+        pendingName: null,
+      },
     ]);
   });
 
@@ -141,6 +150,7 @@ describe("mergeWithSeed", () => {
         body: "Nội dung cũ",
         passwordHash: "s:h",
         registrable: false,
+        requiresPassword: true,
         occupantName: null,
         pending: null,
       },
@@ -150,7 +160,17 @@ describe("mergeWithSeed", () => {
   it("adds a fresh board for a seed id missing from persisted data", () => {
     const merged = mergeWithSeed([], [fixedSeed]);
     expect(merged).toEqual([
-      { id: "a", title: "Cốc A", type: "text", registrable: false, body: "", passwordHash: null, occupantName: null, pending: null },
+      {
+        id: "a",
+        title: "Cốc A",
+        type: "text",
+        registrable: false,
+        requiresPassword: true,
+        body: "",
+        passwordHash: null,
+        occupantName: null,
+        pending: null,
+      },
     ]);
   });
 
@@ -164,8 +184,35 @@ describe("mergeWithSeed", () => {
 
   it("falls back to the seed list when given non-array/invalid persisted data", () => {
     expect(mergeWithSeed(null, [fixedSeed])).toEqual([
-      { id: "a", title: "Cốc A", type: "text", registrable: false, body: "", passwordHash: null, occupantName: null, pending: null },
+      {
+        id: "a",
+        title: "Cốc A",
+        type: "text",
+        registrable: false,
+        requiresPassword: true,
+        body: "",
+        passwordHash: null,
+        occupantName: null,
+        pending: null,
+      },
     ]);
+  });
+
+  it("a seed's default body is used only when the board has never been persisted", () => {
+    const seeded = { ...fixedSeed, id: "p", body: "mặc định" };
+    expect(seedBoards([seeded])[0]?.body).toBe("mặc định");
+    expect(mergeWithSeed([], [seeded])[0]?.body).toBe("mặc định");
+    const persisted = [{ id: "p", title: "x", type: "text" as const, body: "đã sửa rồi", passwordHash: null, registrable: false, occupantName: null, pending: null }];
+    expect(mergeWithSeed(persisted, [seeded])[0]?.body).toBe("đã sửa rồi");
+  });
+
+  it("a board seeded with requiresPassword: false can be edited with no password, ever", () => {
+    const openPasswordSeed = { ...fixedSeed, id: "p", requiresPassword: false };
+    const store = createBoardStore(seedBoards([openPasswordSeed]));
+    expect(store.edit("p", "", "Bài giảng 1")).toBe("ok");
+    expect(store.edit("p", "whatever", "Bài giảng 2")).toBe("ok");
+    expect(store.get("p")?.body).toBe("Bài giảng 2");
+    expect(store.snapshot()[0]?.passwordHash).toBeNull();
   });
 });
 
@@ -174,5 +221,11 @@ describe("BOARD_SEEDS", () => {
     expect(BOARD_SEEDS).toHaveLength(9);
     expect(new Set(BOARD_SEEDS.map((b) => b.id)).size).toBe(9);
     expect(BOARD_SEEDS.filter((b) => b.registrable)).toHaveLength(4);
+  });
+
+  it("only the hall projector skips a password", () => {
+    expect(BOARD_SEEDS.filter((b) => b.requiresPassword === false).map((b) => b.id)).toEqual([
+      "may-chieu-chanh-dien",
+    ]);
   });
 });

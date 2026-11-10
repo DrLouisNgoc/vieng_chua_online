@@ -146,3 +146,26 @@
   `receiveShadow` from external casters like trees). 234 app tests,
   tsc clean; verified warm-lit walls at forced noon and at real dusk.
   Merged to main.
+- 2026-11-10: synced the owner's local working copy to the GitHub repo
+  (two unrelated git histories on this machine — fresh-cloned main vs. an
+  older local-only tree; kept the local-only deploy-guide docs and
+  `_chuyen-may`, took main for everything else; see
+  docs/for-owner/huong_dan/). Milestone 9 deploy, hardened first: per-IP
+  WebSocket connection cap, `ALLOWED_ORIGIN` Origin check, stricter name
+  filtering (blocks HTML/markup chars), `tsx` moved to `dependencies`
+  (server/src/server.ts, protocol.ts, package.json). Then walked the
+  owner through the actual VPS deploy live: user `chua` (not root),
+  `sudo` fixes to the systemd/Caddy steps in the guide, SSH deploy key,
+  real domain is `chua.io.vn` (guide said `chuaonline.io.vn`, fixed
+  everywhere), Caddy HTTPS confirmed working. Owner reset the admin
+  password (forgot it) by clearing `adminPasswordHash` in
+  `server/data/boards.json` and restarting. Owner asked to drop the hall
+  projector's password requirement entirely (`requiresPassword: false`
+  on that one BoardSeed, boards.ts/boardsHttp.ts/boards-panel.ts) and
+  hardcoded one starting YouTube link for it (BoardSeed.body, only takes
+  effect for a never-persisted board). Deleted `_chuyen-may/` (its own
+  instructions said to, once installed). 110 server tests (+1), 234 app
+  tests, tsc clean both. **Flagged and recorded as decision 0011**: the
+  live deploy is public (no access gate), which decision 0001 explicitly
+  ruled out because of the still-unreplaced sansatemple.com copyrighted
+  assets — owner chose to accept that risk rather than gate access.
