@@ -51,3 +51,5 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
 - Headed Chrome is rAF-throttled when its window is covered: pass `--disable-backgrounding-occluded-windows`,
   `--disable-renderer-backgrounding`, `--disable-background-timer-throttling`. For timing, render 60 frames
   synchronously via a temporary `window.__perf` hook; never commit such hooks (`window.__verify` either).
+- `eslint --fix` also applies autofixes for findings listed in `eslint-suppressions.json`: touching one line of an
+  old file rewrites its logic. Only `npm run lint:fix` may fix (on purpose, in a cleanup PR); hooks only check.
