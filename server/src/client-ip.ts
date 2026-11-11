@@ -11,7 +11,8 @@ export function clientIp(request: IncomingMessage): string {
   const forwarded = request.headers["x-forwarded-for"];
   const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
   if (typeof first === "string" && first.length > 0) {
-    return first.split(",")[0]?.trim() || first;
+    const head = first.split(",", 1)[0]?.trim() ?? "";
+    return head === "" ? first : head;
   }
   return request.socket.remoteAddress ?? "unknown";
 }

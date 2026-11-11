@@ -2,6 +2,7 @@
 // docs/specs/milestone-6-visitors/design.md). Everything a client sends is
 // untrusted: parseClientMessage accepts only the exact shapes below.
 
+import type { Activity } from "../../shared/protocol.js";
 import {
   ACTIVITIES,
   MAX_CHAT_LENGTH,
@@ -9,10 +10,7 @@ import {
   ROBE_COLOR_COUNT,
   SEAT_COUNT,
   WORLD_LIMIT,
-  type Activity,
 } from "../../shared/protocol.js";
-
-export { ACTIVITIES, MAX_CHAT_LENGTH, MAX_NAME_LENGTH, ROBE_COLOR_COUNT, SEAT_COUNT, WORLD_LIMIT, type Activity };
 
 // Letters (incl. Vietnamese diacritics), digits, spaces, apostrophes and
 // hyphens only — no HTML/markup characters (<, >, &, quotes, slashes, …).
@@ -78,8 +76,9 @@ export type ServerMessage =
 
 type Fields = Record<string, unknown>;
 
-function isIntegerIn(value: unknown, min: number, maxExclusive: number): value is number {
-  return Number.isInteger(value) && (value as number) >= min && (value as number) < maxExclusive;
+// 0 <= value < maxExclusive, a whole number.
+function isWholeNumberBelow(value: unknown, maxExclusive: number): value is number {
+  return Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) < maxExclusive;
 }
 
 function isCoordinate(value: unknown): value is number {
@@ -89,20 +88,31 @@ function isCoordinate(value: unknown): value is number {
 function parseJoin(fields: Fields): JoinMessage | null {
   if (typeof fields.name !== "string") return null;
   const name = fields.name.trim();
-  if (name.length === 0 || name.length > MAX_NAME_LENGTH) return null;
-  if (!NAME_PATTERN.test(name)) return null;
-  if (!isIntegerIn(fields.colorIndex, 0, ROBE_COLOR_COUNT)) return null;
-  return { type: "join", name, colorIndex: fields.colorIndex };
+  return name.length === 0 ||
+    name.length > MAX_NAME_LENGTH ||
+    !NAME_PATTERN.test(name) ||
+    !isWholeNumberBelow(fields.colorIndex, ROBE_COLOR_COUNT)
+    ? null
+    : { type: "join", name, colorIndex: fields.colorIndex };
 }
 
 function parseState(fields: Fields): StateMessage | null {
   const { x, z, heading, activity, seatIndex, holdingBroom, beadsVisible, beadTotal } = fields;
-  if (!isCoordinate(x) || !isCoordinate(z)) return null;
-  if (typeof heading !== "number" || !Number.isFinite(heading)) return null;
-  if (!ACTIVITIES.includes(activity as Activity)) return null;
-  if (seatIndex !== null && !isIntegerIn(seatIndex, 0, SEAT_COUNT)) return null;
-  if (typeof holdingBroom !== "boolean" || typeof beadsVisible !== "boolean") return null;
-  if (!isIntegerIn(beadTotal, 0, Number.MAX_SAFE_INTEGER)) return null;
+  if (
+    typeof heading !== "number" ||
+    !isCoordinate(x) ||
+    !isCoordinate(z) ||
+    !Number.isFinite(heading) ||
+    !ACTIVITIES.includes(activity as Activity)
+  )
+    return null;
+  if (seatIndex !== null && !isWholeNumberBelow(seatIndex, SEAT_COUNT)) return null;
+  if (
+    typeof holdingBroom !== "boolean" ||
+    typeof beadsVisible !== "boolean" ||
+    !isWholeNumberBelow(beadTotal, Number.MAX_SAFE_INTEGER)
+  )
+    return null;
   return {
     type: "state",
     x,
@@ -119,8 +129,7 @@ function parseState(fields: Fields): StateMessage | null {
 function parseChat(fields: Fields): ChatSendMessage | null {
   if (typeof fields.text !== "string") return null;
   const text = fields.text.trim();
-  if (text.length === 0 || text.length > MAX_CHAT_LENGTH) return null;
-  return { type: "chat", text };
+  return text.length === 0 || text.length > MAX_CHAT_LENGTH ? null : { type: "chat", text };
 }
 
 export function parseClientMessage(text: string): ClientMessage | null {
@@ -138,3 +147,13 @@ export function parseClientMessage(text: string): ClientMessage | null {
   if (fields.type === "chat") return parseChat(fields);
   return null;
 }
+
+export {
+  ACTIVITIES,
+  type Activity,
+  MAX_CHAT_LENGTH,
+  MAX_NAME_LENGTH,
+  ROBE_COLOR_COUNT,
+  SEAT_COUNT,
+  WORLD_LIMIT,
+} from "../../shared/protocol.js";

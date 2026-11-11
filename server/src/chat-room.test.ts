@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { createChatRoom } from "./chat-room.js";
 
 describe("chatRoom", () => {

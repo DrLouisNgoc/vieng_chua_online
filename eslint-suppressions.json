@@ -421,9 +421,6 @@
     }
   },
   "app/src/interaction-state.ts": {
-    "import-x/no-relative-packages": {
-      "count": 1
-    },
     "max-lines-per-function": {
       "count": 1
     },
@@ -537,9 +534,6 @@
     "unicorn/consistent-boolean-name": {
       "count": 1
     },
-    "unicorn/no-unused-builtin-method-return": {
-      "count": 1
-    },
     "unicorn/prefer-await": {
       "count": 3
     },
@@ -581,9 +575,6 @@
     }
   },
   "app/src/onboarding.ts": {
-    "import-x/no-relative-packages": {
-      "count": 1
-    },
     "unicorn/consistent-boolean-name": {
       "count": 1
     },
@@ -688,9 +679,6 @@
     },
     "sonarjs/public-static-readonly": {
       "count": 2
-    },
-    "unicorn/no-unused-builtin-method-return": {
-      "count": 5
     }
   },
   "app/src/presence.ts": {
@@ -828,9 +816,6 @@
     }
   },
   "app/src/shared-protocol.test.ts": {
-    "import-x/no-relative-packages": {
-      "count": 1
-    },
     "simple-import-sort/imports": {
       "count": 1
     }
@@ -994,9 +979,6 @@
     }
   },
   "app/src/temple-layout.ts": {
-    "import-x/no-relative-packages": {
-      "count": 1
-    },
     "simple-import-sort/imports": {
       "count": 1
     },
@@ -1024,9 +1006,6 @@
     "import-x/consistent-type-specifier-style": {
       "count": 1
     },
-    "import-x/no-relative-packages": {
-      "count": 1
-    },
     "simple-import-sort/imports": {
       "count": 1
     },
@@ -1042,9 +1021,6 @@
       "count": 1
     },
     "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "import-x/no-relative-packages": {
       "count": 1
     },
     "simple-import-sort/imports": {
@@ -1074,82 +1050,6 @@
   },
   "app/src/walk-cycle.test.ts": {
     "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "scripts/check-docs.mjs": {
-    "no-continue": {
-      "count": 1
-    },
-    "prefer-destructuring": {
-      "count": 1
-    },
-    "unicorn/import-style": {
-      "count": 1
-    },
-    "unicorn/no-array-callback-reference": {
-      "count": 1
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 2
-    },
-    "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
-  "scripts/check-size.mjs": {
-    "regexp/no-unused-capturing-group": {
-      "count": 2
-    },
-    "unicorn/import-style": {
-      "count": 1
-    },
-    "unicorn/no-array-callback-reference": {
-      "count": 2
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
-  "scripts/claude-format.mjs": {
-    "regexp/no-unused-capturing-group": {
-      "count": 1
-    },
-    "unicorn/import-style": {
-      "count": 1
-    }
-  },
-  "server/src/admin-auth.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "server/src/admin-auth.ts": {
-    "security/detect-possible-timing-attacks": {
-      "count": 1
-    }
-  },
-  "server/src/bell-schedule.test.ts": {
-    "@typescript-eslint/naming-convention": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "server/src/boards-file.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/import-style": {
-      "count": 1
-    }
-  },
-  "server/src/boards-file.ts": {
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 1
-    },
-    "unicorn/import-style": {
       "count": 1
     }
   },
@@ -1259,145 +1159,6 @@
       "count": 6
     }
   },
-  "server/src/boards.test.ts": {
-    "@typescript-eslint/no-unnecessary-condition": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/prefer-string-repeat": {
-      "count": 1
-    }
-  },
-  "server/src/boards.ts": {
-    "@typescript-eslint/max-params": {
-      "count": 2
-    },
-    "@typescript-eslint/no-shadow": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unnecessary-condition": {
-      "count": 3
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "complexity": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "max-params": {
-      "count": 2
-    },
-    "unicorn/no-array-callback-reference": {
-      "count": 2
-    },
-    "unicorn/prefer-includes-over-repeated-comparisons": {
-      "count": 1
-    },
-    "unicorn/prefer-iterator-to-array": {
-      "count": 3
-    }
-  },
-  "server/src/chat-room.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "server/src/client-ip.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "server/src/client-ip.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "unicorn/prefer-split-limit": {
-      "count": 1
-    },
-    "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
-  "server/src/password-hash.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "server/src/password-hash.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 2
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/prefer-split-limit": {
-      "count": 1
-    }
-  },
-  "server/src/presence-room.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-unused-builtin-method-return": {
-      "count": 2
-    }
-  },
-  "server/src/protocol.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/prefer-math-constants": {
-      "count": 1
-    },
-    "unicorn/prefer-string-repeat": {
-      "count": 2
-    }
-  },
-  "server/src/protocol.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "import-x/no-relative-packages": {
-      "count": 1
-    },
-    "simple-import-sort/exports": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-unnecessary-parameters": {
-      "count": 1
-    },
-    "unicorn/prefer-combined-guards": {
-      "count": 5
-    },
-    "unicorn/prefer-export-from": {
-      "count": 7
-    },
-    "unicorn/prefer-number-is-safe-integer": {
-      "count": 1
-    },
-    "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
-  "server/src/rate-limit.test.ts": {
-    "no-return-assign": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-unnecessary-parameters": {
-      "count": 1
-    }
-  },
   "server/src/server.test.ts": {
     "@typescript-eslint/array-type": {
       "count": 4
@@ -1504,52 +1265,6 @@
       "count": 1
     },
     "unicorn/import-style": {
-      "count": 1
-    },
-    "unicorn/no-unused-builtin-method-return": {
-      "count": 1
-    }
-  },
-  "server/src/visitor-names.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/no-hardcoded-ip": {
-      "count": 12
-    }
-  },
-  "server/src/visitor-names.ts": {
-    "import-x/no-relative-packages": {
-      "count": 1
-    }
-  },
-  "server/src/visitor-room.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-unnecessary-parameters": {
-      "count": 1
-    },
-    "unicorn/no-unused-builtin-method-return": {
-      "count": 13
-    }
-  },
-  "server/src/visitor-room.ts": {
-    "unicorn/consistent-boolean-name": {
-      "count": 3
-    },
-    "unicorn/prefer-iterator-to-array": {
-      "count": 1
-    }
-  },
-  "shared/protocol.ts": {
-    "regexp/no-misleading-unicode-character": {
-      "count": 1
-    },
-    "regexp/no-obscure-range": {
-      "count": 1
-    },
-    "unicorn/prefer-string-replace-all": {
       "count": 1
     }
   }

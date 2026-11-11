@@ -1,14 +1,16 @@
-import { describe, it, expect, afterEach } from "vitest";
 import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import nodePath from "node:path";
+
+import { afterEach, describe, expect, it } from "vitest";
+
 import { readBoardsFile, writeBoardsFile } from "./boards-file.js";
 
 const dirs: string[] = [];
 function tempPath(name: string): string {
-  const dir = mkdtempSync(join(tmpdir(), "boards-test-"));
+  const dir = mkdtempSync(nodePath.join(tmpdir(), "boards-test-"));
   dirs.push(dir);
-  return join(dir, name);
+  return nodePath.join(dir, name);
 }
 
 afterEach(() => {
@@ -21,7 +23,7 @@ describe("boardsFile", () => {
   });
 
   it("round-trips data through write then read, creating parent dirs", () => {
-    const path = join(tempPath("nested"), "boards.json");
+    const path = nodePath.join(tempPath("nested"), "boards.json");
     writeBoardsFile(path, [{ id: "a" }]);
     expect(readBoardsFile(path)).toEqual([{ id: "a" }]);
   });
@@ -30,7 +32,7 @@ describe("boardsFile", () => {
     const path = tempPath("boards.json");
     writeBoardsFile(path, { v: 1 });
     writeBoardsFile(path, { v: 2 });
-    expect(readdirSync(dirname(path))).toEqual(["boards.json"]);
+    expect(readdirSync(nodePath.dirname(path))).toEqual(["boards.json"]);
     expect(readBoardsFile(path)).toEqual({ v: 2 });
   });
 

@@ -38,6 +38,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `server/src/visitor-names.ts` | Pháp danh locked per ip; `isDefaultName()` |
 | `server/src/chat-room.ts` | Public chat ring buffer (50 messages) |
 | `server/src/boards.ts` | Board store (cốc, hall projector, quote plaque, Đọc Kinh Nikaya): seeds, edit, register/approve, hỏi pháp questions/answers |
+| `server/src/boards-persisted.ts` | Reading `boards.json`: validates the persisted (possibly older) shape and `mergeWithSeed()` with the current seeds |
 | `server/src/boards-http.ts` | HTTP routes for boards and the admin panel (no framework); per-ip write cap and wrong-password lockout (429) |
 | `server/src/client-ip.ts` | The real visitor ip behind Caddy (first `X-Forwarded-For` entry) — used for every per-ip rule |
 | `server/src/bell-schedule.ts` | `msUntilNextBoundary()` — aligns the hourly bell to the wall clock instead of server start time |

@@ -10,9 +10,10 @@
 // register (name + note); the owner approves or rejects via the admin
 // password (admin-auth.ts). Only once approved can the occupant edit it
 // (which, like a fixed board, sets its password on that first edit).
-import { makePasswordHash, verifyPassword } from "./password-hash.js";
+import { isPasswordCorrect, makePasswordHash } from "./password-hash.js";
 
-export type BoardType = "text" | "video" | "image";
+export const BOARD_TYPES = ["text", "video", "image"] as const;
+export type BoardType = (typeof BOARD_TYPES)[number];
 
 export interface BoardSeed {
   id: string;
@@ -96,6 +97,15 @@ export interface StoredBoard {
   questions: Question[];
 }
 
+// What an edit changes. title: only applied when given and non-empty — lets
+// the occupant (or owner) rename their own cốc (owner, 2026-11-10: "update
+// các cốc trong đó bao gồm tên và nội dung") without blanking it out.
+export interface BoardEdit {
+  body: string;
+  talks?: string;
+  title?: string;
+}
+
 export interface AdminPendingEntry {
   id: string;
   title: string;
@@ -114,10 +124,7 @@ export type ReadQuestionsResult =
 export interface BoardStore {
   list: () => PublicBoard[];
   get: (id: string) => PublicBoard | undefined;
-  // title: only applied when given and non-empty — lets the occupant (or
-  // owner) rename their own cốc (owner, 2026-11-10: "update các cốc trong
-  // đó bao gồm tên và nội dung") without blanking it out.
-  edit: (id: string, password: string, body: string, talks?: string, title?: string) => EditResult;
+  edit: (id: string, password: string, change: BoardEdit) => EditResult;
   register: (id: string, name: string, note: string) => RegisterResult;
   listPending: () => AdminPendingEntry[];
   approve: (id: string) => DecisionResult;
@@ -149,7 +156,7 @@ function toPublic(board: StoredBoard): PublicBoard {
     pendingName: pending?.name ?? null,
     answeredQuestions: questions
       .filter((q): q is Question & { answer: string } => q.answer !== null)
-      .map(({ id, name, text, answer }) => ({ id, name, text, answer })),
+      .map((question) => ({ id: question.id, name: question.name, text: question.text, answer: question.answer })),
   };
 }
 
@@ -166,30 +173,76 @@ export function seedBoards(seeds: readonly BoardSeed[]): StoredBoard[] {
   }));
 }
 
+// No password needed, or the given one matches the board's own.
+function isPasswordAccepted(board: StoredBoard, password: string): boolean {
+  return !board.requiresPassword || (board.passwordHash !== null && isPasswordCorrect(password, board.passwordHash));
+}
+
+function pendingEntries(boards: ReadonlyMap<string, StoredBoard>): AdminPendingEntry[] {
+  const entries: AdminPendingEntry[] = [];
+  for (const board of boards.values()) {
+    if (board.pending !== null) {
+      entries.push({ id: board.id, title: board.title, name: board.pending.name, note: board.pending.note });
+    }
+  }
+  return entries;
+}
+
+// Hỏi pháp: the question half of the store.
+function questionMethods(
+  boards: ReadonlyMap<string, StoredBoard>,
+): Pick<BoardStore, "ask" | "readQuestions" | "answer"> {
+  return {
+    ask(id, name, text) {
+      const board = boards.get(id);
+      if (!board) return "not-found";
+      if (board.registrable && board.occupantName === null) return "not-assigned";
+      board.questions.push({ id: crypto.randomUUID(), name, text, answer: null });
+      if (board.questions.length > MAX_QUESTIONS_PER_BOARD) board.questions.shift();
+      return "ok";
+    },
+    readQuestions(id, password) {
+      const board = boards.get(id);
+      if (!board) return { outcome: "not-found" };
+      if (!isPasswordAccepted(board, password)) return { outcome: "wrong-password" };
+      return { outcome: "ok", questions: board.questions };
+    },
+    answer(id, password, questionId, answer) {
+      const board = boards.get(id);
+      if (!board) return "not-found";
+      if (!isPasswordAccepted(board, password)) return "wrong-password";
+      const question = board.questions.find((q) => q.id === questionId);
+      if (!question) return "not-found";
+      question.answer = answer;
+      return "ok";
+    },
+  };
+}
+
 export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
   const boards = new Map(initial.map((board) => [board.id, { ...board }]));
 
   return {
-    list: () => [...boards.values()].map(toPublic),
+    list: () => Array.from(boards.values(), (board) => toPublic(board)),
     get: (id) => {
       const board = boards.get(id);
       return board ? toPublic(board) : undefined;
     },
-    edit(id, password, body, talks, title) {
+    edit(id, password, { body, talks, title }) {
       const board = boards.get(id);
       if (!board) return "not-found";
       if (board.registrable && board.occupantName === null) return "not-assigned";
       if (board.requiresPassword) {
         if (board.passwordHash === null) {
           board.passwordHash = makePasswordHash(password);
-        } else if (!verifyPassword(password, board.passwordHash)) {
+        } else if (!isPasswordCorrect(password, board.passwordHash)) {
           return "wrong-password";
         }
       }
       board.body = body;
       if (talks !== undefined) board.talks = talks;
-      const trimmedTitle = title?.trim();
-      if (trimmedTitle) board.title = trimmedTitle;
+      const trimmedTitle = title?.trim() ?? "";
+      if (trimmedTitle !== "") board.title = trimmedTitle;
       return "ok";
     },
     register(id, name, note) {
@@ -201,10 +254,7 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
       board.pending = { name, note };
       return "ok";
     },
-    listPending: () =>
-      [...boards.values()]
-        .filter((board): board is StoredBoard & { pending: PendingRegistration } => board.pending !== null)
-        .map((board) => ({ id: board.id, title: board.title, name: board.pending.name, note: board.pending.note })),
+    listPending: () => pendingEntries(boards),
     approve(id) {
       const board = boards.get(id);
       if (!board) return "not-found";
@@ -220,122 +270,9 @@ export function createBoardStore(initial: readonly StoredBoard[]): BoardStore {
       board.pending = null;
       return "ok";
     },
-    ask(id, name, text) {
-      const board = boards.get(id);
-      if (!board) return "not-found";
-      if (board.registrable && board.occupantName === null) return "not-assigned";
-      board.questions.push({ id: crypto.randomUUID(), name, text, answer: null });
-      if (board.questions.length > MAX_QUESTIONS_PER_BOARD) board.questions.shift();
-      return "ok";
-    },
-    readQuestions(id, password) {
-      const board = boards.get(id);
-      if (!board) return { outcome: "not-found" };
-      if (board.requiresPassword && (board.passwordHash === null || !verifyPassword(password, board.passwordHash))) {
-        return { outcome: "wrong-password" };
-      }
-      return { outcome: "ok", questions: board.questions };
-    },
-    answer(id, password, questionId, answer) {
-      const board = boards.get(id);
-      if (!board) return "not-found";
-      if (board.requiresPassword && (board.passwordHash === null || !verifyPassword(password, board.passwordHash))) {
-        return "wrong-password";
-      }
-      const question = board.questions.find((q) => q.id === questionId);
-      if (!question) return "not-found";
-      question.answer = answer;
-      return "ok";
-    },
-    snapshot: () => [...boards.values()].map((board) => ({ ...board })),
+    ...questionMethods(boards),
+    snapshot: () => Array.from(boards.values(), (board) => ({ ...board })),
   };
-}
-
-function isPendingRegistration(value: unknown): value is PendingRegistration {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return typeof v.name === "string" && typeof v.note === "string";
-}
-
-function isQuestion(value: unknown): value is Question {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.name === "string" &&
-    typeof v.text === "string" &&
-    // id/answer added after some boards.json files already had questions
-    // (same live-deploy backward-compat rule as talks/questions above) —
-    // normalizeQuestion below fills in the defaults.
-    (v.id === undefined || typeof v.id === "string") &&
-    (v.answer === undefined || v.answer === null || typeof v.answer === "string")
-  );
-}
-
-function normalizeQuestion(question: Question): Question {
-  return {
-    id: question.id ?? crypto.randomUUID(),
-    name: question.name,
-    text: question.text,
-    answer: question.answer ?? null,
-  };
-}
-
-function isStoredBoard(value: unknown): value is StoredBoard {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.id === "string" &&
-    typeof v.title === "string" &&
-    (v.type === "text" || v.type === "video" || v.type === "image") &&
-    typeof v.body === "string" &&
-    // Added after boards.json files already existed on a live deploy —
-    // both stay optional here so an older file still merges cleanly
-    // (mergeWithSeed fills in "" / [] for whichever is missing).
-    (v.talks === undefined || typeof v.talks === "string") &&
-    (v.passwordHash === null || typeof v.passwordHash === "string") &&
-    typeof v.registrable === "boolean" &&
-    (v.requiresPassword === undefined || typeof v.requiresPassword === "boolean") &&
-    (v.occupantName === null || typeof v.occupantName === "string") &&
-    (v.pending === null || isPendingRegistration(v.pending)) &&
-    (v.questions === undefined || (Array.isArray(v.questions) && v.questions.every(isQuestion)))
-  );
-}
-
-// Keeps a persisted board's body/password/occupant when its id is still
-// seeded, adds fresh boards for new seed ids, and drops boards no longer
-// seeded.
-export function mergeWithSeed(persisted: unknown, seeds: readonly BoardSeed[]): StoredBoard[] {
-  const byId = new Map(
-    Array.isArray(persisted) ? persisted.filter(isStoredBoard).map((board) => [board.id, board]) : [],
-  );
-  return seeds.map((seed) => {
-    const existing = byId.get(seed.id);
-    const requiresPassword = seed.requiresPassword ?? true;
-    return existing
-      ? {
-          ...seed,
-          // Once persisted, a renamed cốc's title sticks (same rule as
-          // body below) rather than reverting to the seed's name.
-          title: existing.title,
-          requiresPassword,
-          body: existing.body,
-          talks: existing.talks ?? "",
-          passwordHash: existing.passwordHash,
-          occupantName: existing.occupantName,
-          pending: existing.pending,
-          questions: (existing.questions ?? []).map(normalizeQuestion),
-        }
-      : {
-          ...seed,
-          requiresPassword,
-          body: seed.body ?? "",
-          talks: seed.talks ?? "",
-          passwordHash: null,
-          occupantName: null,
-          pending: null,
-          questions: [],
-        };
-  });
 }
 
 export const BOARD_SEEDS: BoardSeed[] = [

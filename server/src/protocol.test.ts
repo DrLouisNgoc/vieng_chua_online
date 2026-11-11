@@ -1,11 +1,12 @@
-import { describe, it, expect } from "vitest";
-import { MAX_CHAT_LENGTH, MAX_NAME_LENGTH, SEAT_COUNT, parseClientMessage } from "./protocol.js";
+import { describe, expect, it } from "vitest";
+
+import { MAX_CHAT_LENGTH, MAX_NAME_LENGTH, parseClientMessage, SEAT_COUNT } from "./protocol.js";
 
 const goodState = {
   type: "state",
   x: 1.5,
   z: -20,
-  heading: 3.14,
+  heading: 2.5,
   activity: "seated",
   seatIndex: 12,
   holdingBroom: false,
@@ -27,7 +28,7 @@ describe("parseClientMessage: join", () => {
   });
 
   it.each([
-    ["empty name", { name: "   ", colorIndex: 0 }],
+    ["empty name", { name: " ".repeat(3), colorIndex: 0 }],
     ["long name", { name: "x".repeat(MAX_NAME_LENGTH + 1), colorIndex: 0 }],
     ["name not a string", { name: 5, colorIndex: 0 }],
     ["colour out of range", { name: "A", colorIndex: 6 }],
@@ -84,7 +85,7 @@ describe("parseClientMessage: chat", () => {
   });
 
   it.each([
-    ["empty text", { text: "   " }],
+    ["empty text", { text: " ".repeat(3) }],
     ["too long", { text: "x".repeat(MAX_CHAT_LENGTH + 1) }],
     ["not a string", { text: 5 }],
   ])("rejects %s", (_label, fields) => {
