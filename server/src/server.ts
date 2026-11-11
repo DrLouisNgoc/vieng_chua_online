@@ -12,6 +12,7 @@ import { createPresenceRoom } from "./presenceRoom.js";
 import { parseClientMessage, type ServerMessage } from "./protocol.js";
 import { createVisitorRoom } from "./visitorRoom.js";
 import { createVisitorNameStore, isDefaultName } from "./visitorNames.js";
+import { msUntilNextBoundary } from "./bellSchedule.js";
 
 const DEFAULT_PORT = 8787;
 const DEFAULT_BOARDS_FILE = (): string => join(process.cwd(), "data", "boards.json");
@@ -24,7 +25,8 @@ const MAX_MESSAGES_PER_SECOND = 30;
 const MAX_CONNECTIONS_PER_IP = 8;
 // The temple bell also tolls on its own, once an hour, independent of
 // anyone joining (owner, 2026-11-10: "âm thanh chuông tự động đánh...
-// cứ 1 tiếng đánh 1 lần").
+// cứ 1 tiếng đánh 1 lần"), aligned to the wall clock (owner, 2026-11-11:
+// "theo giờ đồng hồ") — see bellSchedule.ts.
 const DEFAULT_BELL_INTERVAL_MS = 60 * 60 * 1000;
 // WebSocket close code 1001 "going away" (RFC 6455 §7.4.1).
 const GOING_AWAY = 1001;
@@ -116,8 +118,18 @@ export function startPresenceServer(
   }, TICK_MS);
   wss.on("close", () => clearInterval(tick));
 
-  const hourlyBell = setInterval(() => broadcast(clients, { type: "bell" }), bellIntervalMs);
-  wss.on("close", () => clearInterval(hourlyBell));
+  // Aligned to the wall clock (e.g. exactly 13:00:00), not to whenever the
+  // server happened to start: the first toll waits only until the next
+  // boundary, then a plain interval keeps it there.
+  let hourlyBell: ReturnType<typeof setInterval> | undefined;
+  const firstBell = setTimeout(() => {
+    broadcast(clients, { type: "bell" });
+    hourlyBell = setInterval(() => broadcast(clients, { type: "bell" }), bellIntervalMs);
+  }, msUntilNextBoundary(bellIntervalMs, Date.now()));
+  wss.on("close", () => {
+    clearTimeout(firstBell);
+    if (hourlyBell) clearInterval(hourlyBell);
+  });
 
   wss.on("connection", (socket, request) => {
     const ip = clientIp(request);

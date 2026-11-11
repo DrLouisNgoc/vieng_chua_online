@@ -40,6 +40,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `server/src/boards.ts` | Board store (cốc, hall projector, quote plaque, Đọc Kinh Nikaya): seeds, edit, register/approve, hỏi pháp questions/answers |
 | `server/src/boardsHttp.ts` | HTTP routes for boards and the admin panel (no framework); per-ip write cap and wrong-password lockout (429) |
 | `server/src/clientIp.ts` | The real visitor ip behind Caddy (first `X-Forwarded-For` entry) — used for every per-ip rule |
+| `server/src/bellSchedule.ts` | `msUntilNextBoundary()` — aligns the hourly bell to the wall clock instead of server start time |
 | `server/src/rateLimit.ts` | Fixed-window hit counter per key, prunes expired keys |
 | `server/src/boardsFile.ts` | JSON read/write for `data/*.json`: atomic writes (temp + rename); missing file → null, corrupt file → throws |
 | `server/src/adminAuth.ts` | One admin password, set on first login |
