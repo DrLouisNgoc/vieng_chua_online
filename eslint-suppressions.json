@@ -1119,36 +1119,144 @@
       "count": 1
     }
   },
-  "server/src/adminAuth.test.ts": {
+  "server/src/admin-auth.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
     }
   },
-  "server/src/adminAuth.ts": {
+  "server/src/admin-auth.ts": {
     "security/detect-possible-timing-attacks": {
       "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
     }
   },
-  "server/src/bellSchedule.test.ts": {
+  "server/src/bell-schedule.test.ts": {
     "@typescript-eslint/naming-convention": {
       "count": 2
     },
     "simple-import-sort/imports": {
       "count": 1
+    }
+  },
+  "server/src/boards-file.test.ts": {
+    "simple-import-sort/imports": {
+      "count": 1
     },
-    "unicorn/filename-case": {
+    "unicorn/import-style": {
       "count": 1
     }
   },
-  "server/src/bellSchedule.ts": {
-    "unicorn/filename-case": {
+  "server/src/boards-file.ts": {
+    "@typescript-eslint/restrict-template-expressions": {
       "count": 1
+    },
+    "unicorn/import-style": {
+      "count": 1
+    }
+  },
+  "server/src/boards-http.test.ts": {
+    "@typescript-eslint/no-unsafe-assignment": {
+      "count": 11
+    },
+    "@typescript-eslint/no-unsafe-call": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 6
+    },
+    "@typescript-eslint/promise-function-async": {
+      "count": 1
+    },
+    "@typescript-eslint/restrict-template-expressions": {
+      "count": 2
+    },
+    "import-x/consistent-type-specifier-style": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "no-plusplus": {
+      "count": 1
+    },
+    "no-promise-executor-return": {
+      "count": 1
+    },
+    "simple-import-sort/imports": {
+      "count": 1
+    },
+    "unicorn/no-await-expression-member": {
+      "count": 18
+    },
+    "unicorn/no-return-array-push": {
+      "count": 1
+    },
+    "unicorn/no-top-level-assignment-in-function": {
+      "count": 2
+    }
+  },
+  "server/src/boards-http.ts": {
+    "@typescript-eslint/no-confusing-void-expression": {
+      "count": 13
+    },
+    "@typescript-eslint/no-use-before-define": {
+      "count": 1
+    },
+    "@typescript-eslint/promise-function-async": {
+      "count": 1
+    },
+    "@typescript-eslint/strict-boolean-expressions": {
+      "count": 8
+    },
+    "@typescript-eslint/switch-exhaustiveness-check": {
+      "count": 1
+    },
+    "complexity": {
+      "count": 2
+    },
+    "consistent-return": {
+      "count": 12
+    },
+    "default-case": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 2
+    },
+    "simple-import-sort/imports": {
+      "count": 1
+    },
+    "sonarjs/cognitive-complexity": {
+      "count": 2
+    },
+    "unicorn/consistent-conditional-object-spread": {
+      "count": 2
+    },
+    "unicorn/no-array-callback-reference": {
+      "count": 1
+    },
+    "unicorn/no-declarations-before-early-exit": {
+      "count": 3
+    },
+    "unicorn/no-negated-condition": {
+      "count": 2
+    },
+    "unicorn/prefer-await": {
+      "count": 1
+    },
+    "unicorn/prefer-combined-guards": {
+      "count": 5
+    },
+    "unicorn/prefer-simple-condition-first": {
+      "count": 1
+    },
+    "unicorn/prefer-ternary": {
+      "count": 1
+    },
+    "unicorn/prefer-then-catch": {
+      "count": 1
+    },
+    "unicorn/switch-case-braces": {
+      "count": 6
     }
   },
   "server/src/boards.test.ts": {
@@ -1194,166 +1302,18 @@
       "count": 3
     }
   },
-  "server/src/boardsFile.test.ts": {
+  "server/src/chat-room.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
-    },
-    "unicorn/import-style": {
-      "count": 1
     }
   },
-  "server/src/boardsFile.ts": {
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
-    },
-    "unicorn/import-style": {
-      "count": 1
-    }
-  },
-  "server/src/boardsHttp.test.ts": {
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 11
-    },
-    "@typescript-eslint/no-unsafe-call": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unsafe-member-access": {
-      "count": 6
-    },
-    "@typescript-eslint/promise-function-async": {
-      "count": 1
-    },
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 2
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 2
-    },
-    "no-await-in-loop": {
-      "count": 1
-    },
-    "no-plusplus": {
-      "count": 1
-    },
-    "no-promise-executor-return": {
-      "count": 1
-    },
+  "server/src/client-ip.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
-    },
-    "unicorn/no-await-expression-member": {
-      "count": 18
-    },
-    "unicorn/no-return-array-push": {
-      "count": 1
-    },
-    "unicorn/no-top-level-assignment-in-function": {
-      "count": 2
     }
   },
-  "server/src/boardsHttp.ts": {
-    "@typescript-eslint/no-confusing-void-expression": {
-      "count": 13
-    },
-    "@typescript-eslint/no-use-before-define": {
-      "count": 1
-    },
-    "@typescript-eslint/promise-function-async": {
-      "count": 1
-    },
+  "server/src/client-ip.ts": {
     "@typescript-eslint/strict-boolean-expressions": {
-      "count": 8
-    },
-    "@typescript-eslint/switch-exhaustiveness-check": {
-      "count": 1
-    },
-    "complexity": {
-      "count": 2
-    },
-    "consistent-return": {
-      "count": 12
-    },
-    "default-case": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/cognitive-complexity": {
-      "count": 2
-    },
-    "unicorn/consistent-conditional-object-spread": {
-      "count": 2
-    },
-    "unicorn/filename-case": {
-      "count": 1
-    },
-    "unicorn/no-array-callback-reference": {
-      "count": 1
-    },
-    "unicorn/no-declarations-before-early-exit": {
-      "count": 3
-    },
-    "unicorn/no-negated-condition": {
-      "count": 2
-    },
-    "unicorn/prefer-await": {
-      "count": 1
-    },
-    "unicorn/prefer-combined-guards": {
-      "count": 5
-    },
-    "unicorn/prefer-simple-condition-first": {
-      "count": 1
-    },
-    "unicorn/prefer-ternary": {
-      "count": 1
-    },
-    "unicorn/prefer-then-catch": {
-      "count": 1
-    },
-    "unicorn/switch-case-braces": {
-      "count": 6
-    }
-  },
-  "server/src/chatRoom.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
-    }
-  },
-  "server/src/chatRoom.ts": {
-    "unicorn/filename-case": {
-      "count": 1
-    }
-  },
-  "server/src/clientIp.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
-    }
-  },
-  "server/src/clientIp.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
       "count": 1
     },
     "unicorn/prefer-split-limit": {
@@ -1363,42 +1323,28 @@
       "count": 1
     }
   },
-  "server/src/passwordHash.test.ts": {
+  "server/src/password-hash.test.ts": {
     "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
       "count": 1
     }
   },
-  "server/src/passwordHash.ts": {
+  "server/src/password-hash.ts": {
     "@typescript-eslint/strict-boolean-expressions": {
       "count": 2
     },
     "unicorn/consistent-boolean-name": {
       "count": 1
     },
-    "unicorn/filename-case": {
-      "count": 1
-    },
     "unicorn/prefer-split-limit": {
       "count": 1
     }
   },
-  "server/src/presenceRoom.test.ts": {
+  "server/src/presence-room.test.ts": {
     "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
       "count": 1
     },
     "unicorn/no-unused-builtin-method-return": {
       "count": 2
-    }
-  },
-  "server/src/presenceRoom.ts": {
-    "unicorn/filename-case": {
-      "count": 1
     }
   },
   "server/src/protocol.test.ts": {
@@ -1441,22 +1387,14 @@
       "count": 1
     }
   },
-  "server/src/rateLimit.test.ts": {
+  "server/src/rate-limit.test.ts": {
     "no-return-assign": {
       "count": 1
     },
     "simple-import-sort/imports": {
       "count": 1
     },
-    "unicorn/filename-case": {
-      "count": 1
-    },
     "unicorn/no-unnecessary-parameters": {
-      "count": 1
-    }
-  },
-  "server/src/rateLimit.ts": {
-    "unicorn/filename-case": {
       "count": 1
     }
   },
@@ -1572,30 +1510,21 @@
       "count": 1
     }
   },
-  "server/src/visitorNames.test.ts": {
+  "server/src/visitor-names.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
     },
     "sonarjs/no-hardcoded-ip": {
       "count": 12
-    },
-    "unicorn/filename-case": {
-      "count": 1
     }
   },
-  "server/src/visitorNames.ts": {
+  "server/src/visitor-names.ts": {
     "import-x/no-relative-packages": {
       "count": 1
-    },
-    "unicorn/filename-case": {
-      "count": 1
     }
   },
-  "server/src/visitorRoom.test.ts": {
+  "server/src/visitor-room.test.ts": {
     "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/filename-case": {
       "count": 1
     },
     "unicorn/no-unnecessary-parameters": {
@@ -1605,12 +1534,9 @@
       "count": 13
     }
   },
-  "server/src/visitorRoom.ts": {
+  "server/src/visitor-room.ts": {
     "unicorn/consistent-boolean-name": {
       "count": 3
-    },
-    "unicorn/filename-case": {
-      "count": 1
     },
     "unicorn/prefer-iterator-to-array": {
       "count": 1

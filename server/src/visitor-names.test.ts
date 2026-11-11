@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createVisitorNameStore, isDefaultName, DEFAULT_NAME } from "./visitorNames.js";
+import { createVisitorNameStore, isDefaultName, DEFAULT_NAME } from "./visitor-names.js";
 
 describe("isDefaultName", () => {
   it("matches the forbidden default name exactly", () => {

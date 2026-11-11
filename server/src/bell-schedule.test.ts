@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { msUntilNextBoundary } from "./bellSchedule.js";
+import { msUntilNextBoundary } from "./bell-schedule.js";
 
 describe("msUntilNextBoundary", () => {
   it("counts up to the next multiple of the interval", () => {

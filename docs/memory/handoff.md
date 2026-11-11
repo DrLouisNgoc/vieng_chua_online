@@ -23,7 +23,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 
 ## Open work (to move into GitHub Issues)
 - **Big refactor in progress (pinned Issue #25, decision 0017).** Done: whole-repo Prettier, strict standard and
-  all tooling. Next: rename server files to kebab-case; clear `eslint-suppressions.json` area by area (1048 left),
+  all tooling, server files in kebab-case. Next: clear `eslint-suppressions.json` area by area (1018 left),
   then delete it, set `IS_RETIRED` in `scripts/check-suppressions.mjs`, enable oxlint type-aware + more
   categories, make knip blocking; split `temple-grounds.ts`, `style.css`, `boards-panel.ts`, `scene.ts`,
   `main.ts`; then `check-size --strict` in CI.

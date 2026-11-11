@@ -1,5 +1,5 @@
 // Shared salted-hash helpers for board passwords (boards.ts) and the
-// single admin password (adminAuth.ts). Not a high-security product —
+// single admin password (admin-auth.ts). Not a high-security product —
 // this is a personal app for a handful of known people — but passwords
 // are never stored or logged in plain text.
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";

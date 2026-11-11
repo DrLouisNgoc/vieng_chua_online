@@ -17,10 +17,11 @@ pre-commit:
       stage_fixed: true
     - name: eslint
       glob: "*.{ts,mjs}"
-      # Fixing staged files can clear old suppressed findings; `npm run lint:fix`
-      # prunes the baseline, and pre-push/CI fail until it has been pruned.
-      run: npx eslint --fix --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 --pass-on-unpruned-suppressions {staged_files}
-      stage_fixed: true
+      # Check only, no --fix: ESLint applies autofixes even to findings listed in
+      # eslint-suppressions.json, so --fix here rewrote old code in any staged file
+      # (a one-line import change became a logic rewrite). Clean suppressed
+      # findings on purpose, area by area, with `npm run lint:fix`.
+      run: npx eslint --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 --pass-on-unpruned-suppressions {staged_files}
     - name: stylelint
       glob: "*.css"
       run: npx stylelint --fix {staged_files}

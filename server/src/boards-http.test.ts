@@ -1,9 +1,9 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { createAdminAuth } from "./adminAuth.js";
+import { createAdminAuth } from "./admin-auth.js";
 import { createBoardStore, seedBoards } from "./boards.js";
-import { createBoardsRequestListener, type RequestLimits } from "./boardsHttp.js";
+import { createBoardsRequestListener, type RequestLimits } from "./boards-http.js";
 
 let server: Server | undefined;
 

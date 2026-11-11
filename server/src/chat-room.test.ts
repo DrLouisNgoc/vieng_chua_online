@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createChatRoom } from "./chatRoom.js";
+import { createChatRoom } from "./chat-room.js";
 
 describe("chatRoom", () => {
   it("adds a message with an id and timestamp", () => {

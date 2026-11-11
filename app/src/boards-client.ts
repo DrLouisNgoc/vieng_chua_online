@@ -1,4 +1,4 @@
-// Fetch wrapper for the server's boards HTTP API (server/src/boardsHttp.ts).
+// Fetch wrapper for the server's boards HTTP API (server/src/boards-http.ts).
 // Every method resolves, never throws — network/parse failures become the
 // "error" outcome so callers (boards-panel.ts) can show one message.
 

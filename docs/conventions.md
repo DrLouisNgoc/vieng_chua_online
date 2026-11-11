@@ -15,7 +15,7 @@ four layers enforce it, so code never drifts and never needs a big cleanup again
 | Layer | When | What runs |
 |---|---|---|
 | Claude Code hook (`.claude/settings.json` → `scripts/claude-format.mjs`) | After every Edit/Write by Claude | Prettier + oxlint safe fixes on that file |
-| lefthook `pre-commit` (`lefthook.yml`) | `git commit` | Prettier, oxlint, ESLint, Stylelint on the staged files; fixes are re-staged, the rest blocks the commit |
+| lefthook `pre-commit` (`lefthook.yml`) | `git commit` | Prettier, oxlint, ESLint, Stylelint on the staged files; fixes (not ESLint's) are re-staged, the rest blocks the commit |
 | lefthook `pre-push` | `git push` | `npm run check` (everything CI runs) |
 | CI `lint` job (required before automerge) | Every PR | `format:check`, oxlint, ESLint `--max-warnings 0`, Stylelint, knip, actionlint |
 

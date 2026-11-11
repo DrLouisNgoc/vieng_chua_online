@@ -2,10 +2,10 @@
 // dependency footprint) for boards: reading/editing content, registering
 // for an open cốc, and the owner's admin approval panel.
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { AdminAuth } from "./adminAuth.js";
+import type { AdminAuth } from "./admin-auth.js";
 import type { AnswerResult, AskResult, BoardStore, DecisionResult, EditResult, RegisterResult } from "./boards.js";
-import { clientIp } from "./clientIp.js";
-import { createWindowCounter } from "./rateLimit.js";
+import { clientIp } from "./client-ip.js";
+import { createWindowCounter } from "./rate-limit.js";
 
 const INVALID_REQUEST = { error: "invalid-request" };
 const NOT_FOUND = { error: "not-found" };

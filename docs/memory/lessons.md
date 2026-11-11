@@ -29,7 +29,7 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
 
 ## Server, proxy, deploy
 - Behind Caddy, `request.socket.remoteAddress` is Caddy's own address; the real visitor ip is the first entry
-  of `X-Forwarded-For` (`server/src/clientIp.ts`, used for every per-ip rule). Local dev has no proxy, so a bug here only shows live.
+  of `X-Forwarded-For` (`server/src/client-ip.ts`, used for every per-ip rule). Local dev has no proxy, so a bug here only shows live.
 - Server tests share one loopback address: `connect()` in server.test.ts sends a fake `X-Forwarded-For` per call.
 - `new WebSocketServer({ server })`: ws does not close the HTTP server on `wss.close()`, and both `httpServer`
   and `wss` need their own `'error'` listener or `EADDRINUSE` crashes the process.
@@ -51,3 +51,5 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
 - Headed Chrome is rAF-throttled when its window is covered: pass `--disable-backgrounding-occluded-windows`,
   `--disable-renderer-backgrounding`, `--disable-background-timer-throttling`. For timing, render 60 frames
   synchronously via a temporary `window.__perf` hook; never commit such hooks (`window.__verify` either).
+- `eslint --fix` also applies autofixes for findings listed in `eslint-suppressions.json`: touching one line of an
+  old file rewrites its logic. Only `npm run lint:fix` may fix (on purpose, in a cleanup PR); hooks only check.

@@ -1,7 +1,7 @@
 // One global admin password, gating the registration-approval panel. The
 // owner's first login sets it (their own choice); after that it must
 // match. Separate from any board's own password (boards.ts).
-import { makePasswordHash, verifyPassword } from "./passwordHash.js";
+import { makePasswordHash, verifyPassword } from "./password-hash.js";
 
 export type AuthResult = "ok" | "wrong-password";
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createVisitorRoom } from "./visitorRoom.js";
+import { createVisitorRoom } from "./visitor-room.js";
 import type { VisitorState } from "./protocol.js";
 
 const standing: VisitorState = {

@@ -2,17 +2,17 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
-import { createAdminAuth } from "./adminAuth.js";
+import { createAdminAuth } from "./admin-auth.js";
 import { BOARD_SEEDS, createBoardStore, mergeWithSeed } from "./boards.js";
-import { createBoardsRequestListener } from "./boardsHttp.js";
-import { readBoardsFile, writeBoardsFile } from "./boardsFile.js";
-import { clientIp } from "./clientIp.js";
-import { createChatRoom } from "./chatRoom.js";
-import { createPresenceRoom } from "./presenceRoom.js";
+import { createBoardsRequestListener } from "./boards-http.js";
+import { readBoardsFile, writeBoardsFile } from "./boards-file.js";
+import { clientIp } from "./client-ip.js";
+import { createChatRoom } from "./chat-room.js";
+import { createPresenceRoom } from "./presence-room.js";
 import { parseClientMessage, type ServerMessage } from "./protocol.js";
-import { createVisitorRoom } from "./visitorRoom.js";
-import { createVisitorNameStore, isDefaultName } from "./visitorNames.js";
-import { msUntilNextBoundary } from "./bellSchedule.js";
+import { createVisitorRoom } from "./visitor-room.js";
+import { createVisitorNameStore, isDefaultName } from "./visitor-names.js";
+import { msUntilNextBoundary } from "./bell-schedule.js";
 
 const DEFAULT_PORT = 8787;
 const DEFAULT_BOARDS_FILE = (): string => join(process.cwd(), "data", "boards.json");
@@ -26,7 +26,7 @@ const MAX_CONNECTIONS_PER_IP = 8;
 // The temple bell also tolls on its own, once an hour, independent of
 // anyone joining (owner, 2026-11-10: "âm thanh chuông tự động đánh...
 // cứ 1 tiếng đánh 1 lần"), aligned to the wall clock (owner, 2026-11-11:
-// "theo giờ đồng hồ") — see bellSchedule.ts.
+// "theo giờ đồng hồ") — see bell-schedule.ts.
 const DEFAULT_BELL_INTERVAL_MS = 60 * 60 * 1000;
 // WebSocket close code 1001 "going away" (RFC 6455 §7.4.1).
 const GOING_AWAY = 1001;

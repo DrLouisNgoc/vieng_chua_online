@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { IncomingMessage } from "node:http";
-import { clientIp } from "./clientIp.js";
+import { clientIp } from "./client-ip.js";
 
 function request(headers: Record<string, string | string[]>, remoteAddress = "127.0.0.1"): IncomingMessage {
   return { headers, socket: { remoteAddress } } as unknown as IncomingMessage;
