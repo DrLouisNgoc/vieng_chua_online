@@ -14,5 +14,4 @@ Closes #
 
 - [ ] `docs/architecture.md` updated for any added/moved/renamed source file
 - [ ] Labelled `ngoc` or `anh` (who did it; both machines share one GitHub account)
-- [ ] Visible change (3D, CSS, layout)? Labelled `needs-visual-check` at creation; an owner merges after looking
-- [ ] Unfinished? Opened as a draft (CI merges every green non-draft PR by itself)
+- [ ] Unfinished? Opened as a draft (CI merges every green non-draft PR by itself, visual/3D changes included)

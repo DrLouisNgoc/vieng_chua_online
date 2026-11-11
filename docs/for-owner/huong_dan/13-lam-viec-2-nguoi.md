@@ -34,7 +34,7 @@ hoặc `anh` lên Issue và PR, và commit mang tên riêng của từng máy (`
    đã tự xin đủ quyền.
 3. Trên VPS: dán `deploy.sh` bản mới theo [file 11](11-cap-nhat-deploy-lai.md), rồi chạy thử tính năng tự quay về.
 
-Các nhãn `ngoc`, `anh`, `tech-debt`, `needs-visual-check`: đã tạo sẵn (Claude tự tạo lại nếu thiếu).
+Các nhãn `ngoc`, `anh`, `tech-debt`: đã tạo sẵn (Claude tự tạo lại nếu thiếu).
 
 ## Phần B — Máy anh trai, cài 1 lần
 
@@ -73,8 +73,8 @@ Chỉ hỏi hay nhờ giải thích, không sửa file nào: Claude không mở 
 
 (Các lệnh `/bat-dau`, `/xong`, `/refactor` vẫn dùng được nếu muốn gọi tay, nhưng không bắt buộc.)
 
-**PR có nhãn `needs-visual-check`** (đổi giao diện hoặc 3D): CI không tự merge. Người làm chạy `npm run dev`, nhìn
-tận mắt, thấy ổn và CI xanh thì vào GitHub bấm **Merge**.
+**Không còn bước xem trước khi merge** (quyết định 0016): PR đổi giao diện/3D cũng tự động merge như mọi PR khác
+khi CI xanh. Muốn xem thử thì `npm run dev` trước hoặc sau khi merge đều được, tuỳ bạn.
 
 **Xem ai đang làm gì:** tab **Issues** trên GitHub, nhãn `ngoc` hay `anh`. Đừng nhận việc có nhãn của người kia.
 
