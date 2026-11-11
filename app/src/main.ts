@@ -16,6 +16,7 @@ import { createBoardsPanel } from "./boards-panel";
 import { createChatPanel } from "./chat-panel";
 import { nearestBoardId } from "./board-proximity";
 import { createBackgroundMusic, BACKGROUND_MUSIC_VIDEO_ID } from "./background-music";
+import { createBellVideo, BELL_VIDEO_ID } from "./bell-video";
 import { defaultBoardsUrl, defaultPresenceUrl } from "./runtime-urls";
 
 const MOKTAK_SOUND_URL = "/sansatemple/audio/moktak-hit-natural.wav";
@@ -185,7 +186,7 @@ async function main(): Promise<void> {
     onSeatRefused: () => temple?.refuseSeat(),
     onChat: (message) => chatPanel.addMessage(message),
     onChatHistory: (messages) => chatPanel.setHistory(messages),
-    onBell: () => ambience.ringBell(),
+    onBell: () => bellVideo.ring(),
     // Pháp danh locked to this visitor's ip (owner, 2026-11-10): prefill
     // and freeze the name field instead of leaving it open to a default.
     onNameLock: (name) => {
@@ -206,6 +207,10 @@ async function main(): Promise<void> {
   // phát cho tôi") — a hidden YouTube embed, muted until the visitor
   // clicks the toggle (browsers block automatic sound without a click).
   const backgroundMusic = createBackgroundMusic(document.body, BACKGROUND_MUSIC_VIDEO_ID);
+  // The bell toll (owner, 2026-11-11: "tự động phát tiếng chuông chùa này
+  // cho tôi") — a hidden YouTube embed, since no local bell-gong.mp3 was
+  // ever added.
+  const bellVideo = createBellVideo(document.body, BELL_VIDEO_ID);
   const musicToggleButton: HTMLButtonElement = musicToggle;
   function renderMusicToggle(): void {
     musicToggleButton.textContent = backgroundMusic.muted ? "🔈 Nhạc nền" : "🔊 Nhạc nền";
@@ -257,7 +262,7 @@ async function main(): Promise<void> {
       practice.update(deltaSeconds);
       renderPractice();
     },
-    onRingBell: () => ambience.ringBell(),
+    onRingBell: () => bellVideo.ring(),
   }).then((loaded) => {
     temple = loaded;
     performInteraction = loaded.perform;

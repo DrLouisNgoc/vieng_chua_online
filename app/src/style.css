@@ -80,7 +80,8 @@ body {
   cursor: pointer;
 }
 
-.background-music__frame {
+.background-music__frame,
+.bell-video__frame {
   position: absolute;
   width: 0;
   height: 0;
