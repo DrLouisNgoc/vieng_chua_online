@@ -7,9 +7,7 @@ export interface MoktakController {
   strike: () => void;
 }
 
-export function createMoktakController(
-  options: MoktakControllerOptions,
-): MoktakController {
+export function createMoktakController(options: MoktakControllerOptions): MoktakController {
   let strikeCount = 0;
 
   function strike(): void {

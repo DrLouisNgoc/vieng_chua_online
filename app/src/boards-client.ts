@@ -104,22 +104,14 @@ export interface AdminPendingEntry {
 }
 
 export type EditOutcome = "ok" | "wrong-password" | "not-found" | "not-assigned" | "error";
-export type RegisterOutcome =
-  | "ok"
-  | "not-found"
-  | "not-registrable"
-  | "already-pending"
-  | "already-assigned"
-  | "error";
+export type RegisterOutcome = "ok" | "not-found" | "not-registrable" | "already-pending" | "already-assigned" | "error";
 export type AdminDecisionOutcome = "ok" | "wrong-password" | "not-found" | "no-pending" | "error";
 export type AdminPendingResult =
-  | { outcome: "ok"; registrations: AdminPendingEntry[] }
-  | { outcome: "wrong-password" | "error" };
+  { outcome: "ok"; registrations: AdminPendingEntry[] } | { outcome: "wrong-password" | "error" };
 export type AskOutcome = "ok" | "not-found" | "not-assigned" | "error";
 export type AnswerOutcome = "ok" | "wrong-password" | "not-found" | "error";
 export type ReadQuestionsResult =
-  | { outcome: "ok"; questions: Question[] }
-  | { outcome: "wrong-password" | "not-found" | "error" };
+  { outcome: "ok"; questions: Question[] } | { outcome: "wrong-password" | "not-found" | "error" };
 
 export interface BoardsClient {
   list: () => Promise<BoardView[]>;

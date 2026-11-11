@@ -7,9 +7,7 @@ describe("chant texts", () => {
   it("has the chants the owner chose, as lines of syllables", () => {
     expect(CHANTS.map((chant) => chant.id)).toEqual(["thichca", "adida", "quanam", "tamkinh"]);
     expect(chantById("adida").lines).toEqual([["Nam", "Mô", "A", "Di", "Đà", "Phật"]]);
-    expect(chantById("thichca").lines).toEqual([
-      ["Nam", "Mô", "Bổn", "Sư", "Thích", "Ca", "Mâu", "Ni", "Phật"],
-    ]);
+    expect(chantById("thichca").lines).toEqual([["Nam", "Mô", "Bổn", "Sư", "Thích", "Ca", "Mâu", "Ni", "Phật"]]);
     for (const chant of CHANTS) {
       expect(chant.bpm).toBeGreaterThan(40);
       for (const line of chant.lines) {

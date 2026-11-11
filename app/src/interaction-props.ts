@@ -77,11 +77,7 @@ export function createLeafMesh(cap: number): InstancedMesh {
 
 const placement = new Object3D();
 
-export function syncLeafMesh(
-  mesh: InstancedMesh,
-  leaves: readonly Leaf[],
-  heightAt: (point: Point) => number,
-): void {
+export function syncLeafMesh(mesh: InstancedMesh, leaves: readonly Leaf[], heightAt: (point: Point) => number): void {
   leaves.forEach((leaf, index) => {
     placement.position.set(leaf.x, heightAt(leaf) + 0.015, leaf.z);
     placement.rotation.set(0, leaf.rotation, 0);

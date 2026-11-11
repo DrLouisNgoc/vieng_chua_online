@@ -31,11 +31,7 @@ export function normalizeAngle(angle: number): number {
   return angle - 2 * Math.PI * Math.ceil((angle - Math.PI) / (2 * Math.PI));
 }
 
-export function desiredCameraPosition(
-  target: Vec3,
-  heading: number,
-  rig: CameraRig,
-): Vec3 {
+export function desiredCameraPosition(target: Vec3, heading: number, rig: CameraRig): Vec3 {
   const yaw = heading + rig.yawOffset;
   const horizontal = rig.distance * Math.cos(rig.pitch);
   return {
@@ -54,11 +50,7 @@ export function turnTowards(current: number, target: number, maxStep: number): n
 
 // Camera-relative walking direction: W/S along where the camera looks,
 // A/D to its left/right. Null when no direction key is held.
-export function moveDirection(
-  cameraYaw: number,
-  forward: number,
-  right: number,
-): { x: number; z: number } | null {
+export function moveDirection(cameraYaw: number, forward: number, right: number): { x: number; z: number } | null {
   const x = Math.sin(cameraYaw) * forward - Math.cos(cameraYaw) * right;
   const z = Math.cos(cameraYaw) * forward + Math.sin(cameraYaw) * right;
   const length = Math.hypot(x, z);
@@ -77,10 +69,6 @@ export function applyDrag(rig: CameraRig, dx: number, dy: number): CameraRig {
 export function applyZoom(rig: CameraRig, wheelDeltaY: number): CameraRig {
   return {
     ...rig,
-    distance: clamp(
-      rig.distance * Math.exp(wheelDeltaY * ZOOM_PER_WHEEL_UNIT),
-      MIN_DISTANCE,
-      MAX_DISTANCE,
-    ),
+    distance: clamp(rig.distance * Math.exp(wheelDeltaY * ZOOM_PER_WHEEL_UNIT), MIN_DISTANCE, MAX_DISTANCE),
   };
 }

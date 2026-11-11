@@ -167,9 +167,7 @@ describe("createBoardStore: open (registrable) cốc", () => {
   it("listPending reports every board with a pending registration, note included", () => {
     const store = createBoardStore(seedBoards([openSeed, { ...openSeed, id: "o2", title: "Cốc Trống 2" }]));
     store.register("o", "Chú Tâm", "ghi chú riêng");
-    expect(store.listPending()).toEqual([
-      { id: "o", title: "Cốc Trống", name: "Chú Tâm", note: "ghi chú riêng" },
-    ]);
+    expect(store.listPending()).toEqual([{ id: "o", title: "Cốc Trống", name: "Chú Tâm", note: "ghi chú riêng" }]);
   });
 });
 
@@ -246,7 +244,16 @@ describe("mergeWithSeed", () => {
 
   it("drops a persisted board whose id is no longer in the seed list", () => {
     const persisted = [
-      { id: "old", title: "Old", type: "text" as const, body: "x", passwordHash: null, registrable: false, occupantName: null, pending: null },
+      {
+        id: "old",
+        title: "Old",
+        type: "text" as const,
+        body: "x",
+        passwordHash: null,
+        registrable: false,
+        occupantName: null,
+        pending: null,
+      },
     ];
     const merged = mergeWithSeed(persisted, [fixedSeed]);
     expect(merged.map((b) => b.id)).toEqual(["a"]);
@@ -274,7 +281,18 @@ describe("mergeWithSeed", () => {
     const seeded = { ...fixedSeed, id: "p", body: "mặc định" };
     expect(seedBoards([seeded])[0]?.body).toBe("mặc định");
     expect(mergeWithSeed([], [seeded])[0]?.body).toBe("mặc định");
-    const persisted = [{ id: "p", title: "x", type: "text" as const, body: "đã sửa rồi", passwordHash: null, registrable: false, occupantName: null, pending: null }];
+    const persisted = [
+      {
+        id: "p",
+        title: "x",
+        type: "text" as const,
+        body: "đã sửa rồi",
+        passwordHash: null,
+        registrable: false,
+        occupantName: null,
+        pending: null,
+      },
+    ];
     expect(mergeWithSeed(persisted, [seeded])[0]?.body).toBe("đã sửa rồi");
   });
 
@@ -296,8 +314,6 @@ describe("BOARD_SEEDS", () => {
   });
 
   it("only the hall projector skips a password", () => {
-    expect(BOARD_SEEDS.filter((b) => b.requiresPassword === false).map((b) => b.id)).toEqual([
-      "may-chieu-chanh-dien",
-    ]);
+    expect(BOARD_SEEDS.filter((b) => b.requiresPassword === false).map((b) => b.id)).toEqual(["may-chieu-chanh-dien"]);
   });
 });

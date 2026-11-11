@@ -59,8 +59,7 @@ body {
   left: var(--space-hud);
   padding: 0.5rem 1rem;
   border-radius: 999px;
-  background:
-    linear-gradient(165deg, oklch(99% 0.015 85 / 0.85), oklch(93% 0.02 80 / 0.68));
+  background: linear-gradient(165deg, oklch(99% 0.015 85 / 0.85), oklch(93% 0.02 80 / 0.68));
   backdrop-filter: blur(10px);
   box-shadow:
     0 2px 14px oklch(22% 0.03 70 / 0.18),
@@ -212,9 +211,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: var(--space-hud);
-  background:
-    radial-gradient(120% 55% at 50% -10%, oklch(55% 0.09 70 / 0.4), transparent 60%),
-    var(--color-ink);
+  background: radial-gradient(120% 55% at 50% -10%, oklch(55% 0.09 70 / 0.4), transparent 60%), var(--color-ink);
 }
 
 .onboarding[hidden] {
@@ -363,11 +360,23 @@ body {
   height: auto;
 }
 
-.va-figure .va-skin { fill: #f3d2b0; }
-.va-figure .va-skin-dark { fill: #e2b891; }
-.va-figure .va-scalp { fill: #5d5870; fill-opacity: 0.3; }
-.va-figure .va-stubble { fill: #33221a; opacity: 0.14; }
-.va-figure .va-hair { fill: #3a2517; }
+.va-figure .va-skin {
+  fill: #f3d2b0;
+}
+.va-figure .va-skin-dark {
+  fill: #e2b891;
+}
+.va-figure .va-scalp {
+  fill: #5d5870;
+  fill-opacity: 0.3;
+}
+.va-figure .va-stubble {
+  fill: #33221a;
+  opacity: 0.14;
+}
+.va-figure .va-hair {
+  fill: #3a2517;
+}
 .va-figure .va-hair-line {
   fill: none;
   stroke: #6b4a33;
@@ -375,7 +384,9 @@ body {
   stroke-linecap: round;
   stroke-opacity: 0.8;
 }
-.va-figure .va-tie { fill: var(--color-gold); }
+.va-figure .va-tie {
+  fill: var(--color-gold);
+}
 .va-figure .va-brow {
   fill: none;
   stroke: #5d4433;
@@ -394,15 +405,23 @@ body {
   stroke-width: 1.6px;
   stroke-linecap: round;
 }
-.va-figure .va-blush { fill: #e8907a; opacity: 0.35; }
-.va-figure .va-shoe { fill: #2f2118; }
+.va-figure .va-blush {
+  fill: #e8907a;
+  opacity: 0.35;
+}
+.va-figure .va-shoe {
+  fill: #2f2118;
+}
 .va-figure .va-line {
   fill: none;
   stroke: #c79a72;
   stroke-width: 1.2px;
   stroke-linecap: round;
 }
-.va-figure .va-ground { fill: #000; fill-opacity: 0.32; }
+.va-figure .va-ground {
+  fill: #000;
+  fill-opacity: 0.32;
+}
 .va-figure .va-ring {
   fill: none;
   stroke: var(--color-gold);

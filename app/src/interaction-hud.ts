@@ -9,10 +9,7 @@ export interface InteractionHud {
   show: () => void;
 }
 
-export function createInteractionHud(
-  root: HTMLElement,
-  onAction: (action: InteractionAction) => void,
-): InteractionHud {
+export function createInteractionHud(root: HTMLElement, onAction: (action: InteractionAction) => void): InteractionHud {
   const bar = document.createElement("div");
   bar.className = "actions";
   bar.setAttribute("role", "toolbar");

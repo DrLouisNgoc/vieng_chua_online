@@ -38,9 +38,7 @@ describe("poseForActivity", () => {
   it("sits, and counts beads standing or seated", () => {
     expect(poseForActivity({ ...base, activity: "seated", seatIndex: 1 }, 0, 0)).toBe(SEATED);
     expect(poseForActivity({ ...base, activity: "beads", beadsVisible: true }, 0, 0)).toBe(BEADS);
-    expect(
-      poseForActivity({ ...base, activity: "beads", seatIndex: 1, beadsVisible: true }, 0, 0),
-    ).toBe(BEADS_SEATED);
+    expect(poseForActivity({ ...base, activity: "beads", seatIndex: 1, beadsVisible: true }, 0, 0)).toBe(BEADS_SEATED);
   });
 
   it("greets standing, and seated with the legs still crossed", () => {
@@ -72,10 +70,12 @@ describe("chanting pose", () => {
 });
 
 describe("new named poses", () => {
-  it.each([["BEADS", BEADS], ["BEADS_SEATED", BEADS_SEATED], ["BROOM_IDLE", BROOM_IDLE], ["sweep", sweepPose(0.4)]])(
-    "%s only names bones of the rig",
-    (_name, pose) => {
-      for (const bone of Object.keys(pose.bones)) expect(BONE_NAMES).toContain(bone);
-    },
-  );
+  it.each([
+    ["BEADS", BEADS],
+    ["BEADS_SEATED", BEADS_SEATED],
+    ["BROOM_IDLE", BROOM_IDLE],
+    ["sweep", sweepPose(0.4)],
+  ])("%s only names bones of the rig", (_name, pose) => {
+    for (const bone of Object.keys(pose.bones)) expect(BONE_NAMES).toContain(bone);
+  });
 });

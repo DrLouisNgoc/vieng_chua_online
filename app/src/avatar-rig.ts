@@ -40,10 +40,7 @@ export function createAvatarRig(avatar: Object3D): AvatarRig {
     avatarToParent.invert().multiply(avatarWorldQuat);
     parentToAvatar.copy(avatarToParent).invert();
     offsetEuler.set(rotation.x ?? 0, rotation.y ?? 0, rotation.z ?? 0);
-    offset
-      .setFromEuler(offsetEuler)
-      .premultiply(avatarToParent)
-      .multiply(parentToAvatar);
+    offset.setFromEuler(offsetEuler).premultiply(avatarToParent).multiply(parentToAvatar);
     bone.quaternion.copy(rest).premultiply(offset);
     bone.updateMatrixWorld(true);
   }

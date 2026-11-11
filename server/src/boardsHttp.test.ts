@@ -21,9 +21,7 @@ function start(limits?: Partial<RequestLimits>) {
   );
   const adminAuth = createAdminAuth(null);
   const persisted: unknown[] = [];
-  server = createServer(
-    createBoardsRequestListener(store, adminAuth, () => persisted.push(store.snapshot()), limits),
-  );
+  server = createServer(createBoardsRequestListener(store, adminAuth, () => persisted.push(store.snapshot()), limits));
   server.listen(0);
   const { port } = server.address() as AddressInfo;
   return { url: `http://127.0.0.1:${port}`, persisted };
@@ -94,7 +92,12 @@ describe("boards HTTP API", () => {
 
   it("edit can also rename the board and set its talks list", async () => {
     const { url } = start();
-    await postJson(`${url}/boards/a`, { password: "bimat", body: "Xin chào", talks: "Vô thường | https://x", title: "Tên mới" });
+    await postJson(`${url}/boards/a`, {
+      password: "bimat",
+      body: "Xin chào",
+      talks: "Vô thường | https://x",
+      title: "Tên mới",
+    });
     const board = await (await fetch(`${url}/boards/a`)).json();
     expect(board).toMatchObject({ title: "Tên mới", talks: "Vô thường | https://x" });
   });
@@ -111,9 +114,7 @@ describe("boards HTTP API", () => {
     const right = await postJson(`${url}/boards/a/questions`, { password: "bimat" });
     expect(right.status).toBe(200);
     const { questions } = await right.json();
-    expect(questions).toMatchObject([
-      { name: "Khách", text: "Thưa thầy, con nên bắt đầu từ đâu?", answer: null },
-    ]);
+    expect(questions).toMatchObject([{ name: "Khách", text: "Thưa thầy, con nên bắt đầu từ đâu?", answer: null }]);
     expect(typeof questions[0].id).toBe("string");
   });
 

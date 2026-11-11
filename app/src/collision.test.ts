@@ -30,10 +30,7 @@ describe("resolveMove", () => {
   });
 
   it("stays put when both axes are blocked", () => {
-    const corner: Box[] = [
-      wall,
-      { minX: -2, maxX: 2, minZ: 2, maxZ: 4 },
-    ];
+    const corner: Box[] = [wall, { minX: -2, maxX: 2, minZ: 2, maxZ: 4 }];
     expect(resolveMove({ x: -0.5, z: 1.9 }, { x: 0.5, z: 2.5 }, corner)).toEqual({
       x: -0.5,
       z: 1.9,

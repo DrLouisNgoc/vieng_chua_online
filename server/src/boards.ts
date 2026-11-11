@@ -109,9 +109,7 @@ export type DecisionResult = "ok" | "not-found" | "no-pending";
 export type AskResult = "ok" | "not-found" | "not-assigned";
 export type AnswerResult = "ok" | "wrong-password" | "not-found";
 export type ReadQuestionsResult =
-  | { outcome: "ok"; questions: Question[] }
-  | { outcome: "wrong-password" }
-  | { outcome: "not-found" };
+  { outcome: "ok"; questions: Question[] } | { outcome: "wrong-password" } | { outcome: "not-found" };
 
 export interface BoardStore {
   list: () => PublicBoard[];

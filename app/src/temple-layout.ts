@@ -30,9 +30,7 @@ export const HALL = {
   roofBaseY: PLATFORM_HEIGHT + INTERIOR_HEIGHT,
   frontPillarZ: -2,
   frontPillarXs: [-34.2, -26.6, -19, -11.4, 11.4, 19, 26.6, 34.2],
-  innerPillars: [-10, -20, -30, -40].flatMap((z) =>
-    [-28, -15, 15, 28].map((x) => ({ x, z })),
-  ),
+  innerPillars: [-10, -20, -30, -40].flatMap((z) => [-28, -15, 15, 28].map((x) => ({ x, z }))),
 } as const;
 
 // Steps run from the hall's front edge (frontZ) outward to +z; the step
@@ -237,8 +235,7 @@ export const BAMBOO_CLUMPS: Point[] = [
 
 // Rows of cushions facing the altar, with a walkway down the middle.
 const SEAT_SPACING = 1.5;
-const HALL_SEAT_XS = Array.from({ length: 8 }, (_, i) => 2.1 + i * SEAT_SPACING)
-  .flatMap((x) => [-x, x]);
+const HALL_SEAT_XS = Array.from({ length: 8 }, (_, i) => 2.1 + i * SEAT_SPACING).flatMap((x) => [-x, x]);
 const HALL_SEAT_ZS = Array.from({ length: 24 }, (_, i) => -5 - i * 1.6);
 
 export const MEDITATION_SEATS: Point[] = [

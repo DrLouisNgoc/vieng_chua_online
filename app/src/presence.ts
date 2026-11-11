@@ -11,10 +11,7 @@ import {
 
 const DEFAULT_RECONNECT_DELAY_MS = 2000;
 
-export type PresenceStatus =
-  | { kind: "connecting" }
-  | { kind: "online"; count: number }
-  | { kind: "offline" };
+export type PresenceStatus = { kind: "connecting" } | { kind: "online"; count: number } | { kind: "offline" };
 
 export interface PresenceClientOptions {
   url: string;
@@ -50,11 +47,8 @@ export interface PresenceClient {
   dispose: () => void;
 }
 
-export function createPresenceClient(
-  options: PresenceClientOptions,
-): PresenceClient {
-  const reconnectDelayMs =
-    options.reconnectDelayMs ?? DEFAULT_RECONNECT_DELAY_MS;
+export function createPresenceClient(options: PresenceClientOptions): PresenceClient {
+  const reconnectDelayMs = options.reconnectDelayMs ?? DEFAULT_RECONNECT_DELAY_MS;
   const now = options.now ?? (() => performance.now());
   let disposed = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;

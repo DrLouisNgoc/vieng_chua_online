@@ -15,10 +15,7 @@ export function triangleCount(geometry: BufferGeometry): number {
 
 // Returns a geometry sharing the input's vertex attributes with a reduced
 // index of about `ratio` of the triangles. Non-indexed input is returned as is.
-export async function simplifyGeometry(
-  geometry: BufferGeometry,
-  ratio: number,
-): Promise<BufferGeometry> {
+export async function simplifyGeometry(geometry: BufferGeometry, ratio: number): Promise<BufferGeometry> {
   const index = geometry.getIndex();
   if (!index) return geometry;
   await MeshoptSimplifier.ready;
@@ -34,23 +31,9 @@ export async function simplifyGeometry(
   const indices = Uint32Array.from(index.array);
   const targetIndexCount = Math.max(3, Math.floor((indices.length * ratio) / 3) * 3);
 
-  let [reduced] = MeshoptSimplifier.simplify(
-    indices,
-    positions,
-    3,
-    targetIndexCount,
-    MAX_ERROR,
-    ["Prune"],
-  );
+  let [reduced] = MeshoptSimplifier.simplify(indices, positions, 3, targetIndexCount, MAX_ERROR, ["Prune"]);
   if (reduced.length > targetIndexCount * TARGET_SLACK) {
-    [reduced] = MeshoptSimplifier.simplifySloppy(
-      indices,
-      positions,
-      3,
-      null,
-      targetIndexCount,
-      SLOPPY_MAX_ERROR,
-    );
+    [reduced] = MeshoptSimplifier.simplifySloppy(indices, positions, 3, null, targetIndexCount, SLOPPY_MAX_ERROR);
   }
 
   // Draw groups are dropped: their ranges point into the old index.

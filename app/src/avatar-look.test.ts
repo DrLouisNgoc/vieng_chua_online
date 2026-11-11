@@ -32,8 +32,8 @@ describe("tintRobe", () => {
     expect(robeA).not.toBe(shared);
     expect(robeA.color.getHexString()).toBe(new MeshStandardMaterial({ color: "#3f6e9c" }).color.getHexString());
     expect(shared.color.getHex()).toBe(0x667766);
-    expect(((b.children[0] as Mesh).material as MeshStandardMaterial)).toBe(shared);
-    expect(((a.children[1] as Mesh).material as MeshStandardMaterial)).toBe(skin);
+    expect((b.children[0] as Mesh).material as MeshStandardMaterial).toBe(shared);
+    expect((a.children[1] as Mesh).material as MeshStandardMaterial).toBe(skin);
   });
 
   it("can be applied again without stacking clones", () => {

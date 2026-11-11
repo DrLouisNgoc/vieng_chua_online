@@ -105,8 +105,7 @@ function lerp(a: number, b: number, k: number): number {
 
 function lerpColor(a: number, b: number, k: number): number {
   if (a === b) return a;
-  const channel = (shift: number): number =>
-    Math.round(lerp((a >> shift) & 0xff, (b >> shift) & 0xff, k)) << shift;
+  const channel = (shift: number): number => Math.round(lerp((a >> shift) & 0xff, (b >> shift) & 0xff, k)) << shift;
   return channel(16) | channel(8) | channel(0);
 }
 

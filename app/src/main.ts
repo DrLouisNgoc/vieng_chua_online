@@ -87,11 +87,7 @@ function renderShell(): void {
   `;
 }
 
-function updateAvatarPreview(
-  container: HTMLElement,
-  gender: Gender,
-  colorIndex: number,
-): void {
+function updateAvatarPreview(container: HTMLElement, gender: Gender, colorIndex: number): void {
   container.innerHTML = renderAvatarSvg(gender);
   const color = ROBE_COLORS[colorIndex];
   const figure = container.querySelector<SVGElement>(".va-figure");
@@ -113,31 +109,15 @@ async function main(): Promise<void> {
   const boardsRoot = document.querySelector<HTMLElement>("#boards");
   const chatRoot = document.querySelector<HTMLElement>("#chat");
   const boardPrompt = document.querySelector<HTMLElement>("#board-prompt");
-  const presenceLabel = document.querySelector<HTMLSpanElement>(
-    "#presence-label",
-  );
-  const visitorNameLabel = document.querySelector<HTMLSpanElement>(
-    "#visitor-name",
-  );
+  const presenceLabel = document.querySelector<HTMLSpanElement>("#presence-label");
+  const visitorNameLabel = document.querySelector<HTMLSpanElement>("#visitor-name");
   const onboarding = document.querySelector<HTMLElement>("#onboarding");
-  const onboardingForm = document.querySelector<HTMLFormElement>(
-    "#onboarding-form",
-  );
-  const onboardingPreview = document.querySelector<HTMLElement>(
-    "#onboarding-preview",
-  );
-  const onboardingNameInput = document.querySelector<HTMLInputElement>(
-    "#onboarding-name",
-  );
-  const onboardingNameError = document.querySelector<HTMLParagraphElement>(
-    "#onboarding-name-error",
-  );
-  const onboardingGender = document.querySelector<HTMLElement>(
-    "#onboarding-gender",
-  );
-  const onboardingSwatches = document.querySelector<HTMLElement>(
-    "#onboarding-swatches",
-  );
+  const onboardingForm = document.querySelector<HTMLFormElement>("#onboarding-form");
+  const onboardingPreview = document.querySelector<HTMLElement>("#onboarding-preview");
+  const onboardingNameInput = document.querySelector<HTMLInputElement>("#onboarding-name");
+  const onboardingNameError = document.querySelector<HTMLParagraphElement>("#onboarding-name-error");
+  const onboardingGender = document.querySelector<HTMLElement>("#onboarding-gender");
+  const onboardingSwatches = document.querySelector<HTMLElement>("#onboarding-swatches");
   const musicToggle = document.querySelector<HTMLButtonElement>("#music-toggle");
   if (
     !viewport ||
@@ -172,8 +152,7 @@ async function main(): Promise<void> {
     });
   };
 
-  let moktakController: ReturnType<typeof createMoktakController> | null =
-    null;
+  let moktakController: ReturnType<typeof createMoktakController> | null = null;
   let performInteraction: ((action: Parameters<TempleScene["perform"]>[0]) => void) | null = null;
   let temple: TempleScene | null = null;
   const chatPanel = createChatPanel(chatRoot, (text) => presence.sendChat(text));
@@ -193,13 +172,10 @@ async function main(): Promise<void> {
       if (name !== null) applyNameLock(name);
     },
     onWelcome: () => enterTemple(onb.state.name),
-    onJoinRefused: () =>
-      showNameError("Pháp danh này không dùng được, hãy nhập pháp danh hoặc tên riêng của bạn."),
+    onJoinRefused: () => showNameError("Pháp danh này không dùng được, hãy nhập pháp danh hoặc tên riêng của bạn."),
   });
   let entered = false;
-  const interactionHud = createInteractionHud(interactionRoot, (action) =>
-    performInteraction?.(action),
-  );
+  const interactionHud = createInteractionHud(interactionRoot, (action) => performInteraction?.(action));
 
   // "Tu tập" (Milestone 7): chanting, moktak autoplay, background sound.
   const ambience = createAmbience();
@@ -284,7 +260,10 @@ async function main(): Promise<void> {
   async function refreshProjectorPreview(scene: TempleScene): Promise<void> {
     const boards = await boardsClient.list();
     const projector = boards.find((board) => board.id === "may-chieu-chanh-dien");
-    const firstUrl = projector?.body.split("\n").map((line) => line.trim()).find(Boolean);
+    const firstUrl = projector?.body
+      .split("\n")
+      .map((line) => line.trim())
+      .find(Boolean);
     const videoId = firstUrl ? youtubeVideoId(firstUrl) : null;
     scene.setProjectorPreview(videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null);
   }
@@ -321,8 +300,6 @@ async function main(): Promise<void> {
       }, PHAP_CU_ROTATE_MS);
     }
   }
-
-
 
   // Onboarding (character screen)
   const onb = createOnboardingController();
@@ -377,9 +354,7 @@ async function main(): Promise<void> {
   });
 
   onboardingGender.addEventListener("click", (event) => {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-      "button[data-gender]",
-    );
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-gender]");
     const gender = button?.dataset.gender;
     if (gender !== "nam" && gender !== "nu") return;
     onb.setGender(gender);
@@ -390,9 +365,7 @@ async function main(): Promise<void> {
   });
 
   onboardingSwatches.addEventListener("click", (event) => {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-      "button[data-color-index]",
-    );
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-color-index]");
     const index = Number(button?.dataset.colorIndex);
     if (button === null || Number.isNaN(index)) return;
     onb.setColorIndex(index);

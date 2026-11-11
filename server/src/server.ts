@@ -122,10 +122,13 @@ export function startPresenceServer(
   // server happened to start: the first toll waits only until the next
   // boundary, then a plain interval keeps it there.
   let hourlyBell: ReturnType<typeof setInterval> | undefined;
-  const firstBell = setTimeout(() => {
-    broadcast(clients, { type: "bell" });
-    hourlyBell = setInterval(() => broadcast(clients, { type: "bell" }), bellIntervalMs);
-  }, msUntilNextBoundary(bellIntervalMs, Date.now()));
+  const firstBell = setTimeout(
+    () => {
+      broadcast(clients, { type: "bell" });
+      hourlyBell = setInterval(() => broadcast(clients, { type: "bell" }), bellIntervalMs);
+    },
+    msUntilNextBoundary(bellIntervalMs, Date.now()),
+  );
   wss.on("close", () => {
     clearTimeout(firstBell);
     if (hourlyBell) clearInterval(hourlyBell);
@@ -207,9 +210,7 @@ export function stopPresenceServer(wss: WebSocketServer): Promise<void> {
   return new Promise((resolve) => wss.close(() => resolve()));
 }
 
-const isMainModule =
-  process.argv[1] !== undefined &&
-  import.meta.url === pathToFileURL(process.argv[1]).href;
+const isMainModule = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isMainModule) {
   const port = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT;

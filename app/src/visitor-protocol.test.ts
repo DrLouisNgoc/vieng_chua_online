@@ -98,9 +98,10 @@ describe("parseServerMessage", () => {
       type: "chat",
       message: entry,
     });
-    expect(
-      parseServerMessage(JSON.stringify({ type: "chat-history", messages: [entry, { id: 5 }] })),
-    ).toEqual({ type: "chat-history", messages: [entry] });
+    expect(parseServerMessage(JSON.stringify({ type: "chat-history", messages: [entry, { id: 5 }] }))).toEqual({
+      type: "chat-history",
+      messages: [entry],
+    });
   });
 });
 

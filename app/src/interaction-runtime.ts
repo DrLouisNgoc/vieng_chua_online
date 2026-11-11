@@ -2,11 +2,7 @@ import type { Object3D, Scene } from "three";
 import { blendPose, type BodyPose } from "./body-pose";
 import type { AvatarRig } from "./avatar-rig";
 import { createHeldProps, placeHeldProps } from "./held-props";
-import {
-  BEAD_TOTAL_KEY,
-  createBeadCounter,
-  createStorageBeadStore,
-} from "./bead-counter";
+import { BEAD_TOTAL_KEY, createBeadCounter, createStorageBeadStore } from "./bead-counter";
 import { createInteractionState, type InteractionSnapshot } from "./interaction-state";
 import { findTargets, seatHeading, type Targets } from "./interaction-targets";
 import {
@@ -20,14 +16,7 @@ import { createLeafMesh, syncLeafMesh, turnBeadString } from "./interaction-prop
 import { createLeafField } from "./leaf-field";
 import type { MovementController } from "./movement";
 import { poseForActivity } from "./pose-for-activity";
-import {
-  BELL_TOWER,
-  BROOM_SPOT,
-  LEAF_SOURCES,
-  MEDITATION_SEATS,
-  STATUE_ZONE,
-  groundHeightAt,
-} from "./temple-layout";
+import { BELL_TOWER, BROOM_SPOT, LEAF_SOURCES, MEDITATION_SEATS, STATUE_ZONE, groundHeightAt } from "./temple-layout";
 
 // Ties the pure interaction modules to the 3D scene: input -> state,
 // state -> pose and props, state -> HUD view. scene.ts calls it once per
@@ -183,9 +172,7 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
 
       const changed = leafField.update(deltaSeconds);
       const swept =
-        snapshot.holdingBroom && snapshot.activity === "walking"
-          ? leafField.sweep(movement.position, SWEEP_RADIUS)
-          : 0;
+        snapshot.holdingBroom && snapshot.activity === "walking" ? leafField.sweep(movement.position, SWEEP_RADIUS) : 0;
       if (changed || swept > 0) syncLeafMesh(leafMesh, leafField.leaves, groundHeightAt);
       publishView();
 
@@ -199,9 +186,7 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
       blendSeconds += deltaSeconds;
       const target = poseForActivity(snapshot, state.activitySeconds, walkSeconds);
       shownPose =
-        blendSeconds < POSE_BLEND_SECONDS
-          ? blendPose(blendFrom, target, blendSeconds / POSE_BLEND_SECONDS)
-          : target;
+        blendSeconds < POSE_BLEND_SECONDS ? blendPose(blendFrom, target, blendSeconds / POSE_BLEND_SECONDS) : target;
       return shownPose;
     },
     placeProps(walkSeconds) {

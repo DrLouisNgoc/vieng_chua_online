@@ -28,11 +28,8 @@ function distance(a: Point, b: Point): number {
   return Math.hypot(b.x - a.x, b.z - a.z);
 }
 
-export function createMovementController(
-  options: MovementControllerOptions,
-): MovementController {
-  const speed =
-    options.speedUnitsPerSecond ?? DEFAULT_SPEED_UNITS_PER_SECOND;
+export function createMovementController(options: MovementControllerOptions): MovementController {
+  const speed = options.speedUnitsPerSecond ?? DEFAULT_SPEED_UNITS_PER_SECOND;
   let position: Point = { ...options.start };
   let target: Point | null = null;
   let facingAngle = 0;
