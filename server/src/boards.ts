@@ -8,9 +8,9 @@
 //
 // Open cốc (registrable: true): start empty, no occupant. Anyone can
 // register (name + note); the owner approves or rejects via the admin
-// password (adminAuth.ts). Only once approved can the occupant edit it
+// password (admin-auth.ts). Only once approved can the occupant edit it
 // (which, like a fixed board, sets its password on that first edit).
-import { makePasswordHash, verifyPassword } from "./passwordHash.js";
+import { makePasswordHash, verifyPassword } from "./password-hash.js";
 
 export type BoardType = "text" | "video" | "image";
 

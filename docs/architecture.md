@@ -33,18 +33,18 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 |---|---|
 | `server/src/server.ts` | Entry point: HTTP server + WebSocketServer on one port, connection cap, rate limit, Origin check, join/chat/state routing, hourly bell, graceful SIGTERM shutdown |
 | `server/src/protocol.ts` | Client→server message types and strict parsing (everything a client sends is untrusted) |
-| `server/src/presenceRoom.ts` | Connected-visitor count and ids |
-| `server/src/visitorRoom.ts` | Joined visitors' latest state, seat ownership, dirty flag for the 10 Hz broadcast |
-| `server/src/visitorNames.ts` | Pháp danh locked per ip; `isDefaultName()` |
-| `server/src/chatRoom.ts` | Public chat ring buffer (50 messages) |
+| `server/src/presence-room.ts` | Connected-visitor count and ids |
+| `server/src/visitor-room.ts` | Joined visitors' latest state, seat ownership, dirty flag for the 10 Hz broadcast |
+| `server/src/visitor-names.ts` | Pháp danh locked per ip; `isDefaultName()` |
+| `server/src/chat-room.ts` | Public chat ring buffer (50 messages) |
 | `server/src/boards.ts` | Board store (cốc, hall projector, quote plaque, Đọc Kinh Nikaya): seeds, edit, register/approve, hỏi pháp questions/answers |
-| `server/src/boardsHttp.ts` | HTTP routes for boards and the admin panel (no framework); per-ip write cap and wrong-password lockout (429) |
-| `server/src/clientIp.ts` | The real visitor ip behind Caddy (first `X-Forwarded-For` entry) — used for every per-ip rule |
-| `server/src/bellSchedule.ts` | `msUntilNextBoundary()` — aligns the hourly bell to the wall clock instead of server start time |
-| `server/src/rateLimit.ts` | Fixed-window hit counter per key, prunes expired keys |
-| `server/src/boardsFile.ts` | JSON read/write for `data/*.json`: atomic writes (temp + rename); missing file → null, corrupt file → throws |
-| `server/src/adminAuth.ts` | One admin password, set on first login |
-| `server/src/passwordHash.ts` | scrypt hash/verify shared by boards and admin |
+| `server/src/boards-http.ts` | HTTP routes for boards and the admin panel (no framework); per-ip write cap and wrong-password lockout (429) |
+| `server/src/client-ip.ts` | The real visitor ip behind Caddy (first `X-Forwarded-For` entry) — used for every per-ip rule |
+| `server/src/bell-schedule.ts` | `msUntilNextBoundary()` — aligns the hourly bell to the wall clock instead of server start time |
+| `server/src/rate-limit.ts` | Fixed-window hit counter per key, prunes expired keys |
+| `server/src/boards-file.ts` | JSON read/write for `data/*.json`: atomic writes (temp + rename); missing file → null, corrupt file → throws |
+| `server/src/admin-auth.ts` | One admin password, set on first login |
+| `server/src/password-hash.ts` | scrypt hash/verify shared by boards and admin |
 
 ## app/src — entry and wiring
 | File | Owns |

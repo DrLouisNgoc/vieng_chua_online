@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createWindowCounter } from "./rateLimit.js";
+import { createWindowCounter } from "./rate-limit.js";
 
 function clock(start = 0) {
   let now = start;

@@ -1,5 +1,5 @@
 // Fixed-window hit counter keyed by client ip, for the boards/admin HTTP
-// API (boardsHttp.ts): caps request floods and password guessing.
+// API (boards-http.ts): caps request floods and password guessing.
 // In memory only — a restart resets it, which is fine for this purpose.
 
 export interface WindowCounter {

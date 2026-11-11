@@ -66,7 +66,7 @@ curl -sI https://chua.io.vn | grep -iE 'strict-transport|x-frame|content-encodin
 - `handle /ws*` — mọi request tới `/ws` được chuyển vào server Node.js
   đang chạy ở cổng 8787 (phần người chơi nối với nhau).
 - `handle /boards*` và `handle /admin*` — API đọc/sửa cốc, chat board và
-  duyệt admin (`server/src/boardsHttp.ts`) cũng chạy trên cùng server
+  duyệt admin (`server/src/boards-http.ts`) cũng chạy trên cùng server
   Node ở cổng 8787, cần chuyển tiếp y hệt `/ws*`. **Thiếu 2 khối này thì
   mọi bảng cốc/máy chiếu trên web sẽ báo "Không tìm thấy."** vì trình
   duyệt gọi API ra ngoài domain thật thay vì vào server.

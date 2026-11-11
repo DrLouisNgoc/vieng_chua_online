@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createAdminAuth } from "./adminAuth.js";
+import { createAdminAuth } from "./admin-auth.js";
 
 describe("adminAuth", () => {
   it("sets the password on the first call", () => {

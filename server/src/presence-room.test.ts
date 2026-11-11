@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createPresenceRoom } from "./presenceRoom.js";
+import { createPresenceRoom } from "./presence-room.js";
 
 describe("createPresenceRoom", () => {
   it("starts with zero visitors", () => {

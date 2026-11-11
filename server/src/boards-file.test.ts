@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { readBoardsFile, writeBoardsFile } from "./boardsFile.js";
+import { readBoardsFile, writeBoardsFile } from "./boards-file.js";
 
 const dirs: string[] = [];
 function tempPath(name: string): string {
