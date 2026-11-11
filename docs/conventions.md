@@ -8,19 +8,59 @@ How code in this repo is written. Match these; when a file still breaks one, lea
 - One file, one responsibility, under ~400 lines. One function under ~60 lines.
 - Tests sit next to the code: `x.ts` → `x.test.ts`.
 
-## Formatting
-- Prettier (`.prettierrc.json`: width 120, double quotes, semicolons, trailing commas). Run `npm run format`
-  (repo root, after `npm ci` there) before committing. Until the one-off reformat lands, format only the files
-  you touch: `npx prettier --write <files>`.
+## The standard, and how it is enforced (decision 0017)
+Write code that passes `npm run check` the first time. Nothing here is advisory: every rule is an error, and
+four layers enforce it, so code never drifts and never needs a big cleanup again.
 
-## Lint
-- ESLint (`eslint.config.mjs`): the recommended JS and typescript-eslint rules, plus `eqeqeq`, no `console.log`
-  (`warn`/`error` are fine), `import type` for type-only imports, unused names allowed only with a leading `_`.
-  CI blocks on it. A rule that is genuinely wrong for one line: `// eslint-disable-next-line <rule> -- <why>`,
-  never a blanket disable.
+| Layer | When | What runs |
+|---|---|---|
+| Claude Code hook (`.claude/settings.json` → `scripts/claude-format.mjs`) | After every Edit/Write by Claude | Prettier + oxlint safe fixes on that file |
+| lefthook `pre-commit` (`lefthook.yml`) | `git commit` | Prettier, oxlint, ESLint, Stylelint on the staged files; fixes are re-staged, the rest blocks the commit |
+| lefthook `pre-push` | `git push` | `npm run check` (everything CI runs) |
+| CI `lint` job (required before automerge) | Every PR | `format:check`, oxlint, ESLint `--max-warnings 0`, Stylelint, knip, actionlint |
+
+- **Never** `git commit --no-verify` / `git push --no-verify`. CI runs the same checks, so it only moves the failure.
+- `npm run lint:fix` applies every safe fix; what is left needs a real change.
+- A rule that is genuinely wrong for **one line**: `// eslint-disable-next-line <rule> -- <why it is wrong here>`.
+  A disable without a reason, a file-wide disable, or a blanket disable fails lint
+  (`@eslint-community/eslint-comments`).
+- `eslint-suppressions.json` holds only findings from before 2026-11-11, and shrinks as each area is cleaned. Never
+  add to it (`--suppress-all` / `--suppress-rule` are forbidden for new code); it is deleted when it reaches zero.
+
+### Tools
+- **Prettier** (`.prettierrc.json`): width 120, double quotes, semicolons, trailing commas. Formatting is never
+  ESLint's job (`eslint-config-prettier` turns those rules off).
+- **ESLint 10** (`eslint.config.mjs`), in order: Airbnb (`eslint-config-airbnb-extended`, base + TypeScript) →
+  typescript-eslint `strictTypeChecked` + `stylisticTypeChecked` (type-aware) → unicorn, regexp, security,
+  sonarjs, eslint-comments → imports → project rules → `eslint-plugin-oxlint` → `eslint-config-prettier`.
+- **oxlint** (`.oxlintrc.json`): fast first pass; ESLint skips the rules it covers.
+- **Stylelint** (`.stylelintrc.json`): `stylelint-config-standard`; class names are BEM in kebab-case
+  (`block__element--modifier`); media queries keep `max-width:` (range syntax breaks Safari < 16.4).
+- **knip** (`knip.json`): no unused files, exports, types or dependencies.
+- **TypeScript**: `strict` in both `app/` and `server/`.
+
+### Imports
+- Sorted automatically (`simple-import-sort`); type-only imports are a separate `import type` line.
+- Server: relative imports end in `.js` (NodeNext). App: no extension (Vite).
+- No cycles, no duplicates, no undeclared packages, no default exports (config files excepted).
+
+### Limits (lint errors, not suggestions)
+File ≤ 400 lines · function ≤ 60 lines · complexity ≤ 15 · nesting ≤ 4 · ≤ 4 parameters (more → one options
+object) · strict boolean conditions (compare explicitly: `if (list.length > 0)`, `if (name !== "")`).
+
+### Deviations from Airbnb / unicorn, and why
+- `for…of` is allowed — Airbnb bans it for ES5 regenerator reasons; the target is ES2023.
+- `import-x/prefer-default-export` off, `no-default-export` on — named exports only.
+- `no-underscore-dangle` allows a leading `_` on parameters — it marks an intentionally unused name.
+- `unicorn/no-null` off — the JSON wire protocol uses `null` on purpose.
+- `unicorn/prevent-abbreviations` and `unicorn/name-replacements` off — would rename thousands of identifiers,
+  including Vietnamese domain words.
+- `security/detect-object-injection` and `security/detect-non-literal-fs-filename` off — false positives on every
+  `obj[key]` and on fs paths that our own code builds.
 
 ## Naming
-- Files: `kebab-case.ts` in `app/`, `camelCase.ts` in `server/` (existing style on each side; do not mix within a side).
+- Files: `kebab-case.ts` everywhere (`unicorn/filename-case`). Server files still in camelCase are renamed in the
+  cleanup phase.
 - Factories: `createX(...)` returning an interface `X` (e.g. `createBoardStore`, `createPresenceRoom`).
 - Constants: `UPPER_SNAKE_CASE` at module top, with a comment saying where the number comes from.
 - Types: `interface` for object shapes, `type` for unions.

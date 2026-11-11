@@ -60,7 +60,7 @@ Prerequisites: Node.js 22 (`.nvmrc`), Git. The 3D models, textures and sounds ar
 Without these assets the code still builds and all tests pass; the scene is just missing models.
 
 ```bash
-npm ci                # repo root: Prettier + ESLint
+npm ci                # repo root: lint/format tools + git hooks (lefthook)
 npm --prefix server ci
 npm --prefix app ci
 npm run dev        # server on :8787 and the app on http://localhost:5173

@@ -1,10 +1,8 @@
 :root {
-  --color-ink: oklch(22% 0.03 70);
-  --color-parchment: oklch(93% 0.02 85);
-  --color-gold: oklch(72% 0.1 80);
-
+  --color-ink: oklch(22% 0.03 70deg);
+  --color-parchment: oklch(93% 0.02 85deg);
+  --color-gold: oklch(72% 0.1 80deg);
   --space-hud: clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem);
-
   --duration-fast: 150ms;
   --duration-normal: 280ms;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -15,7 +13,7 @@
     (ệ, ẵ, ộ, ...) and would silently fall back to tofu/boxes. System
     fonts have reliable Vietnamese coverage.
   */
-  --font-ui: "Segoe UI", "Helvetica Neue", Roboto, system-ui, sans-serif;
+  --font-ui: "Segoe UI", "Helvetica Neue", roboto, system-ui, sans-serif;
 
   color-scheme: light;
   font-family: var(--font-ui);
@@ -59,12 +57,12 @@ body {
   left: var(--space-hud);
   padding: 0.5rem 1rem;
   border-radius: 999px;
-  background: linear-gradient(165deg, oklch(99% 0.015 85 / 0.85), oklch(93% 0.02 80 / 0.68));
+  background: linear-gradient(165deg, oklch(99% 0.015 85deg / 85%), oklch(93% 0.02 80deg / 68%));
   backdrop-filter: blur(10px);
   box-shadow:
-    0 2px 14px oklch(22% 0.03 70 / 0.18),
-    inset 0 1px oklch(100% 0 0 / 0.5);
-  border: 1px solid oklch(100% 0 0 / 0.35);
+    0 2px 14px oklch(22% 0.03 70deg / 18%),
+    inset 0 1px oklch(100% 0 0deg / 50%);
+  border: 1px solid oklch(100% 0 0deg / 35%);
 }
 
 .music-toggle {
@@ -73,8 +71,8 @@ body {
   font: inherit;
   font-size: 0.85rem;
   color: var(--color-ink);
-  background: oklch(93% 0.02 85 / 0.92);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  background: oklch(93% 0.02 85deg / 92%);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 999px;
   cursor: pointer;
 }
@@ -97,6 +95,7 @@ body {
 
 .interaction-hud {
   position: absolute;
+
   /* full width between the gutters: left: 50% would cap it at half the screen */
   left: var(--space-hud);
   right: var(--space-hud);
@@ -125,12 +124,12 @@ body {
   font: inherit;
   font-size: 0.9rem;
   color: var(--color-ink);
-  background: oklch(93% 0.02 85 / 0.92);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  background: oklch(93% 0.02 85deg / 92%);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 999px;
   box-shadow:
-    0 1px 2px oklch(22% 0.03 70 / 0.25),
-    0 6px 16px oklch(22% 0.03 70 / 0.18);
+    0 1px 2px oklch(22% 0.03 70deg / 25%),
+    0 6px 16px oklch(22% 0.03 70deg / 18%);
   cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-out-expo);
 }
@@ -163,7 +162,7 @@ body {
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
   color: var(--color-parchment);
-  background: oklch(22% 0.03 70 / 0.6);
+  background: oklch(22% 0.03 70deg / 60%);
   border-radius: 999px;
 }
 
@@ -187,7 +186,7 @@ body {
   padding: 0.35rem 0.9rem;
   font-size: 0.78rem;
   color: var(--color-parchment);
-  background: oklch(22% 0.03 70 / 0.45);
+  background: oklch(22% 0.03 70deg / 45%);
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -211,7 +210,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: var(--space-hud);
-  background: radial-gradient(120% 55% at 50% -10%, oklch(55% 0.09 70 / 0.4), transparent 60%), var(--color-ink);
+  background: radial-gradient(120% 55% at 50% -10%, oklch(55% 0.09 70deg / 40%), transparent 60%), var(--color-ink);
 }
 
 .onboarding[hidden] {
@@ -227,11 +226,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: linear-gradient(165deg, oklch(32% 0.05 70 / 0.95), oklch(16% 0.03 70 / 0.97));
+  background: linear-gradient(165deg, oklch(32% 0.05 70deg / 95%), oklch(16% 0.03 70deg / 97%));
   box-shadow:
-    0 24px 60px oklch(10% 0.02 70 / 0.55),
-    inset 0 1px oklch(95% 0.02 85 / 0.1);
-  border: 1px solid oklch(80% 0.08 80 / 0.2);
+    0 24px 60px oklch(10% 0.02 70deg / 55%),
+    inset 0 1px oklch(95% 0.02 85deg / 10%);
+  border: 1px solid oklch(80% 0.08 80deg / 20%);
   color: var(--color-parchment);
 }
 
@@ -266,8 +265,8 @@ body {
   width: 100%;
   padding: 0.55rem 0.75rem;
   border-radius: 0.6rem;
-  border: 1px solid oklch(80% 0.05 80 / 0.25);
-  background: oklch(20% 0.02 70 / 0.6);
+  border: 1px solid oklch(80% 0.05 80deg / 25%);
+  background: oklch(20% 0.02 70deg / 60%);
   color: inherit;
   font: inherit;
 }
@@ -285,7 +284,7 @@ body {
 .onboarding__error {
   margin: 0.4rem 0 0;
   font-size: 0.8rem;
-  color: oklch(70% 0.17 30);
+  color: oklch(70% 0.17 30deg);
 }
 
 .onboarding__toggle {
@@ -297,7 +296,7 @@ body {
   flex: 1;
   padding: 0.5rem;
   border-radius: 0.6rem;
-  border: 1px solid oklch(80% 0.05 80 / 0.25);
+  border: 1px solid oklch(80% 0.05 80deg / 25%);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -363,20 +362,25 @@ body {
 .va-figure .va-skin {
   fill: #f3d2b0;
 }
+
 .va-figure .va-skin-dark {
   fill: #e2b891;
 }
+
 .va-figure .va-scalp {
   fill: #5d5870;
   fill-opacity: 0.3;
 }
+
 .va-figure .va-stubble {
   fill: #33221a;
   opacity: 0.14;
 }
+
 .va-figure .va-hair {
   fill: #3a2517;
 }
+
 .va-figure .va-hair-line {
   fill: none;
   stroke: #6b4a33;
@@ -384,44 +388,53 @@ body {
   stroke-linecap: round;
   stroke-opacity: 0.8;
 }
+
 .va-figure .va-tie {
   fill: var(--color-gold);
 }
+
 .va-figure .va-brow {
   fill: none;
   stroke: #5d4433;
   stroke-width: 1.6px;
   stroke-linecap: round;
 }
+
 .va-figure .va-eyes {
   fill: none;
   stroke: #3a2517;
   stroke-width: 2px;
   stroke-linecap: round;
 }
+
 .va-figure .va-mouth {
   fill: none;
   stroke: #8a4a3a;
   stroke-width: 1.6px;
   stroke-linecap: round;
 }
+
 .va-figure .va-blush {
   fill: #e8907a;
   opacity: 0.35;
 }
+
 .va-figure .va-shoe {
   fill: #2f2118;
 }
+
 .va-figure .va-line {
   fill: none;
   stroke: #c79a72;
   stroke-width: 1.2px;
   stroke-linecap: round;
 }
+
 .va-figure .va-ground {
   fill: #000;
   fill-opacity: 0.32;
 }
+
 .va-figure .va-ring {
   fill: none;
   stroke: var(--color-gold);
@@ -434,6 +447,7 @@ body {
 .va-figure .va-lapel {
   fill: var(--avatar-robe, #3f6e9c);
 }
+
 .va-figure .va-pants,
 .va-figure .va-collar,
 .va-figure .va-closure,
@@ -441,6 +455,7 @@ body {
 .va-figure .va-yem {
   fill: var(--avatar-robe-shade, #2d5378);
 }
+
 .va-figure .va-trim {
   fill: none;
   stroke: var(--avatar-robe-trim, #9cc0e0);
@@ -448,6 +463,7 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
 .va-figure .va-fold,
 .va-figure .va-hem {
   fill: none;
@@ -488,12 +504,12 @@ body {
   font: inherit;
   font-size: 0.9rem;
   color: var(--color-ink);
-  background: oklch(93% 0.02 85 / 0.92);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  background: oklch(93% 0.02 85deg / 92%);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 999px;
   box-shadow:
-    0 1px 2px oklch(22% 0.03 70 / 0.25),
-    0 6px 16px oklch(22% 0.03 70 / 0.18);
+    0 1px 2px oklch(22% 0.03 70deg / 25%),
+    0 6px 16px oklch(22% 0.03 70deg / 18%);
   cursor: pointer;
 }
 
@@ -501,6 +517,16 @@ body {
 .practice__start[aria-pressed="true"],
 .practice__switch[aria-pressed="true"] {
   background: var(--color-gold);
+}
+
+.practice__picker {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-parchment);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
+  border-radius: 0.6rem;
 }
 
 .practice__switch:disabled,
@@ -524,20 +550,10 @@ body {
   width: min(20rem, calc(100vw - 2 * var(--space-hud)));
   padding: 0.9rem;
   color: var(--color-parchment);
-  background: oklch(22% 0.03 70 / 0.82);
-  border: 1px solid oklch(72% 0.1 80 / 0.45);
+  background: oklch(22% 0.03 70deg / 82%);
+  border: 1px solid oklch(72% 0.1 80deg / 45%);
   border-radius: 1rem;
-  box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.35);
-}
-
-.practice__picker {
-  min-height: 44px;
-  padding: 0 0.75rem;
-  font: inherit;
-  color: var(--color-ink);
-  background: var(--color-parchment);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
-  border-radius: 0.6rem;
+  box-shadow: 0 10px 30px oklch(22% 0.03 70deg / 35%);
 }
 
 .practice__line {
@@ -595,8 +611,8 @@ body {
   font: inherit;
   font-size: 0.9rem;
   color: var(--color-ink);
-  background: oklch(93% 0.02 85 / 0.92);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  background: oklch(93% 0.02 85deg / 92%);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 0.9rem;
   cursor: pointer;
   text-align: left;
@@ -605,8 +621,8 @@ body {
 .boards__toggle {
   border-radius: 999px;
   box-shadow:
-    0 1px 2px oklch(22% 0.03 70 / 0.25),
-    0 6px 16px oklch(22% 0.03 70 / 0.18);
+    0 1px 2px oklch(22% 0.03 70deg / 25%),
+    0 6px 16px oklch(22% 0.03 70deg / 18%);
 }
 
 .boards__toggle[aria-expanded="true"] {
@@ -626,10 +642,10 @@ body {
   overflow-y: auto;
   padding: 0.9rem;
   color: var(--color-parchment);
-  background: oklch(22% 0.03 70 / 0.9);
-  border: 1px solid oklch(72% 0.1 80 / 0.45);
+  background: oklch(22% 0.03 70deg / 90%);
+  border: 1px solid oklch(72% 0.1 80deg / 45%);
   border-radius: 1rem;
-  box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.35);
+  box-shadow: 0 10px 30px oklch(22% 0.03 70deg / 35%);
 }
 
 .boards__close {
@@ -638,7 +654,7 @@ body {
   z-index: 1;
   width: 100%;
   text-align: center;
-  background: oklch(93% 0.02 85);
+  background: oklch(93% 0.02 85deg);
 }
 
 .boards__panel h2 {
@@ -677,7 +693,7 @@ body {
   padding: 0.5rem 0.7rem;
   color: var(--color-ink);
   background: var(--color-parchment);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 0.6rem;
   resize: vertical;
 }
@@ -697,7 +713,7 @@ body {
 
 .boards__content {
   white-space: pre-wrap;
-  background: oklch(28% 0.03 70 / 0.6);
+  background: oklch(28% 0.03 70deg / 60%);
   padding: 0.6rem 0.8rem;
   border-radius: 0.6rem;
 }
@@ -719,7 +735,7 @@ body {
 .boards__sutra-frame {
   width: 100%;
   height: min(60vh, 26rem);
-  border: 1px solid oklch(72% 0.1 80 / 0.45);
+  border: 1px solid oklch(72% 0.1 80deg / 45%);
   border-radius: 0.6rem;
   background: #fff;
 }
@@ -744,7 +760,7 @@ body {
   flex-direction: column;
   gap: 0.4rem;
   padding: 0.6rem 0.8rem;
-  background: oklch(28% 0.03 70 / 0.6);
+  background: oklch(28% 0.03 70deg / 60%);
   border-radius: 0.6rem;
 }
 
@@ -774,7 +790,7 @@ body {
   text-align: left;
   color: var(--color-parchment);
   background: transparent;
-  border: 1px solid oklch(72% 0.1 80 / 0.35);
+  border: 1px solid oklch(72% 0.1 80deg / 35%);
   border-radius: 0.5rem;
   cursor: pointer;
 }
@@ -790,7 +806,7 @@ body {
   flex-direction: column;
   gap: 0.35rem;
   padding: 0.6rem 0.7rem;
-  background: oklch(28% 0.03 70 / 0.6);
+  background: oklch(28% 0.03 70deg / 60%);
   border-radius: 0.6rem;
 }
 
@@ -821,12 +837,12 @@ body {
   font: inherit;
   font-size: 0.9rem;
   color: var(--color-ink);
-  background: oklch(93% 0.02 85 / 0.92);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  background: oklch(93% 0.02 85deg / 92%);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 999px;
   box-shadow:
-    0 1px 2px oklch(22% 0.03 70 / 0.25),
-    0 6px 16px oklch(22% 0.03 70 / 0.18);
+    0 1px 2px oklch(22% 0.03 70deg / 25%),
+    0 6px 16px oklch(22% 0.03 70deg / 18%);
   cursor: pointer;
 }
 
@@ -845,10 +861,10 @@ body {
   width: 100%;
   padding: 0.7rem;
   color: var(--color-parchment);
-  background: oklch(22% 0.03 70 / 0.82);
-  border: 1px solid oklch(72% 0.1 80 / 0.45);
+  background: oklch(22% 0.03 70deg / 82%);
+  border: 1px solid oklch(72% 0.1 80deg / 45%);
   border-radius: 1rem;
-  box-shadow: 0 10px 30px oklch(22% 0.03 70 / 0.35);
+  box-shadow: 0 10px 30px oklch(22% 0.03 70deg / 35%);
 }
 
 .chat__log {
@@ -879,7 +895,7 @@ body {
   font: inherit;
   color: var(--color-ink);
   background: var(--color-parchment);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 0.6rem;
 }
 
@@ -904,8 +920,8 @@ body {
   padding: 0.4rem 1rem;
   font-size: 0.85rem;
   color: var(--color-ink);
-  background: oklch(93% 0.02 85 / 0.92);
-  border: 1px solid oklch(72% 0.1 80 / 0.7);
+  background: oklch(93% 0.02 85deg / 92%);
+  border: 1px solid oklch(72% 0.1 80deg / 70%);
   border-radius: 999px;
   white-space: nowrap;
 }

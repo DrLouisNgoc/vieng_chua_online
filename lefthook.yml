@@ -1,0 +1,32 @@
+# Git hooks for both machines (decision 0017). `npm ci` at the repo root
+# installs them (lefthook's postinstall). Never bypass with --no-verify:
+# CI runs the same checks and blocks the merge anyway.
+#
+# pre-commit: fix, then check, only the files being committed (seconds).
+# pre-push:   the full `npm run check`, exactly what CI runs.
+pre-commit:
+  piped: true # in order: format, then lint the formatted result
+  jobs:
+    - name: prettier
+      glob: "*.{ts,mjs,js,json,css,yml,yaml,html}"
+      run: npx prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    - name: oxlint
+      glob: "*.{ts,mjs}"
+      run: npx oxlint --fix --deny-warnings {staged_files}
+      stage_fixed: true
+    - name: eslint
+      glob: "*.{ts,mjs}"
+      # Fixing staged files can clear old suppressed findings; `npm run lint:fix`
+      # prunes the baseline, and pre-push/CI fail until it has been pruned.
+      run: npx eslint --fix --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 --pass-on-unpruned-suppressions {staged_files}
+      stage_fixed: true
+    - name: stylelint
+      glob: "*.css"
+      run: npx stylelint --fix {staged_files}
+      stage_fixed: true
+
+pre-push:
+  jobs:
+    - name: check
+      run: npm run check

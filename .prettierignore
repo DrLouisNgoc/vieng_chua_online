@@ -6,3 +6,5 @@ app/public
 docs
 *.md
 .claude
+# Written by ESLint itself (--suppress-all / --prune-suppressions)
+eslint-suppressions.json
