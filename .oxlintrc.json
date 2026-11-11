@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "import", "oxc", "promise", "node"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": { "browser": true, "node": true, "es2024": true },
+  "ignorePatterns": ["**/dist/**", "**/dist-*/**", "app/public/**", "docs/**"]
+}

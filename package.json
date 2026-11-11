@@ -10,14 +10,45 @@
     "check:size": "node scripts/check-size.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint ."
+    "lint": "npm run lint:oxlint && npm run lint:eslint && npm run lint:css",
+    "lint:oxlint": "oxlint --deny-warnings",
+    "lint:eslint": "eslint --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 .",
+    "lint:css": "stylelint \"app/**/*.css\"",
+    "lint:fix": "oxlint --fix && eslint --cache --cache-location node_modules/.cache/eslint/ --fix --prune-suppressions . && stylelint --fix \"app/**/*.css\" && prettier --write .",
+    "knip": "knip"
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",
     "@eslint/js": "10.0.1",
     "eslint": "10.14.0",
+    "eslint-config-airbnb-extended": "3.3.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-import-x": "4.18.1",
+    "eslint-plugin-oxlint": "1.93.0",
+    "eslint-plugin-regexp": "3.3.3",
+    "eslint-plugin-security": "4.2.1",
+    "eslint-plugin-simple-import-sort": "14.0.0",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "eslint-plugin-unicorn": "79.0.0",
     "globals": "17.14.0",
+    "knip": "6.45.0",
+    "lefthook": "2.2.2",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2006",
     "prettier": "3.9.10",
+    "stylelint": "18.0.0",
+    "stylelint-config-standard": "41.0.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2"
+  },
+  "overrides": {
+    "minimatch": "11.0.5",
+    "eslint-config-airbnb-extended": {
+      "eslint": "$eslint"
+    }
+  },
+  "allowScripts": {
+    "lefthook": true
   }
 }

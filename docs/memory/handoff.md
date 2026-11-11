@@ -22,12 +22,11 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - `server/data/` (boards, pháp danh locks) exists only on the VPS: back it up; never in git.
 
 ## Open work (to move into GitHub Issues)
-- Tech debt, in order (done: boardsHttp helper, Prettier config, `shared/protocol.ts`): run `npm run format` once
-  and add `format:check` to CI; `strict` in app tsconfig; split `temple-grounds.ts`,
-  `boards-panel.ts`, `scene.ts`, `style.css`, `main.ts` (`npm run check:size` lists them); then `check-size
-  --strict` in CI. Wait for branch `ngoc/chanh-dien-kinh-nikaya` (edits those app files) to merge first.
-  ESLint runs in CI (`lint`); the four big app files are excluded in `eslint.config.mjs` until that branch merges
-  — lint them then. knip dropped: it needs a prebuilt native parser.
+- **Big refactor in progress (pinned Issue #25, decision 0017).** Done: whole-repo Prettier, strict standard and
+  all tooling. Next: rename server files to kebab-case; clear `eslint-suppressions.json` area by area (1048 left),
+  then delete it, set `IS_RETIRED` in `scripts/check-suppressions.mjs`, enable oxlint type-aware + more
+  categories, make knip blocking; split `temple-grounds.ts`, `style.css`, `boards-panel.ts`, `scene.ts`,
+  `main.ts`; then `check-size --strict` in CI.
 - Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
   check `systemctl show chua-server -p Environment`), Caddy headers/compression (guide 09). Then run the Backup
   workflow once by hand.

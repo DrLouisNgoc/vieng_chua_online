@@ -121,7 +121,8 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
 
 ## Other folders
 - `scripts/dev.mjs` — `npm run dev`: server on :8787 + Vite on :5173. `scripts/check-docs.mjs` — docs check. `scripts/check-size.mjs` — files over 400 lines.
-  Root `package.json`: dev tools only — Prettier (`npm run format`, `.prettierrc.json`, width 120) and ESLint
-  (`npm run lint`, `eslint.config.mjs`, parsing with the root's own `typescript@6.0`).
+  `scripts/check-suppressions.mjs` — lint baseline may only shrink. `scripts/claude-format.mjs` — Claude edit hook.
+  Root `package.json`: dev tools only (decision 0017) — Prettier, ESLint, oxlint, Stylelint, knip, lefthook; configs
+  `.prettierrc.json`, `eslint.config.mjs`, `.oxlintrc.json`, `.stylelintrc.json`, `knip.json`, `lefthook.yml`.
 - `docs/memory/` — handoff, decisions, lessons, open questions. `docs/specs/` — milestone 1–10 history
   (read only when the task touches that milestone). `docs/for-owner/` — Vietnamese guides for the owners.

@@ -69,6 +69,8 @@ jobs:
 
   # ESLint with the root's own dev tools (eslint.config.mjs explains why
   # the root has its own TypeScript).
+  # Every lint/format check (decision 0017). Type-aware ESLint reads each
+  # folder's types, so app/ and server/ dependencies are installed too.
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -77,10 +79,26 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+            server/package-lock.json
       - run: npm ci
+      - run: npm ci
+        working-directory: app
+      - run: npm ci
+        working-directory: server
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: node_modules/.cache/eslint
+          key: eslint-${{ hashFiles('package-lock.json', 'eslint.config.mjs') }}-${{ github.sha }}
+          restore-keys: eslint-${{ hashFiles('package-lock.json', 'eslint.config.mjs') }}-
       - run: npm run format:check
       - run: npm run lint
+      - run: git fetch --depth=1 origin main && node scripts/check-suppressions.mjs
+      # Report only until the cleanup phase ends (handoff "Open work"); then it blocks.
+      - run: npx knip --no-exit-code
+      - uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
 
   # Merges a green PR by itself, then starts the deploy (decision 0014,
   # superseded by 0015: no visual-check gate — every green PR auto-merges,

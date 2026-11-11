@@ -1,8 +1,12 @@
 import type { Object3D, Scene, Vector3 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { createAvatarRig, type AvatarRig } from "./avatar-rig";
-import { createNameLabel, labelText, tintRobe, type NameLabel } from "./avatar-look";
-import { createHeldProps, placeHeldProps, removeHeldProps, type HeldProps } from "./held-props";
+
+import type { NameLabel } from "./avatar-look";
+import { createNameLabel, labelText, tintRobe } from "./avatar-look";
+import type { AvatarRig } from "./avatar-rig";
+import { createAvatarRig } from "./avatar-rig";
+import type { HeldProps } from "./held-props";
+import { createHeldProps, placeHeldProps, removeHeldProps } from "./held-props";
 import { poseForActivity } from "./pose-for-activity";
 import { approach, approachAngle, smoothingFactor } from "./remote-motion";
 import { groundHeightAt } from "./temple-layout";
@@ -93,7 +97,8 @@ export function createRemoteVisitors(options: RemoteVisitorsOptions): RemoteVisi
         if (remote.view.colorIndex !== view.colorIndex) tintRobe(remote.avatar, robeColor(view.colorIndex));
         remote.view = view;
       }
-      for (const remote of [...remotes.values()]) {
+      // Deleting the entry being visited is safe while iterating a Map.
+      for (const remote of remotes.values()) {
         if (!seen.has(remote.view.id)) remove(remote);
       }
       occupied = new Set(visitors.map((view) => view.seatIndex).filter((seat): seat is number => seat !== null));
@@ -127,7 +132,7 @@ export function createRemoteVisitors(options: RemoteVisitorsOptions): RemoteVisi
         );
         remote.props.broom.visible = view.holdingBroom;
 
-        const sprite = remote.label.sprite;
+        const { sprite } = remote.label;
         sprite.position.set(remote.x, avatar.position.y + LABEL_HEIGHT - pose.hipsDrop * 0.3, remote.z);
         sprite.visible = sprite.position.distanceTo(cameraPosition) < LABEL_MAX_DISTANCE;
         remote.label.setText(labelText(view.name, view.beadsVisible, view.beadTotal));

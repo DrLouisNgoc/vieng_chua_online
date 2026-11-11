@@ -54,9 +54,13 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   like any other green PR. Look at it with `npm run dev` before or after merging, your choice.
 
 ## Commands
-- `npm run check` — typecheck + tests (server, app) + ESLint + docs check. Must pass before every commit you
-  push. First time on a machine: `npm ci` in the repo root (lint/format tools), `server/` and `app/`.
-- `npm run lint` — ESLint; `npx eslint --fix <files>` fixes most findings. Never disable a rule to get green.
+- `npm run check` — typecheck + tests + Prettier check + oxlint + ESLint + Stylelint + docs check: what CI runs.
+  First time on a machine: `npm ci` in the repo root (tools **and git hooks**), `server/` and `app/`.
+- `npm run lint:fix` — every safe automatic fix (oxlint, ESLint, Stylelint, Prettier). `npm run knip` — dead code.
+- **The code standard is `docs/conventions.md` ("The standard", decision 0017). Write to it from the first line:**
+  every rule is an error; your edits are auto-formatted by a hook; `git commit` lints staged files and `git push`
+  runs `npm run check`. Never `--no-verify`, never add to `eslint-suppressions.json`, never disable a rule except
+  `// eslint-disable-next-line <rule> -- <reason>` on one line where the rule is genuinely wrong.
 - `npm run dev` — server on :8787 + app on http://localhost:5173. Needs the gitignored assets in
   `app/public/sansatemple/` (`scripts/fetch-sansatemple-assets.sh`) for models/textures.
 - Single file: `cd app && npx vitest run src/x.test.ts`.
