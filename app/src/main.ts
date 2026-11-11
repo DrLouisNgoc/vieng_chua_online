@@ -293,6 +293,7 @@ async function main(): Promise<void> {
   // ancient, public-domain Pali canon itself), shown until the owner adds
   // real quote photos (owner, 2026-11-10: "thêm vài câu kinh pháp cú").
   const FALLBACK_PHAP_CU_QUOTES = [
+    "Một đường dẫn đến thế gian, một đường dẫn đến Niết Bàn; là tỳ kheo đệ tử Phật, phải hiểu cho thật rõ ràng.",
     "Tâm dẫn đầu mọi sự; giữ tâm trong sáng, an vui sẽ theo.",
     "Lấy oán báo oán, oán thù không dứt; lấy tình thương đáp lại, oán thù mới tan.",
     "Thắng vạn quân không bằng tự thắng chính mình.",

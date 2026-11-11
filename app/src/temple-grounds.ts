@@ -275,6 +275,7 @@ export async function buildTempleGrounds(
   grounds.add(projector.group);
   const phapCuBanner = buildPhapCuBanner();
   grounds.add(phapCuBanner.group);
+  grounds.add(buildEntranceQuotePlaques());
   const lanterns = buildLanterns();
   grounds.add(lanterns.group);
 
@@ -570,14 +571,14 @@ export async function buildTempleGrounds(
   }
 
   // A grid of ceiling lamps across the whole hall floor — buildShrine's
-  // lights only reach the altar, and two earlier passes (4, then 6, lights;
-  // owner, 2026-11-10: "sáng trưng hơn nữa" then "ko đúng... sáng trưng luôn
-  // tất cả chánh điện") still left corners and the middle gap dim. This pass
-  // widens the grid to 9 lamps (covers the full ±37 interior, not just ±24)
-  // and raises reach/intensity/decay so the pools overlap edge to edge.
+  // lights only reach the altar, and three earlier passes (4, then 6, then
+  // 9 lamps; owner, 2026-11-10/11: "sáng trưng hơn nữa", "sáng trưng luôn
+  // tất cả chánh điện", "sáng thêm cho tôi nhé") still read dim. This pass
+  // keeps the 9-lamp grid but pushes reach/intensity further and flattens
+  // decay to 1 so the pools blend into one even wash of light.
   function buildHallAmbientLights(hall: Group, top: number, wallHeight: number): void {
     const y = top + wallHeight * 0.8;
-    const reach = 60;
+    const reach = 80;
     const spots = [
       { x: -30, z: -2 },
       { x: 0, z: -2 },
@@ -590,7 +591,7 @@ export async function buildTempleGrounds(
       { x: 30, z: -36 },
     ];
     for (const spot of spots) {
-      const lamp = new PointLight(PALETTE.lamp, 5 * reach * reach, reach, 1.5);
+      const lamp = new PointLight(PALETTE.lamp, 8 * reach * reach, reach, 1);
       lamp.position.set(spot.x, y, spot.z);
       lamp.castShadow = false;
       hall.add(lamp);
@@ -1096,31 +1097,31 @@ export async function buildTempleGrounds(
   // phụ" — photos the owner provides, not text this app writes). Shows a
   // plain placeholder until main.ts resolves one from the
   // "loi-phap-chanh-dien" board and calls setImage.
+  // Frame + plaque mesh shared by the rotating chánh điện banner and the
+  // extra static quote tiles along the entrance colonnade (owner,
+  // 2026-11-11: "các khu vực này thêm những câu nói hay trong kinh").
+  function buildWallPlaque(x: number, z: number, rotationY: number, material: MeshStandardMaterial): Group {
+    const group = new Group();
+    const frameWidth = 1.6;
+    const frameHeight = 1.1;
+    const y = HALL.platformHeight + frameHeight / 2 + 1.2;
+    const frameMaterial = new MeshStandardMaterial({ color: PALETTE.gold, metalness: 0.3, roughness: 0.5 });
+    add(group, new BoxGeometry(0.08, frameHeight + 0.16, frameWidth + 0.16), frameMaterial, x, y, z);
+    const offset = rotationY > 0 ? 0.05 : -0.05;
+    const plaque = add(group, new PlaneGeometry(frameWidth, frameHeight), material, x + offset, y, z);
+    plaque.rotation.y = rotationY;
+    plaque.castShadow = false;
+    return group;
+  }
+
   function buildPhapCuBanner(): {
     group: Group;
     setImage: (imageUrl: string | null) => void;
     setText: (text: string | null) => void;
   } {
-    const group = new Group();
-    group.name = "loi-phap-chanh-dien";
-    const x = HALL.minX + HALL.wallThickness + 0.1;
-    const z = -25;
-    const y = HALL.platformHeight;
-    const frameWidth = 1.6;
-    const frameHeight = 1.1;
-    const frameMaterial = new MeshStandardMaterial({ color: PALETTE.gold, metalness: 0.3, roughness: 0.5 });
-    add(group, new BoxGeometry(0.08, frameHeight + 0.16, frameWidth + 0.16), frameMaterial, x, y + frameHeight / 2 + 1.2, z);
     const plaqueMaterial = new MeshStandardMaterial({ map: quotePlaceholder() });
-    const plaque = add(
-      group,
-      new PlaneGeometry(frameWidth, frameHeight),
-      plaqueMaterial,
-      x + 0.05,
-      y + frameHeight / 2 + 1.2,
-      z,
-    );
-    plaque.rotation.y = Math.PI / 2;
-    plaque.castShadow = false;
+    const group = buildWallPlaque(HALL.minX + HALL.wallThickness + 0.1, -25, Math.PI / 2, plaqueMaterial);
+    group.name = "loi-phap-chanh-dien";
 
     function setImage(imageUrl: string | null): void {
       if (!imageUrl) {
@@ -1141,6 +1142,31 @@ export async function buildTempleGrounds(
     }
 
     return { group, setImage, setText };
+  }
+
+  // A couple of extra, static quote tiles near the entrance, in original
+  // wording (not a copy of any specific published translation).
+  function buildEntranceQuotePlaques(): Group {
+    const entranceQuotes: ReadonlyArray<{ x: number; z: number; rotationY: number; text: string }> = [
+      {
+        x: HALL.minX + HALL.wallThickness + 0.1,
+        z: -10,
+        rotationY: Math.PI / 2,
+        text: "Giữ giới cho trong sạch, tâm được an định, trí tuệ từ đó mà sinh.",
+      },
+      {
+        x: HALL.maxX - HALL.wallThickness - 0.1,
+        z: -15,
+        rotationY: -Math.PI / 2,
+        text: "Buông bỏ tham sân, lòng nhẹ như mây; ấy là an vui ngay giữa đời thường.",
+      },
+    ];
+    const group = new Group();
+    for (const spot of entranceQuotes) {
+      const material = new MeshStandardMaterial({ map: quoteTextTexture(spot.text) });
+      group.add(buildWallPlaque(spot.x, spot.z, spot.rotationY, material));
+    }
+    return group;
   }
 
   // Plain placeholder (no scripture text — that comes from the owner's
