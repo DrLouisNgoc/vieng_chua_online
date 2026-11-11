@@ -571,14 +571,18 @@ export async function buildTempleGrounds(
   }
 
   // A grid of ceiling lamps across the whole hall floor — buildShrine's
-  // lights only reach the altar, and three earlier passes (4, then 6, then
-  // 9 lamps; owner, 2026-11-10/11: "sáng trưng hơn nữa", "sáng trưng luôn
-  // tất cả chánh điện", "sáng thêm cho tôi nhé") still read dim. This pass
-  // keeps the 9-lamp grid but pushes reach/intensity further and flattens
-  // decay to 1 so the pools blend into one even wash of light.
+  // lights only reach the altar. A PointLight is not scoped to its parent
+  // Group: it lights the whole scene, so a long reach (60, then 80) leaked
+  // straight through the hall's open front and overexposed the entrance
+  // terrace outside (owner, 2026-11-11, with a screenshot: "vẫn bị thế này
+  // sửa lại"). This pass shortens reach to roughly one grid cell (so
+  // neighbouring pools still overlap but the light is spent before it
+  // reaches outside) and uses decay 2 (the same, proven-safe falloff as
+  // buildShrine's own fill lights) instead of a flatter, longer-travelling
+  // decay.
   function buildHallAmbientLights(hall: Group, top: number, wallHeight: number): void {
     const y = top + wallHeight * 0.8;
-    const reach = 60;
+    const reach = 22;
     const spots = [
       { x: -30, z: -2 },
       { x: 0, z: -2 },
@@ -591,7 +595,7 @@ export async function buildTempleGrounds(
       { x: 30, z: -36 },
     ];
     for (const spot of spots) {
-      const lamp = new PointLight(PALETTE.lamp, 5 * reach * reach, reach, 1.5);
+      const lamp = new PointLight(PALETTE.lamp, 3 * reach * reach, reach, 2);
       lamp.position.set(spot.x, y, spot.z);
       lamp.castShadow = false;
       hall.add(lamp);
