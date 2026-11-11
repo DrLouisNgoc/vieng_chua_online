@@ -1,15 +1,16 @@
-import { describe, it, expect } from "vitest";
-import { makePasswordHash, verifyPassword } from "./password-hash.js";
+import { describe, expect, it } from "vitest";
+
+import { isPasswordCorrect, makePasswordHash } from "./password-hash.js";
 
 describe("passwordHash", () => {
   it("verifies the correct password", () => {
     const hash = makePasswordHash("bimat123");
-    expect(verifyPassword("bimat123", hash)).toBe(true);
+    expect(isPasswordCorrect("bimat123", hash)).toBe(true);
   });
 
   it("rejects a wrong password", () => {
     const hash = makePasswordHash("bimat123");
-    expect(verifyPassword("sai", hash)).toBe(false);
+    expect(isPasswordCorrect("sai", hash)).toBe(false);
   });
 
   it("never stores the password in plain text", () => {

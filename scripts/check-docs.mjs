@@ -8,28 +8,28 @@
 // 3. Every path listed in docs/architecture.md must exist.
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import nodePath from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const SIZE_CAPS = {
   "CLAUDE.md": 10_000,
-  "docs/memory/handoff.md": 5_000,
+  "docs/memory/handoff.md": 5000,
   "docs/architecture.md": 16_000,
-  "docs/conventions.md": 8_000,
+  "docs/conventions.md": 8000,
 };
 const SOURCE_DIRS = ["app/src", "server/src", "shared"];
 
 const problems = [];
 
 for (const [file, cap] of Object.entries(SIZE_CAPS)) {
-  const path = join(root, file);
-  if (!existsSync(path)) {
+  const path = nodePath.join(root, file);
+  if (existsSync(path)) {
+    const { size } = statSync(path);
+    if (size > cap) problems.push(`${file}: ${size} bytes, cap is ${cap} — move detail out, keep it short`);
+  } else {
     problems.push(`${file}: missing`);
-    continue;
   }
-  const size = statSync(path).size;
-  if (size > cap) problems.push(`${file}: ${size} bytes, cap is ${cap} — move detail out, keep it short`);
 }
 
 // Gitignored paths (app/dist, server/data/, the asset caches) are listed on
@@ -44,24 +44,26 @@ function isGitIgnored(path) {
 }
 
 function sourceFiles(dir) {
-  const full = join(root, dir);
-  if (!existsSync(full)) return [];
-  return readdirSync(full, { recursive: true })
-    .map((name) => join(full, String(name)))
-    .filter((path) => path.endsWith(".ts") && !path.endsWith(".test.ts") && !path.endsWith(".d.ts"))
-    .map((path) => relative(root, path).replaceAll("\\", "/"));
+  const full = nodePath.join(root, dir);
+  return existsSync(full)
+    ? readdirSync(full, { recursive: true })
+        .map((name) => nodePath.join(full, String(name)))
+        .filter((path) => path.endsWith(".ts") && !path.endsWith(".test.ts") && !path.endsWith(".d.ts"))
+        .map((path) => nodePath.relative(root, path).replaceAll("\\", "/"))
+    : [];
 }
 
-const architecturePath = join(root, "docs/architecture.md");
+const architecturePath = nodePath.join(root, "docs/architecture.md");
 if (existsSync(architecturePath)) {
   const architecture = readFileSync(architecturePath, "utf8");
-  for (const file of SOURCE_DIRS.flatMap(sourceFiles)) {
+  const files = SOURCE_DIRS.flatMap((dir) => sourceFiles(dir));
+  for (const file of files) {
     if (!architecture.includes(`\`${file}\``)) {
       problems.push(`docs/architecture.md: no line for \`${file}\` — add one (what this file owns)`);
     }
   }
   for (const [, path] of architecture.matchAll(/`((?:app|server|shared|scripts|docs)\/[^`\s]+)`/g)) {
-    if (!existsSync(join(root, path)) && !isGitIgnored(path)) {
+    if (!existsSync(nodePath.join(root, path)) && !isGitIgnored(path)) {
       problems.push(`docs/architecture.md: lists \`${path}\`, which does not exist`);
     }
   }

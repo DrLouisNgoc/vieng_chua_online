@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { createVisitorRoom } from "./visitor-room.js";
+import { describe, expect, it } from "vitest";
+
 import type { VisitorState } from "./protocol.js";
+import { createVisitorRoom } from "./visitor-room.js";
 
 const standing: VisitorState = {
   x: 0,
@@ -13,9 +14,7 @@ const standing: VisitorState = {
   beadTotal: 0,
 };
 
-function seated(seatIndex: number): VisitorState {
-  return { ...standing, activity: "seated", seatIndex };
-}
+const seatedAtSeven: VisitorState = { ...standing, activity: "seated", seatIndex: 7 };
 
 describe("visitor room", () => {
   it("lists joined visitors with their name, colour and state", () => {
@@ -65,8 +64,8 @@ describe("visitor room", () => {
       const room = createVisitorRoom();
       room.join("a", "An", 0);
       room.join("b", "Bình", 1);
-      expect(room.updateState("a", seated(7))).toBe("ok");
-      expect(room.updateState("b", { ...seated(7), x: 9 })).toBe("seat-refused");
+      expect(room.updateState("a", seatedAtSeven)).toBe("ok");
+      expect(room.updateState("b", { ...seatedAtSeven, x: 9 })).toBe("seat-refused");
       const b = room.snapshot().find((visitor) => visitor.id === "b");
       expect(b).toMatchObject({ seatIndex: null, activity: "idle", x: 9 });
     });
@@ -74,21 +73,21 @@ describe("visitor room", () => {
     it("keeps the seat through greeting and beads while seated", () => {
       const room = createVisitorRoom();
       room.join("a", "An", 0);
-      room.updateState("a", seated(7));
-      expect(room.updateState("a", { ...seated(7), activity: "greeting" })).toBe("ok");
+      room.updateState("a", seatedAtSeven);
+      expect(room.updateState("a", { ...seatedAtSeven, activity: "greeting" })).toBe("ok");
       room.join("b", "Bình", 1);
-      expect(room.updateState("b", seated(7))).toBe("seat-refused");
+      expect(room.updateState("b", seatedAtSeven)).toBe("seat-refused");
     });
 
     it("frees the cushion when its visitor stands or leaves", () => {
       const room = createVisitorRoom();
       room.join("a", "An", 0);
       room.join("b", "Bình", 1);
-      room.updateState("a", seated(7));
+      room.updateState("a", seatedAtSeven);
       room.updateState("a", standing);
-      expect(room.updateState("b", seated(7))).toBe("ok");
+      expect(room.updateState("b", seatedAtSeven)).toBe("ok");
       room.leave("b");
-      expect(room.updateState("a", seated(7))).toBe("ok");
+      expect(room.updateState("a", seatedAtSeven)).toBe("ok");
     });
   });
 

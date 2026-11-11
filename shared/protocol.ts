@@ -25,7 +25,9 @@ export const DEFAULT_NAME = "Thiện Tâm";
 // Case- and diacritic-insensitive, so "thien tam" counts too: NFD splits
 // "ệ" into "e" + combining marks, and the class strips U+0300–U+036F.
 function normalizeName(name: string): string {
-  return name.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const decomposed = name.trim().toLowerCase().normalize("NFD");
+  // eslint-disable-next-line security/detect-unsafe-regex -- one character class, nothing to backtrack on
+  return decomposed.replaceAll(/[\u{300}-\u{36F}]/gu, "");
 }
 
 export function isDefaultName(name: string): boolean {

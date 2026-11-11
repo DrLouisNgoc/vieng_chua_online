@@ -16,9 +16,9 @@ export function makePasswordHash(password: string): string {
   return `${salt.toString("hex")}:${hashWithSalt(password, salt)}`;
 }
 
-export function verifyPassword(password: string, stored: string): boolean {
-  const [saltHex, hashHex] = stored.split(":");
-  if (!saltHex || !hashHex) return false;
+export function isPasswordCorrect(password: string, stored: string): boolean {
+  const [saltHex = "", hashHex = ""] = stored.split(":", 2);
+  if (saltHex === "" || hashHex === "") return false;
   const candidate = hashWithSalt(password, Buffer.from(saltHex, "hex"));
   const a = Buffer.from(candidate, "hex");
   const b = Buffer.from(hashHex, "hex");

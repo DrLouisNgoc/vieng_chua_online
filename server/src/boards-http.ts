@@ -263,7 +263,7 @@ export function createBoardsRequestListener(
       switch (route.kind) {
         case "board":
           return handlePost(parseEditRequest, ({ password, body, talks, title }) =>
-            finishWrite(store.edit(route.id, password, body, talks, title)),
+            finishWrite(store.edit(route.id, password, { body, talks, title })),
           );
         case "ask":
           return handlePost(parseAskRequest, ({ name, text }) => finishWrite(store.ask(route.id, name, text)));

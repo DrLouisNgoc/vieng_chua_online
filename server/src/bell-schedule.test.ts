@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { msUntilNextBoundary } from "./bell-schedule.js";
 
 describe("msUntilNextBoundary", () => {
@@ -14,8 +15,8 @@ describe("msUntilNextBoundary", () => {
 
   it("aligns an hourly bell to the top of the clock hour (UTC, whole-hour timezones match)", () => {
     const oneHour = 60 * 60 * 1000;
-    const at12_30 = Date.UTC(2026, 10, 11, 12, 30, 0);
-    const at13_00 = Date.UTC(2026, 10, 11, 13, 0, 0);
-    expect(msUntilNextBoundary(oneHour, at12_30)).toBe(at13_00 - at12_30);
+    const at1230 = Date.UTC(2026, 10, 11, 12, 30, 0);
+    const at1300 = Date.UTC(2026, 10, 11, 13, 0, 0);
+    expect(msUntilNextBoundary(oneHour, at1230)).toBe(at1300 - at1230);
   });
 });

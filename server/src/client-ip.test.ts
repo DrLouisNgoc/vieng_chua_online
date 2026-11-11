@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
 import type { IncomingMessage } from "node:http";
+
+import { describe, expect, it } from "vitest";
+
 import { clientIp } from "./client-ip.js";
 
 function request(headers: Record<string, string | string[]>, remoteAddress = "127.0.0.1"): IncomingMessage {

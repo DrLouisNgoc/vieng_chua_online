@@ -1,9 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { createWindowCounter } from "./rate-limit.js";
 
-function clock(start = 0) {
-  let now = start;
-  return { now: () => now, advance: (ms: number) => (now += ms) };
+function clock() {
+  let now = 0;
+  return {
+    now: () => now,
+    advance: (ms: number) => {
+      now += ms;
+    },
+  };
 }
 
 describe("window counter", () => {

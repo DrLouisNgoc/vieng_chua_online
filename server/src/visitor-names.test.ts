@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { createVisitorNameStore, isDefaultName, DEFAULT_NAME } from "./visitor-names.js";
+import { describe, expect, it } from "vitest";
+
+import { createVisitorNameStore, DEFAULT_NAME, isDefaultName } from "./visitor-names.js";
 
 describe("isDefaultName", () => {
   it("matches the forbidden default name exactly", () => {
@@ -23,25 +24,25 @@ describe("isDefaultName", () => {
 describe("createVisitorNameStore", () => {
   it("has no name for an ip that never registered", () => {
     const store = createVisitorNameStore(null);
-    expect(store.nameFor("1.2.3.4")).toBeNull();
+    expect(store.nameFor("192.0.2.1")).toBeNull();
   });
 
   it("remembers the name registered for an ip", () => {
     const store = createVisitorNameStore(null);
-    store.register("1.2.3.4", "Diệu Tâm");
-    expect(store.nameFor("1.2.3.4")).toBe("Diệu Tâm");
+    store.register("192.0.2.1", "Diệu Tâm");
+    expect(store.nameFor("192.0.2.1")).toBe("Diệu Tâm");
   });
 
   it("overwrites a previous name for the same ip (caller enforces first-write-wins)", () => {
     const store = createVisitorNameStore(null);
-    store.register("1.2.3.4", "Diệu Tâm");
-    store.register("1.2.3.4", "Khác Tên");
-    expect(store.nameFor("1.2.3.4")).toBe("Khác Tên");
+    store.register("192.0.2.1", "Diệu Tâm");
+    store.register("192.0.2.1", "Khác Tên");
+    expect(store.nameFor("192.0.2.1")).toBe("Khác Tên");
   });
 
   it("restores names from a seed object (persisted file)", () => {
-    const store = createVisitorNameStore({ "1.2.3.4": "Diệu Tâm" });
-    expect(store.nameFor("1.2.3.4")).toBe("Diệu Tâm");
+    const store = createVisitorNameStore({ "192.0.2.1": "Diệu Tâm" });
+    expect(store.nameFor("192.0.2.1")).toBe("Diệu Tâm");
   });
 
   it("ignores a malformed seed instead of throwing", () => {
@@ -52,8 +53,8 @@ describe("createVisitorNameStore", () => {
 
   it("snapshot() returns every registered ip/name pair", () => {
     const store = createVisitorNameStore(null);
-    store.register("1.2.3.4", "Diệu Tâm");
-    store.register("5.6.7.8", "An");
-    expect(store.snapshot()).toEqual({ "1.2.3.4": "Diệu Tâm", "5.6.7.8": "An" });
+    store.register("192.0.2.1", "Diệu Tâm");
+    store.register("198.51.100.7", "An");
+    expect(store.snapshot()).toEqual({ "192.0.2.1": "Diệu Tâm", "198.51.100.7": "An" });
   });
 });

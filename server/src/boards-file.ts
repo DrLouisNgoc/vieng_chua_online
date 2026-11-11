@@ -9,7 +9,7 @@
 // empty would overwrite real content and drop the admin password hash on
 // the next write. Fail loudly so the owner restores it from a backup.
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import nodePath from "node:path";
 
 function isMissingFile(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
@@ -33,8 +33,8 @@ export function readBoardsFile(path: string): unknown {
 }
 
 export function writeBoardsFile(path: string, data: unknown): void {
-  mkdirSync(dirname(path), { recursive: true });
-  const tempPath = `${path}.${process.pid}.tmp`;
+  mkdirSync(nodePath.dirname(path), { recursive: true });
+  const tempPath = `${path}.${String(process.pid)}.tmp`;
   writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf8");
   renameSync(tempPath, path);
 }
