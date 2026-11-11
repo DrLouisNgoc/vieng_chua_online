@@ -12,3 +12,6 @@ reference/
 
 # Root dev tools (Prettier)
 node_modules/
+
+# ESLint cache (CI and hooks use node_modules/.cache/eslint/; this catches a bare --cache)
+.eslintcache
