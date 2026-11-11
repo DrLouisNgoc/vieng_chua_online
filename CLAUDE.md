@@ -33,8 +33,8 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   machines use **the same GitHub account**, so "who is on it" is the label `ngoc`/`anh` on the Issue and PR,
   never the assignee.
 - **Flow:** commit → push the task branch → open the PR → CI runs → when `server`, `app`, `docs` and `lint` are all green,
-  CI's `automerge` job squash-merges the PR and starts the deploy. Nobody merges by hand except
-  `needs-visual-check` PRs.
+  CI's `automerge` job squash-merges the PR and starts the deploy. No visual-check gate (decision 0016,
+  supersedes 0012/0014's mention of one): every green PR auto-merges, visual/3D changes included.
 - **`main` is not locked on GitHub (owner's choice, decision 0014), so these limits are the lock. Both Claudes
   keep them every time, even if asked to "just push it":**
   1. Never commit to, push to, or merge locally into `main`. All changes go through a PR.
@@ -50,8 +50,8 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
   before opening the PR: `git fetch origin && git rebase origin/main`.
 - Check open PRs before editing a big shared file (`gh pr list`); if another open PR touches the same file, say
   so and keep the change minimal or wait.
-- A PR changing only things you can see (3D, CSS, layout) gets the label `needs-visual-check` **when it is
-  created**; CI then does not merge it. The owner runs `npm run dev`, looks, then presses Merge on GitHub.
+- No visual-check gate (decision 0016): a PR changing only things you can see (3D, CSS, layout) still auto-merges
+  like any other green PR. Look at it with `npm run dev` before or after merging, your choice.
 
 ## Commands
 - `npm run check` — typecheck + tests (server, app) + ESLint + docs check. Must pass before every commit you
@@ -77,7 +77,7 @@ that milestone or guide. Before re-deciding anything, check `docs/memory/decisio
 ## Autonomy
 - **Green, just do it:** read, edit inside the repo, run tests/builds, commit on a branch, push a branch
   (`--force-with-lease` on your own task branch after a rebase), open a PR, create/comment/close/label Issues,
-  create the labels `ngoc`, `anh`, `tech-debt`, `needs-visual-check` if missing.
+  create the labels `ngoc`, `anh`, `tech-debt` if missing.
 - **Yellow, do it and say so in the PR:** add or remove a dependency; delete tracked files; edit a workflow in
   `.github/`.
 - **Red, ask the owner first, every time:** anything on the VPS (`ssh`, `scp`, editing `deploy.sh`, Caddy,

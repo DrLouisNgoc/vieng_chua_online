@@ -11,8 +11,7 @@ The owner may not read code. Explain each step in one short Vietnamese sentence;
    discard them). Then `git switch main && git fetch origin && git rebase origin/main`.
 2. **Who am I.** `<owner>` is `ngoc` or `anh`, from `git config user.name` (ask once if unclear). Both machines
    use the same GitHub account, so the owner is shown by **label**, never by assignee. First time on a machine:
-   `gh label create ngoc --force; gh label create anh --force; gh label create tech-debt --force;
-   gh label create needs-visual-check --force`.
+   `gh label create ngoc --force; gh label create anh --force; gh label create tech-debt --force`.
 3. **Issue.** `gh issue list --state open --limit 30 --json number,title,labels`. If an open Issue matches the
    task, use it; if it carries the other owner's label, stop and say so. Otherwise create one:
    `gh issue create --title "<short English title>" --label <owner> --body "<what the owner asked, their words quoted; files likely touched>"`.

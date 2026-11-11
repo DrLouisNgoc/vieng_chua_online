@@ -97,8 +97,9 @@ An owner just asks for a change in plain words; Claude runs the steps on its own
 2. When the change is complete (`.claude/skills/xong`): runs `npm run check`, commits, pushes the branch and opens
    a PR.
 3. CI runs `server`, `app`, `docs` and `lint`. When all are green, its `automerge` job squash-merges the PR, unless it is a
-   draft or labelled `needs-visual-check`, or `main` moved while CI ran. Then it deploys that exact commit to the
-   VPS. With the `deploy.sh` from guide 11, a failed health check rolls the deploy back automatically.
+   draft or `main` moved while CI ran — no visual-check gate ([decision 0016](docs/memory/decisions/0016-drop-visual-check-gate.md)).
+   Then it deploys that exact commit to the VPS. With the `deploy.sh` from guide 11, a failed health check rolls
+   the deploy back automatically.
 
 `main` is not locked on GitHub ([decision 0014](docs/memory/decisions/0014-limits-instead-of-branch-lock.md)).
 The limits in [`CLAUDE.md`](CLAUDE.md) keep both Claudes off it: no direct commits or pushes to `main`, no manual
