@@ -391,7 +391,6 @@ export async function buildTempleGrounds(
       (altar.minZ + altar.maxZ) / 2,
     );
     buildShrine(hall, top + HALL.altarHeight);
-    buildHallAmbientLights(hall, top, wallHeight);
 
     const pillarGeometry = new CylinderGeometry(0.55, 0.62, wallHeight, 20);
     const baseGeometry = new CylinderGeometry(0.85, 0.85, 0.35, 16);
@@ -570,37 +569,12 @@ export async function buildTempleGrounds(
     }
   }
 
-  // A grid of ceiling lamps across the whole hall floor — buildShrine's
-  // lights only reach the altar. A PointLight is not scoped to its parent
-  // Group: it lights the whole scene, so a long reach (60, then 80) leaked
-  // straight through the hall's open front and overexposed the entrance
-  // terrace outside (owner, 2026-11-11, with a screenshot: "vẫn bị thế này
-  // sửa lại"). This pass shortens reach to roughly one grid cell (so
-  // neighbouring pools still overlap but the light is spent before it
-  // reaches outside) and uses decay 2 (the same, proven-safe falloff as
-  // buildShrine's own fill lights) instead of a flatter, longer-travelling
-  // decay.
-  function buildHallAmbientLights(hall: Group, top: number, wallHeight: number): void {
-    const y = top + wallHeight * 0.8;
-    const reach = 22;
-    const spots = [
-      { x: -30, z: -2 },
-      { x: 0, z: -2 },
-      { x: 30, z: -2 },
-      { x: -30, z: -20 },
-      { x: 0, z: -20 },
-      { x: 30, z: -20 },
-      { x: -30, z: -36 },
-      { x: 0, z: -36 },
-      { x: 30, z: -36 },
-    ];
-    for (const spot of spots) {
-      const lamp = new PointLight(PALETTE.lamp, 3 * reach * reach, reach, 2);
-      lamp.position.set(spot.x, y, spot.z);
-      lamp.castShadow = false;
-      hall.add(lamp);
-    }
-  }
+  // Four tries at brightening the whole hall (owner, 2026-11-10/11:
+  // "sáng trưng hơn nữa", "sáng trưng luôn tất cả chánh điện", "sáng thêm
+  // cho tôi nhé", a fix attempt) each overexposed the hall itself or leaked
+  // through the open front onto the entrance terrace. Owner: "vẫn thế, thôi
+  // để màu như ban đầu đi" — reverted; buildShrine's own altar lights are
+  // the hall's only lighting again.
 
   // ---- courtyard, path, pillars, urn --------------------------------------
 
