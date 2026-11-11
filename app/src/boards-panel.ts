@@ -458,15 +458,31 @@ export function createBoardsPanel(
     const label = document.createElement("p");
     label.className = "boards__status";
     label.textContent = selectedSutraIndex === null ? "Hôm nay:" : "Đang xem:";
-    const link = document.createElement("a");
-    link.className = "boards__content";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
+    wrap.append(label);
+
     if (current) {
-      link.href = current.url;
-      link.textContent = current.title;
+      const title = document.createElement("p");
+      title.className = "boards__content";
+      title.textContent = current.title;
+      wrap.append(title);
+
+      // Read right here, like a page (owner, 2026-11-10: "mở kinh như
+      // trang giấy, đừng chuyển link sang link khác") — not a plain
+      // outbound link that leaves the app. If the source site refuses to
+      // be framed, "Mở trang gốc" below still works.
+      const frame = document.createElement("iframe");
+      frame.className = "boards__sutra-frame";
+      frame.src = current.url;
+      wrap.append(frame);
+
+      const openLink = document.createElement("a");
+      openLink.className = "boards__sutra-open";
+      openLink.href = current.url;
+      openLink.target = "_blank";
+      openLink.rel = "noopener noreferrer";
+      openLink.textContent = "Mở trang gốc ↗";
+      wrap.append(openLink);
     }
-    wrap.append(label, link);
 
     if (sutras.length > 1) {
       const listLabel = document.createElement("p");
