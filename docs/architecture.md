@@ -100,6 +100,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/practice-panel.ts` | "Tu tập" panel DOM |
 | `app/src/ambience.ts` | Background sound and bells from optional files |
 | `app/src/background-music.ts` | Hidden YouTube embed for background music, mute toggle |
+| `app/src/bell-video.ts` | Hidden YouTube embed for the bell toll; `ring()` restarts it on each toll |
 
 ## app/src — multiplayer, boards, chat
 | File | Owns |
