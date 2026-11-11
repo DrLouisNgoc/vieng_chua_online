@@ -54,10 +54,30 @@ export function buildCurvedHipRoof(options: CurvedRoofOptions): RoofMesh {
 
   // each face: eave start/end and ridge start/end, walked in the same direction
   const faces: [XZ, XZ, XZ, XZ][] = [
-    [[-W, D], [W, D], [-R, 0], [R, 0]], // front (+z)
-    [[W, D], [W, -D], [R, 0], [R, 0]], // right (+x)
-    [[W, -D], [-W, -D], [R, 0], [-R, 0]], // back (-z)
-    [[-W, -D], [-W, D], [-R, 0], [-R, 0]], // left (-x)
+    [
+      [-W, D],
+      [W, D],
+      [-R, 0],
+      [R, 0],
+    ], // front (+z)
+    [
+      [W, D],
+      [W, -D],
+      [R, 0],
+      [R, 0],
+    ], // right (+x)
+    [
+      [W, -D],
+      [-W, -D],
+      [R, 0],
+      [-R, 0],
+    ], // back (-z)
+    [
+      [-W, -D],
+      [-W, D],
+      [-R, 0],
+      [-R, 0],
+    ], // left (-x)
   ];
 
   const positions: number[] = [];

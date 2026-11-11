@@ -96,9 +96,7 @@ export function createRemoteVisitors(options: RemoteVisitorsOptions): RemoteVisi
       for (const remote of [...remotes.values()]) {
         if (!seen.has(remote.view.id)) remove(remote);
       }
-      occupied = new Set(
-        visitors.map((view) => view.seatIndex).filter((seat): seat is number => seat !== null),
-      );
+      occupied = new Set(visitors.map((view) => view.seatIndex).filter((seat): seat is number => seat !== null));
     },
     update(deltaSeconds, cameraPosition) {
       const factor = smoothingFactor(deltaSeconds);

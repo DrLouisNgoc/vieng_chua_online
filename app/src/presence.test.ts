@@ -198,7 +198,13 @@ describe("visitor messages", () => {
     socket.open();
     const view = { name: "A", colorIndex: 0, ...state };
     socket.message({ type: "welcome", id: "me" });
-    socket.message({ type: "visitors", visitors: [{ id: "me", ...view }, { id: "other", ...view }] });
+    socket.message({
+      type: "visitors",
+      visitors: [
+        { id: "me", ...view },
+        { id: "other", ...view },
+      ],
+    });
     expect(onVisitors).toHaveBeenLastCalledWith([{ id: "other", ...view }]);
     socket.message({ type: "seat-refused", seatIndex: 4 });
     expect(onSeatRefused).toHaveBeenCalledWith(4);

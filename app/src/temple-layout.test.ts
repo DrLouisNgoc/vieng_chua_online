@@ -46,9 +46,7 @@ describe("main hall stairs (owner 2026-11-04: raised 9 steps)", () => {
 
   it("the bottom step is one riser high and the top step is level with the platform", () => {
     expect(groundHeightAt({ x: 0, z: stairsFoot - STAIRS.tread / 2 })).toBeCloseTo(STAIRS.rise);
-    expect(groundHeightAt({ x: 0, z: STAIRS.frontZ + STAIRS.tread / 2 })).toBeCloseTo(
-      HALL.platformHeight,
-    );
+    expect(groundHeightAt({ x: 0, z: STAIRS.frontZ + STAIRS.tread / 2 })).toBeCloseTo(HALL.platformHeight);
   });
 
   it("climbs steadily: each step toward the hall is one riser higher", () => {
@@ -61,8 +59,7 @@ describe("main hall stairs (owner 2026-11-04: raised 9 steps)", () => {
   });
 
   it("the platform edges block walking up except over the stairs", () => {
-    const blocked = (x: number, z: number): boolean =>
-      COLLIDERS.some((box) => isInside({ x, z }, box));
+    const blocked = (x: number, z: number): boolean => COLLIDERS.some((box) => isInside({ x, z }, box));
     expect(blocked(HALL.maxX - 0.1, -10)).toBe(true); // right side edge
     expect(blocked(-20, HALL.maxZ - 0.1)).toBe(true); // front edge beside the stairs
     expect(blocked(0, HALL.maxZ - 0.1)).toBe(false); // top of the stairs
@@ -107,7 +104,9 @@ describe("grounds features", () => {
     // overlaps the hall's depth, i.e. it sits alongside it
     expect(POND.minZ).toBeLessThan(HALL.maxZ);
     expect(POND.maxZ).toBeGreaterThan(HALL.minZ);
-    expect(COLLIDERS.some((box) => isInside({ x: (POND.minX + POND.maxX) / 2, z: (POND.minZ + POND.maxZ) / 2 }, box))).toBe(true);
+    expect(
+      COLLIDERS.some((box) => isInside({ x: (POND.minX + POND.maxX) / 2, z: (POND.minZ + POND.maxZ) / 2 }, box)),
+    ).toBe(true);
   });
 });
 
@@ -120,11 +119,7 @@ describe("yard size", () => {
 
   it("the yard between wall and hall is about half its previous area", () => {
     const previous = yardArea(210, 85, 15);
-    const now = yardArea(
-      BOUNDARY.maxZ - HALL.maxZ,
-      HALL.minX - BOUNDARY.minX,
-      HALL.minZ - BOUNDARY.minZ,
-    );
+    const now = yardArea(BOUNDARY.maxZ - HALL.maxZ, HALL.minX - BOUNDARY.minX, HALL.minZ - BOUNDARY.minZ);
     expect(now / previous).toBeGreaterThan(0.47);
     expect(now / previous).toBeLessThan(0.53);
   });

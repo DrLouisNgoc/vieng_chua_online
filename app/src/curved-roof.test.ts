@@ -15,10 +15,7 @@ function ys(positions: number[]): number[] {
 
 function vertexAt(positions: number[], x: number, z: number): number | undefined {
   for (let i = 0; i < positions.length; i += 3) {
-    if (
-      Math.abs((positions[i] ?? NaN) - x) < 1e-6 &&
-      Math.abs((positions[i + 2] ?? NaN) - z) < 1e-6
-    ) {
+    if (Math.abs((positions[i] ?? NaN) - x) < 1e-6 && Math.abs((positions[i + 2] ?? NaN) - z) < 1e-6) {
       return positions[i + 1];
     }
   }

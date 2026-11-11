@@ -37,10 +37,7 @@ import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { buildTempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
-import {
-  createInteractionRuntime,
-  type InteractionView,
-} from "./interaction-runtime";
+import { createInteractionRuntime, type InteractionView } from "./interaction-runtime";
 import type { InteractionAction } from "./interaction-prompts";
 import {
   DEFAULT_RIG,
@@ -50,14 +47,7 @@ import {
   moveDirection,
   turnTowards,
 } from "./third-person-camera";
-import {
-  AVATAR_START,
-  COLLIDERS,
-  HALL,
-  PINE_POSITIONS,
-  STATUES,
-  groundHeightAt,
-} from "./temple-layout";
+import { AVATAR_START, COLLIDERS, HALL, PINE_POSITIONS, STATUES, groundHeightAt } from "./temple-layout";
 
 const ASSET_ROOT = "/sansatemple";
 const MOKTAK_BASE_SCALE = 0.8;
@@ -163,11 +153,7 @@ export interface TempleScene {
   dispose: () => void;
 }
 
-
-export async function createTempleScene(
-  container: HTMLElement,
-  options: TempleSceneOptions,
-): Promise<TempleScene> {
+export async function createTempleScene(container: HTMLElement, options: TempleSceneOptions): Promise<TempleScene> {
   const scene = new Scene();
   const skyTexture = createSkyTexture();
   scene.background = skyTexture;
@@ -175,12 +161,7 @@ export async function createTempleScene(
   const fog = new Fog(0xe8dcc4, 90, 340);
   scene.fog = fog;
 
-  const camera = new PerspectiveCamera(
-    45,
-    container.clientWidth / container.clientHeight,
-    0.1,
-    800,
-  );
+  const camera = new PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 800);
 
   const renderer = new WebGLRenderer({ antialias: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
@@ -207,9 +188,7 @@ export async function createTempleScene(
   scene.add(sun.target);
 
   const textureLoader = new TextureLoader();
-  const groundColor = await textureLoader.loadAsync(
-    `${ASSET_ROOT}/materials/ground/color.jpg`,
-  );
+  const groundColor = await textureLoader.loadAsync(`${ASSET_ROOT}/materials/ground/color.jpg`);
   groundColor.colorSpace = SRGBColorSpace;
   groundColor.wrapS = RepeatWrapping;
   groundColor.wrapT = RepeatWrapping;
@@ -226,11 +205,7 @@ export async function createTempleScene(
   const gltfLoader = new GLTFLoader();
   gltfLoader.setMeshoptDecoder(MeshoptDecoder);
 
-  async function addModel(
-    path: string,
-    position: Vector3,
-    targetHeight: number,
-  ): Promise<Object3D> {
+  async function addModel(path: string, position: Vector3, targetHeight: number): Promise<Object3D> {
     const gltf = await gltfLoader.loadAsync(`${ASSET_ROOT}/models/${path}`);
     const model = gltf.scene;
     const originalSize = new Box3().setFromObject(model).getSize(new Vector3());
@@ -239,11 +214,7 @@ export async function createTempleScene(
 
     const scaledBox = new Box3().setFromObject(model);
     const scaledCenter = scaledBox.getCenter(new Vector3());
-    model.position.set(
-      position.x - scaledCenter.x,
-      position.y - scaledBox.min.y,
-      position.z - scaledCenter.z,
-    );
+    model.position.set(position.x - scaledCenter.x, position.y - scaledBox.min.y, position.z - scaledCenter.z);
     enableShadows(model);
     scene.add(model);
     return model;
@@ -253,11 +224,7 @@ export async function createTempleScene(
     path: string,
     statue: { x: number; z: number; height: number; pedestal: number },
   ): Promise<Object3D> {
-    return addModel(
-      path,
-      new Vector3(statue.x, ALTAR_TOP + statue.pedestal, statue.z),
-      statue.height,
-    );
+    return addModel(path, new Vector3(statue.x, ALTAR_TOP + statue.pedestal, statue.z), statue.height);
   }
 
   const [firstPine, ...otherPines] = PINE_POSITIONS;
@@ -299,12 +266,8 @@ export async function createTempleScene(
   });
   let walkClockSeconds = 0;
 
-  const moktakTexture = await textureLoader.loadAsync(
-    `${ASSET_ROOT}/images/moktak.webp`,
-  );
-  const moktakSprite = new Sprite(
-    new SpriteMaterial({ map: moktakTexture, transparent: true }),
-  );
+  const moktakTexture = await textureLoader.loadAsync(`${ASSET_ROOT}/images/moktak.webp`);
+  const moktakSprite = new Sprite(new SpriteMaterial({ map: moktakTexture, transparent: true }));
   moktakSprite.scale.set(MOKTAK_BASE_SCALE, MOKTAK_BASE_SCALE, 1);
   // beside the start point, clear of the hall stairs
   moktakSprite.position.set(AVATAR_START.x + 3.2, 0.95, AVATAR_START.z - 0.6);
@@ -334,8 +297,7 @@ export async function createTempleScene(
     if (pointerDownAt === null) return;
     if (
       !dragging &&
-      Math.hypot(event.clientX - pointerDownAt.x, event.clientY - pointerDownAt.y) >
-        CLICK_DRAG_THRESHOLD_PX
+      Math.hypot(event.clientX - pointerDownAt.x, event.clientY - pointerDownAt.y) > CLICK_DRAG_THRESHOLD_PX
     ) {
       dragging = true;
     }
@@ -378,9 +340,7 @@ export async function createTempleScene(
   let keyboardDriving = false;
   function isTypingInField(event: KeyboardEvent): boolean {
     const target = event.target;
-    return (
-      target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
-    );
+    return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
   }
   function handleKeyDown(event: KeyboardEvent): void {
     if (isTypingInField(event)) return;
@@ -419,19 +379,13 @@ export async function createTempleScene(
   });
   const cameraYaw = (): number => START_HEADING + rig.yawOffset;
   function applyKeyboardMovement(deltaSeconds: number): void {
-    const forward =
-      (keys.isAnyHeld(FORWARD_KEYS) ? 1 : 0) - (keys.isAnyHeld(BACKWARD_KEYS) ? 1 : 0);
-    const right =
-      (keys.isAnyHeld(RIGHT_KEYS) ? 1 : 0) - (keys.isAnyHeld(LEFT_KEYS) ? 1 : 0);
+    const forward = (keys.isAnyHeld(FORWARD_KEYS) ? 1 : 0) - (keys.isAnyHeld(BACKWARD_KEYS) ? 1 : 0);
+    const right = (keys.isAnyHeld(RIGHT_KEYS) ? 1 : 0) - (keys.isAnyHeld(LEFT_KEYS) ? 1 : 0);
     const direction = moveDirection(cameraYaw(), forward, right);
 
     if (direction) {
       interactions.startMoving();
-      heading = turnTowards(
-        heading,
-        Math.atan2(direction.x, direction.z),
-        TURN_SPEED * deltaSeconds,
-      );
+      heading = turnTowards(heading, Math.atan2(direction.x, direction.z), TURN_SPEED * deltaSeconds);
       movement.moveTo({
         x: movement.position.x + direction.x * KEYBOARD_LOOK_AHEAD,
         z: movement.position.z + direction.z * KEYBOARD_LOOK_AHEAD,
@@ -466,14 +420,8 @@ export async function createTempleScene(
     };
   }
   function updateCamera(deltaSeconds: number, snap = false): void {
-    cameraTarget.set(
-      avatar.position.x,
-      avatar.position.y + CAMERA_LOOK_HEIGHT,
-      avatar.position.z,
-    );
-    const desired = unblockedCameraPosition(
-      desiredCameraPosition(cameraTarget, START_HEADING, rig),
-    );
+    cameraTarget.set(avatar.position.x, avatar.position.y + CAMERA_LOOK_HEIGHT, avatar.position.z);
+    const desired = unblockedCameraPosition(desiredCameraPosition(cameraTarget, START_HEADING, rig));
     const blend = snap ? 1 : 1 - Math.exp(-CAMERA_SMOOTHING * deltaSeconds);
     camera.position.x += (desired.x - camera.position.x) * blend;
     camera.position.y += (desired.y - camera.position.y) * blend;
@@ -561,11 +509,7 @@ export async function createTempleScene(
     options.onFrame?.(deltaSeconds);
     const pulsing = nowMs < pulseUntil;
     const scale = pulsing ? MOKTAK_PULSE_SCALE : 1;
-    moktakSprite.scale.set(
-      MOKTAK_BASE_SCALE * scale,
-      MOKTAK_BASE_SCALE * scale,
-      1,
-    );
+    moktakSprite.scale.set(MOKTAK_BASE_SCALE * scale, MOKTAK_BASE_SCALE * scale, 1);
     renderer.render(scene, camera);
   }
   renderLoop();

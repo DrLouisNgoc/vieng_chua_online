@@ -90,9 +90,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
 }
 
-function parseEditRequest(
-  value: unknown,
-): { password: string; body: string; talks?: string; title?: string } | null {
+function parseEditRequest(value: unknown): { password: string; body: string; talks?: string; title?: string } | null {
   const v = asRecord(value);
   if (!v) return null;
   const { password, body, talks, title } = v;

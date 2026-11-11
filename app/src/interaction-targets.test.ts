@@ -1,13 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { findTargets, seatHeading } from "./interaction-targets";
-import {
-  BANYAN,
-  BROOM_SPOT,
-  MEDITATION_SEATS,
-  SEAT_REACH,
-  BROOM_REACH,
-  STATUE_ZONE,
-} from "./temple-layout";
+import { BANYAN, BROOM_SPOT, MEDITATION_SEATS, SEAT_REACH, BROOM_REACH, STATUE_ZONE } from "./temple-layout";
 
 const seats = [
   { x: 0, z: 0 },
@@ -45,7 +38,9 @@ describe("findTargets", () => {
 
   it("works on the real layout: a hall cushion and the broom", () => {
     const first = MEDITATION_SEATS[0];
-    expect(findTargets(first, { seats: MEDITATION_SEATS, broomSpot: BROOM_SPOT, statueZone: STATUE_ZONE }).seatIndex).toBe(0);
+    expect(
+      findTargets(first, { seats: MEDITATION_SEATS, broomSpot: BROOM_SPOT, statueZone: STATUE_ZONE }).seatIndex,
+    ).toBe(0);
     expect(
       findTargets(BROOM_SPOT, { seats: MEDITATION_SEATS, broomSpot: BROOM_SPOT, statueZone: STATUE_ZONE }).nearBroom,
     ).toBe(true);

@@ -67,11 +67,7 @@ function sameState(a: OutgoingState, b: OutgoingState): boolean {
   return JSON.stringify(rounded(a)) === JSON.stringify(rounded(b));
 }
 
-export function shouldSendState(
-  lastSent: OutgoingState | null,
-  next: OutgoingState,
-  msSinceLastSend: number,
-): boolean {
+export function shouldSendState(lastSent: OutgoingState | null, next: OutgoingState, msSinceLastSend: number): boolean {
   if (lastSent === null) return true;
   return msSinceLastSend >= STATE_INTERVAL_MS && !sameState(lastSent, next);
 }
@@ -85,12 +81,7 @@ function isFiniteNumber(value: unknown): value is number {
 function parseChatEntry(value: unknown): ChatEntry | null {
   if (typeof value !== "object" || value === null) return null;
   const v = value as Fields;
-  if (
-    typeof v.id === "string" &&
-    typeof v.name === "string" &&
-    typeof v.text === "string" &&
-    Number.isFinite(v.ts)
-  ) {
+  if (typeof v.id === "string" && typeof v.name === "string" && typeof v.text === "string" && Number.isFinite(v.ts)) {
     return { id: v.id, name: v.name, text: v.text, ts: v.ts as number };
   }
   return null;
@@ -149,14 +140,10 @@ export function parseServerMessage(text: string): ServerMessage | null {
     case "join-refused":
       return m.reason === "default-name" ? { type: "join-refused", reason: "default-name" } : null;
     case "seat-refused":
-      return Number.isInteger(m.seatIndex)
-        ? { type: "seat-refused", seatIndex: m.seatIndex as number }
-        : null;
+      return Number.isInteger(m.seatIndex) ? { type: "seat-refused", seatIndex: m.seatIndex as number } : null;
     case "visitors": {
       if (!Array.isArray(m.visitors)) return null;
-      const visitors = m.visitors
-        .map(parseVisitor)
-        .filter((visitor): visitor is VisitorView => visitor !== null);
+      const visitors = m.visitors.map(parseVisitor).filter((visitor): visitor is VisitorView => visitor !== null);
       return { type: "visitors", visitors };
     }
     case "chat": {

@@ -135,10 +135,7 @@ function tiles(length: number): number {
   return Math.max(1, Math.round(length / 2.5));
 }
 
-export async function buildTempleGrounds(
-  textureLoader: TextureLoader,
-  maxAnisotropy: number,
-): Promise<TempleGrounds> {
+export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisotropy: number): Promise<TempleGrounds> {
   const root = "/sansatemple/materials";
   const names: MaterialName[] = ["wood", "roof", "stone", "rock", "plaster", "cloth"];
   const sets = new Map<MaterialName, PbrSet>();
@@ -154,12 +151,7 @@ export async function buildTempleGrounds(
     }),
   );
 
-  function pbr(
-    name: MaterialName,
-    repeatX: number,
-    repeatY: number,
-    tint = 0xffffff,
-  ): MeshStandardMaterial {
+  function pbr(name: MaterialName, repeatX: number, repeatY: number, tint = 0xffffff): MeshStandardMaterial {
     const set = sets.get(name);
     if (!set) throw new Error(`material set ${name} failed to load`);
     const tile = (texture: Texture): Texture => {
@@ -350,7 +342,14 @@ export async function buildTempleGrounds(
     }
     if (pearl) {
       add(parent, new SphereGeometry(0.55 * size, 16, 12), gold, 0, y + options.height + 0.8 * size, 0);
-      const tip = add(parent, new ConeGeometry(0.35 * size, 1.1 * size, 12), flame, 0, y + options.height + 1.7 * size, 0);
+      const tip = add(
+        parent,
+        new ConeGeometry(0.35 * size, 1.1 * size, 12),
+        flame,
+        0,
+        y + options.height + 1.7 * size,
+        0,
+      );
       tip.castShadow = false;
     }
   }
@@ -372,7 +371,14 @@ export async function buildTempleGrounds(
     add(hall, new BoxGeometry(width, top, depth), stone, 0, top / 2, centerZ);
     buildStairs(hall);
     // polished wooden floor inside the hall
-    add(hall, new BoxGeometry(width - 0.8, 0.02, depth - 0.8), pbr("wood", tiles(width), tiles(depth)), 0, top + 0.01, centerZ);
+    add(
+      hall,
+      new BoxGeometry(width - 0.8, 0.02, depth - 0.8),
+      pbr("wood", tiles(width), tiles(depth)),
+      0,
+      top + 0.01,
+      centerZ,
+    );
 
     const t = HALL.wallThickness;
     add(hall, new BoxGeometry(width, wallHeight, t), plaster, 0, top + wallHeight / 2, HALL.minZ + t / 2);
@@ -632,15 +638,11 @@ export async function buildTempleGrounds(
     path.name = "loi-di";
     const spacing = 1.05;
     const count = Math.floor((PATH.fromZ - PATH.toZ) / spacing);
-    const slabs = new InstancedMesh(
-      new BoxGeometry(PATH.width, 0.06, 0.9),
-      pbr("stone", 1, 0.6),
-      count,
-    );
+    const slabs = new InstancedMesh(new BoxGeometry(PATH.width, 0.06, 0.9), pbr("stone", 1, 0.6), count);
     const dummy = new Object3D();
     for (let i = 0; i < count; i += 1) {
       dummy.position.set(0, PAVING_HEIGHT + 0.02, PATH.fromZ - i * spacing);
-      dummy.rotation.set(0, ((i * 37) % 7 - 3) * 0.015, 0);
+      dummy.rotation.set(0, (((i * 37) % 7) - 3) * 0.015, 0);
       dummy.updateMatrix();
       slabs.setMatrixAt(i, dummy.matrix);
     }
@@ -682,10 +684,24 @@ export async function buildTempleGrounds(
     add(urn, new BoxGeometry(r * 1.9, 0.3, r * 1.9), pbr("stone", 1, 1), 0, 0.15, 0);
     for (let i = 0; i < 3; i += 1) {
       const angle = (i / 3) * Math.PI * 2;
-      add(urn, new CylinderGeometry(0.08, 0.12, 0.4, 8), bronze, Math.cos(angle) * r * 0.55, 0.5, Math.sin(angle) * r * 0.55);
+      add(
+        urn,
+        new CylinderGeometry(0.08, 0.12, 0.4, 8),
+        bronze,
+        Math.cos(angle) * r * 0.55,
+        0.5,
+        Math.sin(angle) * r * 0.55,
+      );
     }
     const profile = [
-      [0, 0], [0.5, 0], [0.78, 0.12], [0.9, 0.42], [0.84, 0.7], [0.96, 0.78], [0.92, 0.84], [0.74, 0.8],
+      [0, 0],
+      [0.5, 0],
+      [0.78, 0.12],
+      [0.9, 0.42],
+      [0.84, 0.7],
+      [0.96, 0.78],
+      [0.92, 0.84],
+      [0.74, 0.8],
     ].map(([px, py]) => new Vector2((px ?? 0) * r, (py ?? 0) * r));
     add(urn, new LatheGeometry(profile, 32), bronze, 0, 0.65, 0);
     const handleGeometry = new TorusGeometry(0.18 * r, 0.04 * r, 8, 16);
@@ -805,7 +821,14 @@ export async function buildTempleGrounds(
     add(gate, new BoxGeometry(centreSpan + 0.9, 0.55, 0.7), lacquer, 0, GATE.centralHeight - 0.5, 0);
     const sideSpan = innerL - outerL;
     for (const sx of [-1, 1]) {
-      add(gate, new BoxGeometry(sideSpan + 0.9, 0.45, 0.6), lacquer, sx * (outerR + innerR) / 2, GATE.sideHeight - 0.4, 0);
+      add(
+        gate,
+        new BoxGeometry(sideSpan + 0.9, 0.45, 0.6),
+        lacquer,
+        (sx * (outerR + innerR)) / 2,
+        GATE.sideHeight - 0.4,
+        0,
+      );
     }
     const plaqueMaterial = new MeshStandardMaterial({ map: plaqueTexture("SƠN TỰ"), roughness: 0.6 });
     for (const sz of [-1, 1]) {
@@ -813,7 +836,13 @@ export async function buildTempleGrounds(
       plaque.rotation.y = sz < 0 ? Math.PI : 0;
     }
 
-    const centreRoof: CurvedRoofOptions = { halfWidth: centreSpan / 2 + 1.5, halfDepth: 1.9, height: 1.9, upturn: 0.7, segments: 12 };
+    const centreRoof: CurvedRoofOptions = {
+      halfWidth: centreSpan / 2 + 1.5,
+      halfDepth: 1.9,
+      height: 1.9,
+      upturn: 0.7,
+      segments: 12,
+    };
     const centre = curvedRoof(centreRoof);
     centre.position.y = GATE.centralHeight;
     gate.add(centre);
@@ -821,9 +850,15 @@ export async function buildTempleGrounds(
     ridge(gate, centreRoof, GATE.centralHeight, 0.45, true);
 
     for (const sx of [-1, 1]) {
-      const sideRoof: CurvedRoofOptions = { halfWidth: sideSpan / 2 + 0.9, halfDepth: 1.6, height: 1.5, upturn: 0.6, segments: 12 };
+      const sideRoof: CurvedRoofOptions = {
+        halfWidth: sideSpan / 2 + 0.9,
+        halfDepth: 1.6,
+        height: 1.5,
+        upturn: 0.6,
+        segments: 12,
+      };
       const side = new Group();
-      side.position.set(sx * (outerR + innerR) / 2, 0, 0);
+      side.position.set((sx * (outerR + innerR)) / 2, 0, 0);
       const roof = curvedRoof(sideRoof);
       roof.position.y = GATE.sideHeight;
       side.add(roof);
@@ -879,7 +914,14 @@ export async function buildTempleGrounds(
     const offset = BELL_TOWER.pillarOffset;
     for (const sx of [-1, 1]) {
       for (const sz of [-1, 1]) {
-        add(tower, new CylinderGeometry(0.2, 0.24, pillarHeight, 12), lacquer, sx * offset, base + pillarHeight / 2, sz * offset);
+        add(
+          tower,
+          new CylinderGeometry(0.2, 0.24, pillarHeight, 12),
+          lacquer,
+          sx * offset,
+          base + pillarHeight / 2,
+          sz * offset,
+        );
       }
     }
     const top = base + pillarHeight;
@@ -889,19 +931,45 @@ export async function buildTempleGrounds(
     add(tower, new BoxGeometry(offset * 2 + 0.4, 0.25, 0.25), lacquer, 0, top - 0.5, 0);
 
     const bellProfile = [
-      [0, 1.5], [0.32, 1.5], [0.44, 1.38], [0.5, 0.6], [0.6, 0.14], [0.7, 0.02], [0.66, 0],
+      [0, 1.5],
+      [0.32, 1.5],
+      [0.44, 1.38],
+      [0.5, 0.6],
+      [0.6, 0.14],
+      [0.7, 0.02],
+      [0.66, 0],
     ].map(([px, py]) => new Vector2(px ?? 0, py ?? 0));
     add(tower, new LatheGeometry(bellProfile, 32), bronze, 0, top - 0.6 - 1.5, 0);
 
-    const lower: CurvedRoofOptions = { halfWidth: BELL_TOWER.half + 0.8, halfDepth: BELL_TOWER.half + 0.8, height: 3, upturn: 0.9, topFraction: 0.45, segments: 12 };
+    const lower: CurvedRoofOptions = {
+      halfWidth: BELL_TOWER.half + 0.8,
+      halfDepth: BELL_TOWER.half + 0.8,
+      height: 3,
+      upturn: 0.9,
+      topFraction: 0.45,
+      segments: 12,
+    };
     const roofs = new Group();
     roofs.position.y = top;
     tower.add(roofs);
     roofs.add(curvedRoof(lower));
     cornerCurls(roofs, lower, 0, 0.5);
     const edge = innerEdge(lower);
-    add(roofs, new BoxGeometry(edge.halfWidth * 2, 0.9, edge.halfDepth * 2), pbr("plaster", 1, 1, PALETTE.wallOchre), 0, edge.y + 0.3, 0);
-    const upper: CurvedRoofOptions = { halfWidth: edge.halfWidth + 0.7, halfDepth: edge.halfDepth + 0.7, height: 1.9, upturn: 0.7, segments: 12 };
+    add(
+      roofs,
+      new BoxGeometry(edge.halfWidth * 2, 0.9, edge.halfDepth * 2),
+      pbr("plaster", 1, 1, PALETTE.wallOchre),
+      0,
+      edge.y + 0.3,
+      0,
+    );
+    const upper: CurvedRoofOptions = {
+      halfWidth: edge.halfWidth + 0.7,
+      halfDepth: edge.halfDepth + 0.7,
+      height: 1.9,
+      upturn: 0.7,
+      segments: 12,
+    };
     const upperRoof = curvedRoof(upper);
     upperRoof.position.y = edge.y + 0.75;
     roofs.add(upperRoof);
@@ -1027,20 +1095,55 @@ export async function buildTempleGrounds(
     const frameWidth = 1.4;
     const frameHeight = 1.9;
     const photoX = x - 1.3;
-    add(group, new BoxGeometry(0.12, frameHeight + 0.6, 0.12), standMaterial, photoX, y + (frameHeight + 0.6) / 2, z - 0.12);
-    add(group, new BoxGeometry(frameWidth + 0.16, frameHeight + 0.16, 0.08), frameMaterial, photoX, y + frameHeight / 2 + 0.6, z);
+    add(
+      group,
+      new BoxGeometry(0.12, frameHeight + 0.6, 0.12),
+      standMaterial,
+      photoX,
+      y + (frameHeight + 0.6) / 2,
+      z - 0.12,
+    );
+    add(
+      group,
+      new BoxGeometry(frameWidth + 0.16, frameHeight + 0.16, 0.08),
+      frameMaterial,
+      photoX,
+      y + frameHeight / 2 + 0.6,
+      z,
+    );
     const photoMaterial = new MeshStandardMaterial({
       map: teacherPhoto ?? portraitPlaceholder("Thiền Sư", "Nguyên Tuệ"),
     });
-    const photo = add(group, new PlaneGeometry(frameWidth, frameHeight), photoMaterial, photoX, y + frameHeight / 2 + 0.6, z + 0.05);
+    const photo = add(
+      group,
+      new PlaneGeometry(frameWidth, frameHeight),
+      photoMaterial,
+      photoX,
+      y + frameHeight / 2 + 0.6,
+      z + 0.05,
+    );
     photo.castShadow = false;
 
     const screenWidth = 2.4;
     const screenHeight = 1.6;
     const screenX = x + 1.3;
-    add(group, new BoxGeometry(screenWidth + 0.14, screenHeight + 0.14, 0.08), standMaterial, screenX, y + screenHeight / 2 + 0.6, z);
+    add(
+      group,
+      new BoxGeometry(screenWidth + 0.14, screenHeight + 0.14, 0.08),
+      standMaterial,
+      screenX,
+      y + screenHeight / 2 + 0.6,
+      z,
+    );
     const screenMaterial = new MeshStandardMaterial({ color: 0x15171c, roughness: 0.35 });
-    const screen = add(group, new PlaneGeometry(screenWidth, screenHeight), screenMaterial, screenX, y + screenHeight / 2 + 0.6, z + 0.06);
+    const screen = add(
+      group,
+      new PlaneGeometry(screenWidth, screenHeight),
+      screenMaterial,
+      screenX,
+      y + screenHeight / 2 + 0.6,
+      z + 0.06,
+    );
     screen.castShadow = false;
     add(group, new BoxGeometry(0.12, 0.9, 0.12), standMaterial, screenX, y + 0.45, z - 1.6);
     add(
@@ -1223,7 +1326,14 @@ export async function buildTempleGrounds(
       add(pond, new BoxGeometry(width, POND_CURB_HEIGHT, cw), curb, 0, POND_CURB_HEIGHT / 2, sz * (depth / 2 - cw / 2));
     }
     for (const sx of [-1, 1]) {
-      add(pond, new BoxGeometry(cw, POND_CURB_HEIGHT, depth - 2 * cw), curb, sx * (width / 2 - cw / 2), POND_CURB_HEIGHT / 2, 0);
+      add(
+        pond,
+        new BoxGeometry(cw, POND_CURB_HEIGHT, depth - 2 * cw),
+        curb,
+        sx * (width / 2 - cw / 2),
+        POND_CURB_HEIGHT / 2,
+        0,
+      );
     }
     const inner = { width: width - 2 * cw, depth: depth - 2 * cw };
     const bed = add(
@@ -1268,7 +1378,14 @@ export async function buildTempleGrounds(
         const x = -inner.width / 2 + (col + 0.5) * (inner.width / columns) + jitterX;
         const z = -inner.depth / 2 + (row + 0.5) * (inner.depth / rows) + jitterZ;
         const r = 0.35 + (index % 4) * 0.08;
-        const pad = add(pond, new CircleGeometry(r, 20, 0.25, Math.PI * 2 - 0.5), padMaterial, x, POND_WATER_Y + 0.02, z);
+        const pad = add(
+          pond,
+          new CircleGeometry(r, 20, 0.25, Math.PI * 2 - 0.5),
+          padMaterial,
+          x,
+          POND_WATER_Y + 0.02,
+          z,
+        );
         pad.rotation.x = -Math.PI / 2;
         pad.rotation.z = index * 1.3;
         if (index % 3 === 0) pond.add(buildLotus(x + 0.1, z - 0.1, petalMaterial, heartMaterial));
@@ -1365,9 +1482,18 @@ export async function buildTempleGrounds(
       (color) => new MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }),
     );
     const clumps = [
-      [0, 6.2, 0, 2.6], [2.4, 5.4, 0.6, 2.1], [-2.3, 5.5, -0.4, 2.2], [0.5, 5.3, 2.4, 2.0],
-      [-0.6, 5.4, -2.4, 2.1], [2.0, 5.0, -2.0, 1.8], [-2.0, 5.0, 2.0, 1.8], [3.6, 4.6, -0.6, 1.5],
-      [-3.6, 4.7, 0.8, 1.5], [1.2, 6.8, -1.0, 1.7], [-1.3, 6.7, 1.1, 1.7], [0.2, 4.6, 3.6, 1.4],
+      [0, 6.2, 0, 2.6],
+      [2.4, 5.4, 0.6, 2.1],
+      [-2.3, 5.5, -0.4, 2.2],
+      [0.5, 5.3, 2.4, 2.0],
+      [-0.6, 5.4, -2.4, 2.1],
+      [2.0, 5.0, -2.0, 1.8],
+      [-2.0, 5.0, 2.0, 1.8],
+      [3.6, 4.6, -0.6, 1.5],
+      [-3.6, 4.7, 0.8, 1.5],
+      [1.2, 6.8, -1.0, 1.7],
+      [-1.3, 6.7, 1.1, 1.7],
+      [0.2, 4.6, 3.6, 1.4],
       [-0.3, 4.6, -3.6, 1.4],
     ] as const;
     clumps.forEach(([x, y, z, r], index) => {
@@ -1439,9 +1565,7 @@ export async function buildTempleGrounds(
         instancedCopies(crown, material, clumps, (dummy, clump) => {
           const scale = treeScale(clump.index);
           const [ox, oy, oz, r] = clump.offset;
-          const local = new Vector3(ox, oy, oz)
-            .multiplyScalar(scale)
-            .applyAxisAngle(up, clump.index * 1.7);
+          const local = new Vector3(ox, oy, oz).multiplyScalar(scale).applyAxisAngle(up, clump.index * 1.7);
           dummy.position.set(clump.spot.x + local.x, local.y, clump.spot.z + local.z);
           dummy.rotation.y = clump.index * 1.7;
           dummy.scale.setScalar(scale * r);
@@ -1486,11 +1610,7 @@ export async function buildTempleGrounds(
         culms.setMatrixAt(index, dummy.matrix);
         const tipX = x + Math.cos(angle) * lean * height * 0.5;
         const tipZ = z + Math.sin(angle) * lean * height * 0.5;
-        matrix.compose(
-          new Vector3(tipX, height - 0.6, tipZ),
-          dummy.quaternion,
-          new Vector3(0.9, 1.3, 0.9),
-        );
+        matrix.compose(new Vector3(tipX, height - 0.6, tipZ), dummy.quaternion, new Vector3(0.9, 1.3, 0.9));
         tufts.setMatrixAt(index, matrix);
         index += 1;
       }

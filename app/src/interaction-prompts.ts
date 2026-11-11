@@ -2,14 +2,7 @@ import type { InteractionSnapshot } from "./interaction-state";
 import type { Targets } from "./interaction-targets";
 import { BEADS_PER_ROUND } from "./bead-counter";
 
-export type InteractionAction =
-  | "sit"
-  | "bow"
-  | "takeBroom"
-  | "leaveBroom"
-  | "greet"
-  | "bead"
-  | "ringBell";
+export type InteractionAction = "sit" | "bow" | "takeBroom" | "leaveBroom" | "greet" | "bead" | "ringBell";
 
 export type InteractionKey = "E" | "Q" | "B";
 
@@ -46,10 +39,7 @@ export function beadCounterText(round: number, total: number): string {
 }
 
 // E carries one context action, by priority: broom > bell > bow > sit.
-function contextAction(
-  snapshot: InteractionSnapshot,
-  targets: Targets,
-): InteractionAction | null {
+function contextAction(snapshot: InteractionSnapshot, targets: Targets): InteractionAction | null {
   const seated = snapshot.seatIndex !== null;
   if (snapshot.holdingBroom) return targets.nearBroom ? "leaveBroom" : null;
   if (targets.nearBroom && !seated) return "takeBroom";
@@ -60,10 +50,7 @@ function contextAction(
 }
 
 export function promptsFor(snapshot: InteractionSnapshot, targets: Targets): Prompt[] {
-  const atRest =
-    snapshot.activity === "idle" ||
-    snapshot.activity === "seated" ||
-    snapshot.activity === "beads";
+  const atRest = snapshot.activity === "idle" || snapshot.activity === "seated" || snapshot.activity === "beads";
   if (!atRest) return [];
 
   const offered: InteractionAction[] = [];

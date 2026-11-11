@@ -99,8 +99,7 @@ describe("presence server with visitors", () => {
     a.send(seatedState);
     const seen = await b.waitFor(
       (m) =>
-        m.type === "visitors" &&
-        (m as unknown as Visitors).visitors.some((v) => v.name === "An" && v.seatIndex === 7),
+        m.type === "visitors" && (m as unknown as Visitors).visitors.some((v) => v.name === "An" && v.seatIndex === 7),
     );
     expect((seen as unknown as Visitors).visitors).toHaveLength(2);
   });
@@ -131,9 +130,7 @@ describe("presence server with visitors", () => {
     b.send({ type: "join", name: "Bình", colorIndex: 2 });
     await b.waitFor((m) => m.type === "welcome");
     a.send(seatedState);
-    await b.waitFor(
-      (m) => m.type === "visitors" && (m as unknown as Visitors).visitors.some((v) => v.seatIndex === 7),
-    );
+    await b.waitFor((m) => m.type === "visitors" && (m as unknown as Visitors).visitors.some((v) => v.seatIndex === 7));
     b.send(seatedState);
     expect(await b.waitFor((m) => m.type === "seat-refused")).toEqual({ type: "seat-refused", seatIndex: 7 });
   });

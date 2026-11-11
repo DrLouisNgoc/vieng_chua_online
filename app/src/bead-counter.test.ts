@@ -1,10 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  BEADS_PER_ROUND,
-  createBeadCounter,
-  createStorageBeadStore,
-  type BeadStore,
-} from "./bead-counter";
+import { BEADS_PER_ROUND, createBeadCounter, createStorageBeadStore, type BeadStore } from "./bead-counter";
 
 function memoryStore(initial: number | null = null): BeadStore & { saved: number[] } {
   const saved: number[] = [];
@@ -46,10 +41,7 @@ describe("createStorageBeadStore", () => {
 
   it("ignores garbage and survives a throwing storage", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const garbage = createStorageBeadStore(
-      { getItem: () => "abc", setItem: () => {} },
-      "k",
-    );
+    const garbage = createStorageBeadStore({ getItem: () => "abc", setItem: () => {} }, "k");
     expect(garbage.load()).toBeNull();
 
     const broken = createStorageBeadStore(

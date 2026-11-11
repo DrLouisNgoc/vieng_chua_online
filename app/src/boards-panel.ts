@@ -216,7 +216,8 @@ export function createBoardsPanel(
     // Only a text cốc can receive questions (renderAskForm, same
     // condition) — the hall projector, the chánh điện image banner and
     // the kinh board have no one to answer them.
-    const viewQuestions = board.type === "text" && board.id !== SUTRA_BOARD_ID ? document.createElement("button") : null;
+    const viewQuestions =
+      board.type === "text" && board.id !== SUTRA_BOARD_ID ? document.createElement("button") : null;
     if (viewQuestions) {
       viewQuestions.type = "button";
       viewQuestions.textContent = "Xem câu hỏi đã nhận";
@@ -452,8 +453,7 @@ export function createBoardsPanel(
       return wrap;
     }
     const today = sutraOfTheDay(sutras);
-    const current: Talk | undefined =
-      selectedSutraIndex !== null ? sutras[selectedSutraIndex] : (today ?? sutras[0]);
+    const current: Talk | undefined = selectedSutraIndex !== null ? sutras[selectedSutraIndex] : (today ?? sutras[0]);
 
     const label = document.createElement("p");
     label.className = "boards__status";
