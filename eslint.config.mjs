@@ -130,6 +130,12 @@ export default tseslint.config(
       "security/detect-object-injection": "off",
       // Every fs path here is built by our own code (data/, temp dirs), never from a request.
       "security/detect-non-literal-fs-filename": "off",
+      // Matches by method name only: every room.join(id, …) of our own rooms reads as a
+      // discarded Array#join (all 22 hits at adoption were false positives).
+      "unicorn/no-unused-builtin-method-return": "off",
+      // shared/ is the deliberate wire-protocol folder both packages import by relative
+      // path (docs/architecture.md); there is no package to import it from.
+      "import-x/no-relative-packages": "off",
     },
   },
   {

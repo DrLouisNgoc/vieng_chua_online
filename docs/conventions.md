@@ -57,6 +57,10 @@ object) · strict boolean conditions (compare explicitly: `if (list.length > 0)`
   including Vietnamese domain words.
 - `security/detect-object-injection` and `security/detect-non-literal-fs-filename` off — false positives on every
   `obj[key]` and on fs paths that our own code builds.
+- `unicorn/no-unused-builtin-method-return` off — it matches by method name, so every `room.join(id, …)` read as a
+  discarded `Array#join` (all 22 hits at adoption were false positives).
+- `import-x/no-relative-packages` off — `shared/` is the deliberate protocol folder both packages import by relative
+  path; there is no package to import it from.
 
 ## Naming
 - Files: `kebab-case.ts` everywhere (`unicorn/filename-case`). Server files still in camelCase are renamed in the
