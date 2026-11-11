@@ -578,7 +578,7 @@ export async function buildTempleGrounds(
   // decay to 1 so the pools blend into one even wash of light.
   function buildHallAmbientLights(hall: Group, top: number, wallHeight: number): void {
     const y = top + wallHeight * 0.8;
-    const reach = 80;
+    const reach = 60;
     const spots = [
       { x: -30, z: -2 },
       { x: 0, z: -2 },
@@ -591,7 +591,7 @@ export async function buildTempleGrounds(
       { x: 30, z: -36 },
     ];
     for (const spot of spots) {
-      const lamp = new PointLight(PALETTE.lamp, 8 * reach * reach, reach, 1);
+      const lamp = new PointLight(PALETTE.lamp, 5 * reach * reach, reach, 1.5);
       lamp.position.set(spot.x, y, spot.z);
       lamp.castShadow = false;
       hall.add(lamp);
