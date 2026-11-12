@@ -12,7 +12,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   each sutra link is a "page" (`.boards__page`) with a page-turn flip animation and Trang trước/sau nav
   (owner, 2026-11-11: "lướt sang trang như đọc 1 quyển sách thật"); content is still only the budsas.org
   iframe, never copied in.
-- This PR (ngoc): the sutra reader's page-flip book UI above (`boards-panel.ts` `buildSutraPage`/
+- Shipped in #47 (ngoc): the sutra reader's page-flip book UI above (`boards-panel.ts` `buildSutraPage`/
   `buildSutraPageNav`, `boards-client.ts` `turnSutraPage`/`sutraFlipDirection`).
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
 - Tests: server 159, app 282; `npm run check` green.
@@ -24,8 +24,10 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 
 ## Open work (to move into GitHub Issues)
 - **Big refactor in progress (pinned Issue #25, decision 0017).** Done: whole-repo Prettier, strict standard and
-  all tooling, server files in kebab-case. Next: clear `eslint-suppressions.json` area by area (699 left; all of server/, scripts/, shared/ done),
-  then delete it, set `IS_RETIRED` in `scripts/check-suppressions.mjs`, enable oxlint type-aware + more
+  all tooling, server files in kebab-case. Clearing `eslint-suppressions.json` area by area: 392 left (2026-11-12),
+  all in 8 app files — `presence.ts`, `visitor-protocol.ts`, `boards-client.ts`, `interaction-runtime.ts`, `scene.ts`,
+  `main.ts`, `boards-panel.ts`, `temple-grounds.ts`; server/, scripts/, shared/ and the rest of app/src are clean
+  (areas 1–6, #33–#45). Paused while the other machine codes; the next area PR names itself in #25. Then delete it, set `IS_RETIRED` in `scripts/check-suppressions.mjs`, enable oxlint type-aware + more
   categories, make knip blocking; split `temple-grounds.ts`, `style.css`, `boards-panel.ts`, `scene.ts`,
   `main.ts`; then `check-size --strict` in CI.
 - Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
