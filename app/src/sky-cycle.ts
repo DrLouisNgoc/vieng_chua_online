@@ -19,47 +19,47 @@ export interface SkyState {
 type Look = Omit<SkyState, "sunDirection">;
 
 const NIGHT: Look = {
-  sunColor: 0x9fb4ff,
+  sunColor: 0x9f_b4_ff,
   sunIntensity: 0.6,
-  hemiSky: 0x3a4a7a,
-  hemiGround: 0x2a2018,
+  hemiSky: 0x3a_4a_7a,
+  hemiGround: 0x2a_20_18,
   hemiIntensity: 0.6,
-  skyTop: 0x0b1430,
-  skyHorizon: 0x1c2540,
-  fog: 0x1c2540,
+  skyTop: 0x0b_14_30,
+  skyHorizon: 0x1c_25_40,
+  fog: 0x1c_25_40,
   exposure: 1.2,
   night: 1,
 };
 
 // The look the temple had before Milestone 7.
 const DAY: Look = {
-  sunColor: 0xffe8c4,
+  sunColor: 0xff_e8_c4,
   sunIntensity: 2.2,
-  hemiSky: 0xdfeaf5,
-  hemiGround: 0x6b5a3e,
+  hemiSky: 0xdf_ea_f5,
+  hemiGround: 0x6b_5a_3e,
   hemiIntensity: 0.9,
-  skyTop: 0x9cbcd6,
-  skyHorizon: 0xe8dcc4,
-  fog: 0xe8dcc4,
+  skyTop: 0x9c_bc_d6,
+  skyHorizon: 0xe8_dc_c4,
+  fog: 0xe8_dc_c4,
   exposure: 1.05,
   night: 0,
 };
 
 const KEYFRAMES: [number, Look][] = [
   [0, NIGHT],
-  [5, { ...NIGHT, skyTop: 0x1a2448, skyHorizon: 0x3a3550, fog: 0x3a3550 }],
+  [5, { ...NIGHT, skyTop: 0x1a_24_48, skyHorizon: 0x3a_35_50, fog: 0x3a_35_50 }],
   [
     6.5,
     {
-      sunColor: 0xffb070,
+      sunColor: 0xff_b0_70,
       sunIntensity: 1.2,
-      hemiSky: 0xc8c0d8,
-      hemiGround: 0x5a4a3a,
+      hemiSky: 0xc8_c0_d8,
+      hemiGround: 0x5a_4a_3a,
       hemiIntensity: 0.6,
-      skyTop: 0x6f8fb8,
-      skyHorizon: 0xf0b080,
-      fog: 0xe0b896,
-      exposure: 1.0,
+      skyTop: 0x6f_8f_b8,
+      skyHorizon: 0xf0_b0_80,
+      fog: 0xe0_b8_96,
+      exposure: 1,
       night: 0.3,
     },
   ],
@@ -68,30 +68,30 @@ const KEYFRAMES: [number, Look][] = [
   [
     18,
     {
-      sunColor: 0xffa050,
+      sunColor: 0xff_a0_50,
       sunIntensity: 1.3,
-      hemiSky: 0xd8b8a0,
-      hemiGround: 0x5a4433,
+      hemiSky: 0xd8_b8_a0,
+      hemiGround: 0x5a_44_33,
       hemiIntensity: 0.6,
-      skyTop: 0x7a8fb0,
-      skyHorizon: 0xf2a35e,
-      fog: 0xd9a678,
-      exposure: 1.0,
+      skyTop: 0x7a_8f_b0,
+      skyHorizon: 0xf2_a3_5e,
+      fog: 0xd9_a6_78,
+      exposure: 1,
       night: 0.2,
     },
   ],
   [
     19.5,
     {
-      sunColor: 0x8090d0,
+      sunColor: 0x80_90_d0,
       sunIntensity: 0.8,
-      hemiSky: 0x4a5080,
-      hemiGround: 0x2a2018,
+      hemiSky: 0x4a_50_80,
+      hemiGround: 0x2a_20_18,
       hemiIntensity: 0.4,
-      skyTop: 0x2a3560,
-      skyHorizon: 0x8a5a60,
-      fog: 0x5a4a5a,
-      exposure: 1.0,
+      skyTop: 0x2a_35_60,
+      skyHorizon: 0x8a_5a_60,
+      fog: 0x5a_4a_5a,
+      exposure: 1,
       night: 0.8,
     },
   ],
@@ -105,8 +105,12 @@ function lerp(a: number, b: number, k: number): number {
 
 function lerpColor(a: number, b: number, k: number): number {
   if (a === b) return a;
-  const channel = (shift: number): number => Math.round(lerp((a >> shift) & 0xff, (b >> shift) & 0xff, k)) << shift;
-  return channel(16) | channel(8) | channel(0);
+  // One 8-bit channel of a 0xRRGGBB colour; byte 2 is red.
+  const channel = (byte: number): number => {
+    const scale = 256 ** byte;
+    return Math.round(lerp(Math.floor(a / scale) % 256, Math.floor(b / scale) % 256, k)) * scale;
+  };
+  return channel(2) + channel(1) + channel(0);
 }
 
 function lerpLook(a: Look, b: Look, k: number): Look {
@@ -142,8 +146,8 @@ export function skyAt(hour: number): SkyState {
   const h = ((hour % 24) + 24) % 24;
   let look = NIGHT;
   for (let i = 0; i < KEYFRAMES.length - 1; i += 1) {
-    const [fromHour, from] = KEYFRAMES[i]!;
-    const [toHour, to] = KEYFRAMES[i + 1]!;
+    const [fromHour, from] = KEYFRAMES[i];
+    const [toHour, to] = KEYFRAMES[i + 1];
     if (h >= fromHour && h <= toHour) {
       look = lerpLook(from, to, (h - fromHour) / (toHour - fromHour));
       break;

@@ -1,16 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { createPresenceClient } from "./presence";
 
 class FakeWebSocket {
-  static OPEN = 1;
-  static instances: FakeWebSocket[] = [];
+  static readonly OPEN = 1;
+
+  static readonly instances: FakeWebSocket[] = [];
+
   readyState = 0;
+
   onopen: (() => void) | null = null;
+
   onclose: (() => void) | null = null;
+
   onmessage: ((event: { data: string }) => void) | null = null;
+
   onerror: (() => void) | null = null;
+
   closed = false;
+
   sent: string[] = [];
+
   url: string;
 
   constructor(url: string) {
@@ -40,7 +50,7 @@ class FakeWebSocket {
 
 describe("createPresenceClient", () => {
   beforeEach(() => {
-    FakeWebSocket.instances = [];
+    FakeWebSocket.instances.length = 0;
     vi.useFakeTimers();
     vi.stubGlobal("WebSocket", FakeWebSocket);
   });
@@ -128,7 +138,7 @@ function sentTypes(socket: FakeWebSocket): string[] {
 describe("visitor messages", () => {
   let now = 0;
   beforeEach(() => {
-    FakeWebSocket.instances = [];
+    FakeWebSocket.instances.length = 0;
     now = 0;
     vi.useFakeTimers();
     vi.stubGlobal("WebSocket", FakeWebSocket);
@@ -141,7 +151,7 @@ describe("visitor messages", () => {
 
   function client(extra: Record<string, unknown> = {}) {
     return createPresenceClient({
-      url: "ws://x",
+      url: "ws://localhost",
       onStatus: vi.fn(),
       reconnectDelayMs: 1000,
       now: () => now,
