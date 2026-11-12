@@ -30,9 +30,6 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   (areas 1–6, #33–#45). Paused while the other machine codes; the next area PR names itself in #25. Then delete it, set `IS_RETIRED` in `scripts/check-suppressions.mjs`, enable oxlint type-aware + more
   categories, make knip blocking; split `temple-grounds.ts`, `style.css`, `boards-panel.ts`, `scene.ts`,
   `main.ts`; then `check-size --strict` in CI.
-- Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
-  check `systemctl show chua-server -p Environment`), Caddy headers/compression (guide 09). Then run the Backup
-  workflow once by hand.
 - Not done yet: a Content-Security-Policy header (needs testing against the YouTube embeds and inline styles).
 - Owner assets: `bell-gong.mp3` and 3 CC0 sounds (`docs/assets/third-party-assets.md`); quote photos in
   `app/public/thirdparty/phap-cu/`; confirm `nguyen-tue.jpg` is on the VPS.
