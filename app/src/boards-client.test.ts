@@ -1,14 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  createBoardsClient,
-  parseQuoteImages,
-  parseTalks,
-  sutraFlipDirection,
-  sutraOfTheDay,
-  turnSutraPage,
-  youtubeVideoId,
-} from "./boards-client";
+import { createBoardsClient, parseQuoteImages, parseTalks, youtubeVideoId } from "./boards-client";
 
 describe("youtubeVideoId", () => {
   it("extracts the id from a watch URL with extra query params", () => {
@@ -63,71 +55,6 @@ describe("parseQuoteImages", () => {
 
   it("returns [] for empty input", () => {
     expect(parseQuoteImages("")).toEqual([]);
-  });
-});
-
-describe("sutraOfTheDay", () => {
-  // Reuses Talk/parseTalks (owner enters "Tên kinh | link" lines, same as
-  // bài giảng) — this app never stores the sutta's own (copyrighted)
-  // translated text, only a title and a link to read it.
-  const sutras = [
-    { title: "A", url: "https://example.com/a" },
-    { title: "B", url: "https://example.com/b" },
-    { title: "C", url: "https://example.com/c" },
-  ];
-
-  it("returns null for an empty list", () => {
-    expect(sutraOfTheDay([], new Date(2026, 0, 1))).toBeNull();
-  });
-
-  it("picks the same sutra for every moment within one local day", () => {
-    const morning = sutraOfTheDay(sutras, new Date(2026, 0, 1, 0, 1));
-    const night = sutraOfTheDay(sutras, new Date(2026, 0, 1, 23, 59));
-    expect(morning).toEqual(night);
-  });
-
-  it("picks a different sutra (deterministically) the next day, cycling through the list", () => {
-    const day1 = sutraOfTheDay(sutras, new Date(2026, 0, 1));
-    const day2 = sutraOfTheDay(sutras, new Date(2026, 0, 2));
-    const day4 = sutraOfTheDay(sutras, new Date(2026, 0, 4));
-    expect(day1).not.toEqual(day2);
-    expect(day1).toEqual(day4); // cycles with period 3
-  });
-});
-
-describe("turnSutraPage", () => {
-  it("moves one page forward", () => {
-    expect(turnSutraPage(0, 3, 1)).toBe(1);
-  });
-
-  it("moves one page back", () => {
-    expect(turnSutraPage(1, 3, -1)).toBe(0);
-  });
-
-  it("stops at the last page instead of wrapping around", () => {
-    expect(turnSutraPage(2, 3, 1)).toBe(2);
-  });
-
-  it("stops at the first page instead of wrapping around", () => {
-    expect(turnSutraPage(0, 3, -1)).toBe(0);
-  });
-});
-
-describe("sutraFlipDirection", () => {
-  it("is null on first open (no previous page)", () => {
-    expect(sutraFlipDirection(null, 0)).toBeNull();
-  });
-
-  it("is null when the page didn't change", () => {
-    expect(sutraFlipDirection(2, 2)).toBeNull();
-  });
-
-  it("is next when moving to a later page", () => {
-    expect(sutraFlipDirection(0, 1)).toBe("next");
-  });
-
-  it("is prev when moving to an earlier page", () => {
-    expect(sutraFlipDirection(2, 0)).toBe("prev");
   });
 });
 

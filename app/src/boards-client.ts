@@ -54,36 +54,6 @@ export function parseQuoteImages(body: string): QuoteImage[] {
     });
 }
 
-// The "Đọc Kinh Nikaya" board's body reuses the exact same "Tên | link"
-// format as the bài giảng board (parseTalks) — the owner's own curated
-// links (interviewed 2026-11-10: "nguồn nikaya... trung bộ kinh",
-// budsas.org) to a sutta's own page, never this app's own copy of the
-// (copyrighted) translated text.
-
-// Deterministic by local calendar day, so every visitor sees the same one
-// that day and it changes automatically at local midnight — no server
-// involvement needed (owner, 2026-11-10: "mỗi ngày sẽ tự động hiện lên 1
-// bài kinh hay").
-export function sutraOfTheDay(sutras: Talk[], now: Date = new Date()): Talk | null {
-  if (sutras.length === 0) return null;
-  const dayIndex = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86_400_000);
-  return sutras[((dayIndex % sutras.length) + sutras.length) % sutras.length] ?? null;
-}
-
-// Turning a page of the sutra reader (owner, 2026-11-11: "lướt sang trang
-// như đọc 1 quyển sách thật") — stops at the first/last sutra instead of
-// wrapping, like a real book's covers.
-export function turnSutraPage(current: number, length: number, direction: 1 | -1): number {
-  return Math.max(0, Math.min(current + direction, length - 1));
-}
-
-// Which way to animate the page turn: null on first open or a render that
-// didn't change the page (e.g. a background refresh).
-export function sutraFlipDirection(previousIndex: number | null, currentIndex: number): "next" | "prev" | null {
-  if (previousIndex === null || previousIndex === currentIndex) return null;
-  return currentIndex > previousIndex ? "next" : "prev";
-}
-
 export interface BoardView {
   id: string;
   title: string;
