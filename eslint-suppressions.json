@@ -4,10 +4,10 @@
       "count": 1
     },
     "@typescript-eslint/no-unnecessary-condition": {
-      "count": 2
+      "count": 1
     },
     "@typescript-eslint/no-use-before-define": {
-      "count": 9
+      "count": 11
     },
     "@typescript-eslint/strict-boolean-expressions": {
       "count": 11
@@ -25,7 +25,7 @@
       "count": 2
     },
     "no-void": {
-      "count": 9
+      "count": 11
     },
     "simple-import-sort/imports": {
       "count": 1
@@ -34,10 +34,10 @@
       "count": 1
     },
     "sonarjs/no-nested-conditional": {
-      "count": 4
+      "count": 3
     },
     "unicorn/no-for-each": {
-      "count": 2
+      "count": 1
     },
     "unicorn/no-negated-condition": {
       "count": 1

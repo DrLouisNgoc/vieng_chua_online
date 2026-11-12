@@ -112,8 +112,9 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/remote-motion.ts` | Smoothing between the server's 10 Hz updates |
 | `app/src/chat-panel.ts` | Public chat DOM |
 | `app/src/board-proximity.ts` | Which cốc/projector is within reach |
-| `app/src/boards-client.ts` | fetch wrapper for the boards HTTP API; `sutraOfTheDay()` |
+| `app/src/boards-client.ts` | fetch wrapper for the boards HTTP API |
 | `app/src/boards-panel.ts` | Boards panel DOM: list, board, admin views (580 lines, to be split) |
+| `app/src/pdf-reader.ts` | Đọc Kinh Nikaya's PDF book, rendered one page at a time via pdfjs-dist |
 
 ## Tests
 Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested; DOM-only panels

@@ -1,23 +1,26 @@
 import {
   parseQuoteImages,
   parseTalks,
-  sutraFlipDirection,
-  sutraOfTheDay,
-  turnSutraPage,
   youtubeVideoId,
   type AdminPendingEntry,
   type AnsweredQuestion,
   type BoardsClient,
   type BoardView,
   type Question,
-  type Talk,
 } from "./boards-client";
+import { loadPdfBook, turnPdfPage, type PdfBook } from "./pdf-reader";
 
-// The "Đọc Kinh Nikaya" board (owner, 2026-11-10): a daily-rotating list
-// of links to read, same "Tên | link" body format as bài giảng — not a
-// board type of its own, so it's special-cased by id like the hall
-// projector/chánh điện boards already are.
+// The "Đọc Kinh Nikaya" board — not a board type of its own, so it's
+// special-cased by id like the hall projector/chánh điện boards already
+// are. Owner, 2026-11-12: "tôi đưa file PDF vào và bạn làm như 1 quyển
+// sách" (after confirming twice they understand a PDF of a translated
+// sutra may hold a translator's own copyrighted Vietnamese rendering, not
+// just the ancient public-domain Pali text — their call to make for their
+// own board). The PDF (gitignored, dropped in by the owner like the
+// teacher's photo/quote images) is read from KINH_PDF_URL; the board's
+// own plain pasted text is the fallback until one is there.
 const SUTRA_BOARD_ID = "doc-kinh";
+const KINH_PDF_URL = "/thirdparty/kinh/trung-bo-kinh.pdf";
 
 // Panel for the 9 boards (4 named cốc, 4 open "Thuyết Pháp" cốc, the hall
 // projector) plus the owner's admin approval screen. DOM-wiring only (no
@@ -41,79 +44,6 @@ function statusLine(board: BoardView): string {
   if (board.occupantName) return `Phụ trách: ${board.occupantName}`;
   if (board.pendingName) return `Đang chờ chủ chùa duyệt: ${board.pendingName}`;
   return "Còn trống — đăng ký để thuyết pháp tại đây";
-}
-
-// One "page" of the Đọc Kinh Nikaya book: the sutra's own budsas.org page,
-// framed like a sheet of paper. flipDirection, when set, starts the page
-// rotated/transparent so the next frame can transition it back to flat —
-// a page-turn animation (owner, 2026-11-11: "lướt sang trang như đọc 1
-// quyển sách thật") around content this app never copies (see sutraOfTheDay).
-function buildSutraPage(current: Talk, flipDirection: "next" | "prev" | null): HTMLElement {
-  const page = document.createElement("div");
-  page.className = "boards__page";
-  if (flipDirection !== null) page.classList.add(`boards__page--turn-${flipDirection}`);
-
-  const title = document.createElement("p");
-  title.className = "boards__page-title";
-  title.textContent = current.title;
-  page.append(title);
-
-  // Owner, 2026-11-10: "mở kinh như trang giấy, đừng chuyển link sang link
-  // khác" — tried an <iframe> so budsas.org's own page reads right here.
-  // budsas.org sends `X-Frame-Options: SAMEORIGIN` (owner, 2026-11-12, with
-  // a screenshot: "refused to connect"), which blocks every embedding site,
-  // not just this one — no code on our side can change that. Showing a
-  // plain, honest "mở trang gốc" button reads better than a broken frame.
-  const notice = document.createElement("p");
-  notice.className = "boards__sutra-notice";
-  notice.textContent = "Trang kinh này không cho nhúng trực tiếp — bấm để đọc ở tab mới:";
-  page.append(notice);
-
-  const openLink = document.createElement("a");
-  openLink.className = "boards__sutra-open";
-  openLink.href = current.url;
-  openLink.target = "_blank";
-  openLink.rel = "noopener noreferrer";
-  openLink.textContent = "Đọc kinh ↗";
-  page.append(openLink);
-
-  if (flipDirection !== null) {
-    // Let the browser paint the rotated/transparent starting state first,
-    // then drop it so the turn back to flat/opaque actually animates
-    // instead of jumping straight to the resting position.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        page.classList.remove("boards__page--turn-next", "boards__page--turn-prev");
-      });
-    });
-  }
-  return page;
-}
-
-function buildSutraPageNav(currentIndex: number, length: number, turnPage: (direction: 1 | -1) => void): HTMLElement {
-  const nav = document.createElement("div");
-  nav.className = "boards__page-nav";
-
-  const prevButton = document.createElement("button");
-  prevButton.type = "button";
-  prevButton.className = "boards__page-turn";
-  prevButton.textContent = "‹ Trang trước";
-  prevButton.disabled = currentIndex <= 0;
-  prevButton.addEventListener("click", () => turnPage(-1));
-
-  const pageNumber = document.createElement("span");
-  pageNumber.className = "boards__page-number";
-  pageNumber.textContent = `Trang ${String(currentIndex + 1)} / ${String(length)}`;
-
-  const nextButton = document.createElement("button");
-  nextButton.type = "button";
-  nextButton.className = "boards__page-turn";
-  nextButton.textContent = "Trang sau ›";
-  nextButton.disabled = currentIndex >= length - 1;
-  nextButton.addEventListener("click", () => turnPage(1));
-
-  nav.append(prevButton, pageNumber, nextButton);
-  return nav;
 }
 
 export function createBoardsPanel(
@@ -148,12 +78,16 @@ export function createBoardsPanel(
   let boards: BoardView[] = [];
   let message = "";
   let selectedTalkIndex = 0;
-  // null = today's automatic pick (sutraOfTheDay); an index once the
-  // visitor picks a different one from the list to read instead.
-  let selectedSutraIndex: number | null = null;
-  // The actual page index shown last render, to tell which way to turn the
-  // page (null right after opening, so the first paint never animates).
-  let lastRenderedSutraIndex: number | null = null;
+  // The Đọc Kinh Nikaya PDF book: loaded once per panel-open (undefined
+  // until the fetch settles, null if there's no PDF there), then one page
+  // at a time (pdfPageImageFor tracks which page pdfPageImage actually
+  // belongs to, since loading a page is itself async and the visitor can
+  // flip away before it resolves).
+  let hasRequestedPdfBook = false;
+  let pdfBook: PdfBook | null | undefined;
+  let pdfPage = 1;
+  let pdfPageImage: string | null = null;
+  let pdfPageImageFor: number | null = null;
   // Questions a board's occupant has pulled up with their password (E,
   // "hỏi pháp") — null until they ask to see them, cleared when leaving
   // the board so a later visitor never sees a stale list. questionsPassword
@@ -166,8 +100,11 @@ export function createBoardsPanel(
     view = next;
     message = "";
     selectedTalkIndex = 0;
-    selectedSutraIndex = null;
-    lastRenderedSutraIndex = null;
+    hasRequestedPdfBook = false;
+    pdfBook = undefined;
+    pdfPage = 1;
+    pdfPageImage = null;
+    pdfPageImageFor = null;
     questionsView = null;
     questionsPassword = "";
     panel.hidden = false;
@@ -275,9 +212,7 @@ export function createBoardsPanel(
         ? "Mỗi dòng một bài: Tên bài | link YouTube\nVí dụ: Vô thường | https://youtu.be/..."
         : board.type === "image"
           ? "Mỗi dòng một ảnh: tên-file.jpg | Chú thích\n(đưa file ảnh vào app/public/thirdparty/phap-cu/)"
-          : board.id === SUTRA_BOARD_ID
-            ? "Mỗi dòng một bài kinh: Tên kinh | link để đọc\nVí dụ: Kinh Căn Bản Pháp Môn | https://..."
-            : "Viết câu nói hoặc bài pháp ở đây...";
+          : "Viết câu nói hoặc bài pháp ở đây...";
     const talks = hasOwnTalks(board) ? document.createElement("textarea") : null;
     if (talks) {
       talks.className = "boards__content-input";
@@ -523,64 +458,98 @@ export function createBoardsPanel(
     return wrap;
   }
 
-  // "Hôm nay" + a browsable list of the rest; a click reads a different
-  // one but never changes which one is "today's" for other visitors.
-  function renderSutraBoard(linksText: string): HTMLElement {
+  // Owner, 2026-11-12: "tôi đưa file PDF vào và bạn làm như 1 quyển sách,
+  // tôi sẽ đưa cả file của trung bộ kinh vào" — a full PDF (the owner's
+  // own file, dropped in like the teacher's photo/quote images: gitignored,
+  // never in git) rendered page by page. Falls back to the board's plain
+  // pasted text (an earlier, smaller step on the same request — "mình post
+  // text vào đây") when no PDF is there yet.
+  function requestPdfBook(): void {
+    if (hasRequestedPdfBook) return;
+    hasRequestedPdfBook = true;
+    void loadPdfBook(KINH_PDF_URL).then((book) => {
+      pdfBook = book;
+      render();
+    });
+  }
+
+  function requestPdfPageImage(book: PdfBook): void {
+    if (pdfPageImageFor === pdfPage) return;
+    const requestedPage = pdfPage;
+    void book.pageImageUrl(requestedPage).then((url) => {
+      if (pdfPage !== requestedPage) return; // navigated away before it loaded
+      pdfPageImage = url;
+      pdfPageImageFor = requestedPage;
+      render();
+    });
+  }
+
+  function turnToPdfPage(page: number): void {
+    pdfPage = page;
+    render();
+  }
+
+  function buildPdfPageNav(book: PdfBook): HTMLElement {
+    const nav = document.createElement("div");
+    nav.className = "boards__page-nav";
+    const prevButton = document.createElement("button");
+    prevButton.type = "button";
+    prevButton.className = "boards__page-turn";
+    prevButton.textContent = "‹ Trang trước";
+    prevButton.disabled = pdfPage <= 1;
+    prevButton.addEventListener("click", () => turnToPdfPage(turnPdfPage(pdfPage, book.numPages, -1)));
+    const pageNumber = document.createElement("span");
+    pageNumber.className = "boards__page-number";
+    pageNumber.textContent = `Trang ${String(pdfPage)} / ${String(book.numPages)}`;
+    const nextButton = document.createElement("button");
+    nextButton.type = "button";
+    nextButton.className = "boards__page-turn";
+    nextButton.textContent = "Trang sau ›";
+    nextButton.disabled = pdfPage >= book.numPages;
+    nextButton.addEventListener("click", () => turnToPdfPage(turnPdfPage(pdfPage, book.numPages, 1)));
+    nav.append(prevButton, pageNumber, nextButton);
+    return nav;
+  }
+
+  function renderSutraBoard(fallbackText: string): HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "boards__book";
-    const sutras = parseTalks(linksText);
-    if (sutras.length === 0) {
-      const p = document.createElement("p");
-      p.className = "boards__content";
-      p.textContent = "Chưa có bài kinh nào.";
-      wrap.append(p);
+    requestPdfBook();
+
+    if (pdfBook === undefined) {
+      const loading = document.createElement("p");
+      loading.className = "boards__status";
+      loading.textContent = "Đang tải sách...";
+      wrap.append(loading);
       return wrap;
     }
-    const today = sutraOfTheDay(sutras);
-    const todayIndex = today ? sutras.indexOf(today) : 0;
-    const currentIndex = selectedSutraIndex ?? todayIndex;
-    const current = sutras[currentIndex];
 
-    const flipDirection = sutraFlipDirection(lastRenderedSutraIndex, currentIndex);
-    lastRenderedSutraIndex = currentIndex;
-
-    const pickSutra = (index: number): void => {
-      selectedSutraIndex = index;
-      render();
-    };
-
-    const label = document.createElement("p");
-    label.className = "boards__status";
-    label.textContent = selectedSutraIndex === null ? "Hôm nay:" : "Đang xem:";
-    wrap.append(label);
-
-    if (current) wrap.append(buildSutraPage(current, flipDirection));
-
-    wrap.append(
-      buildSutraPageNav(currentIndex, sutras.length, (direction) =>
-        pickSutra(turnSutraPage(currentIndex, sutras.length, direction)),
-      ),
-    );
-
-    if (sutras.length > 1) {
-      const listLabel = document.createElement("p");
-      listLabel.className = "boards__status";
-      listLabel.textContent = "Các bài kinh khác:";
-      const list = document.createElement("ul");
-      list.className = "boards__video-list";
-      sutras.forEach((sutra, index) => {
-        const li = document.createElement("li");
-        const pick = document.createElement("button");
-        pick.type = "button";
-        pick.className = "boards__video-pick";
-        pick.textContent = sutra.title;
-        if (index === currentIndex) pick.setAttribute("aria-current", "true");
-        pick.addEventListener("click", () => pickSutra(index));
-        li.append(pick);
-        list.append(li);
-      });
-      wrap.append(listLabel, list);
+    if (pdfBook === null) {
+      const content = document.createElement("p");
+      content.className = "boards__content";
+      content.textContent = fallbackText || "Chưa có bài kinh nào.";
+      wrap.append(content);
+      return wrap;
     }
+
+    const book = pdfBook;
+    if (pdfPage > book.numPages) pdfPage = book.numPages;
+    requestPdfPageImage(book);
+
+    if (pdfPageImageFor === pdfPage && pdfPageImage !== null) {
+      const img = document.createElement("img");
+      img.className = "boards__pdf-page";
+      img.src = pdfPageImage;
+      img.alt = `Trang ${String(pdfPage)}`;
+      wrap.append(img);
+    } else {
+      const loading = document.createElement("p");
+      loading.className = "boards__status";
+      loading.textContent = "Đang tải trang...";
+      wrap.append(loading);
+    }
+
+    wrap.append(buildPdfPageNav(book));
     return wrap;
   }
 
