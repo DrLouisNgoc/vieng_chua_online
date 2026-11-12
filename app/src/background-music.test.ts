@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { backgroundMusicEmbedUrl } from "./background-music";
 
 // createBackgroundMusic is DOM-wiring only (no jsdom in this test

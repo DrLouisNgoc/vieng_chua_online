@@ -41,7 +41,7 @@ export const ROBE_COLORS: RobeColor[] = [
 // The forbidden default pháp danh, so onboarding starts with an empty name.
 // Same rule as the server's (shared/protocol.ts); here only for instant
 // feedback, the server enforces it for real.
-export { isDefaultName };
+export { isDefaultName } from "../../shared/protocol";
 
 export function createOnboardingController(): OnboardingController {
   const state: OnboardingState = {
@@ -49,15 +49,15 @@ export function createOnboardingController(): OnboardingController {
     gender: "nam",
     colorIndex: 0,
   };
-  let nameLocked = false;
+  let isNameLocked = false;
 
   function setName(name: string): void {
-    if (nameLocked) return;
+    if (isNameLocked) return;
     state.name = name.trim();
   }
 
   function lockName(name: string): void {
-    nameLocked = true;
+    isNameLocked = true;
     state.name = name;
   }
 
@@ -80,7 +80,7 @@ export function createOnboardingController(): OnboardingController {
       return state.name.length > 0 && state.name.length <= MAX_NAME_LENGTH && !isDefaultName(state.name);
     },
     get isNameLocked() {
-      return nameLocked;
+      return isNameLocked;
     },
     setName,
     lockName,

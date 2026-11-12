@@ -9,8 +9,7 @@ export function smoothingFactor(deltaSeconds: number): number {
 }
 
 export function approach(current: number, target: number, factor: number): number {
-  if (Math.abs(target - current) > TELEPORT_DISTANCE) return target;
-  return current + (target - current) * factor;
+  return Math.abs(target - current) > TELEPORT_DISTANCE ? target : current + (target - current) * factor;
 }
 
 // Like approach, but for headings: always turns the short way round.

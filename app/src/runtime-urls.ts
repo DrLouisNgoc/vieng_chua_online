@@ -24,6 +24,5 @@ export function defaultPresenceUrl(isDev: boolean, location: RuntimeLocation): s
 }
 
 export function defaultBoardsUrl(isDev: boolean, location: RuntimeLocation): string {
-  if (isDev) return DEV_BOARDS_URL;
-  return location.origin;
+  return isDev ? DEV_BOARDS_URL : location.origin;
 }

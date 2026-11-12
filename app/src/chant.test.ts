@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { CHANTS, chantById } from "./chant-texts";
-import { createChantSession } from "./chant-session";
+import { describe, expect, it } from "vitest";
+
 import { createBeatClock } from "./beat-clock";
+import { createChantSession } from "./chant-session";
+import { chantById, CHANTS } from "./chant-texts";
 
 describe("chant texts", () => {
   it("has the chants the owner chose, as lines of syllables", () => {

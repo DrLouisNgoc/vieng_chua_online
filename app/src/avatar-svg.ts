@@ -1,14 +1,12 @@
 import type { Gender } from "./onboarding";
 
-/**
- * Parametric monk/nun avatar illustration. The shapes and the
- * gender/color parametrization approach (a `data-look` attribute to
- * swap gendered groups, a CSS custom property to recolor the robe) are
- * reimplemented from chuasen.com's own onboarding avatar, reverse
- * engineered from its public JS bundle on 2026-11-03 for this personal,
- * never-published project — see docs/memory/decisions/0007. Class names
- * are our own (`va-*`), not chuasen's (`fg-*`/`onb__*`).
- */
+// Parametric monk/nun avatar illustration. The shapes and the
+// gender/color parametrization approach (a `data-look` attribute to
+// swap gendered groups, a CSS custom property to recolor the robe) are
+// reimplemented from chuasen.com's own onboarding avatar, reverse
+// engineered from its public JS bundle on 2026-11-03 for this personal,
+// never-published project — see docs/memory/decisions/0007. Class names
+// are our own (`va-*`), not chuasen's (`fg-*`/`onb__*`).
 const AVATAR_SVG_TEMPLATE = `
 <svg class="va-figure" data-look="{{GENDER}}" viewBox="0 0 140 170" focusable="false" aria-hidden="true">
   <ellipse class="va-ring" cx="70" cy="159" rx="54" ry="8.5"/>
@@ -66,5 +64,5 @@ const AVATAR_SVG_TEMPLATE = `
 </svg>`;
 
 export function renderAvatarSvg(gender: Gender): string {
-  return AVATAR_SVG_TEMPLATE.replace("{{GENDER}}", gender);
+  return AVATAR_SVG_TEMPLATE.replace("{{GENDER}}", () => gender);
 }

@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { isInside, resolveMove, type Box } from "./collision";
+import { describe, expect, it } from "vitest";
+
+import type { Box } from "./collision";
+import { isInside, resolveMove } from "./collision";
 
 const wall: Box = { minX: 0, maxX: 2, minZ: 0, maxZ: 2 };
 

@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { BOW_SECONDS, GREET_SECONDS, createInteractionState } from "./interaction-state";
+import { describe, expect, it } from "vitest";
+
+import { BOW_SECONDS, createInteractionState, GREET_SECONDS } from "./interaction-state";
 
 function seatedState(seat = 3) {
   const state = createInteractionState();
