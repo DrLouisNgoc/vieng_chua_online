@@ -14,7 +14,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   static entrance quote tiles (`buildWallPlaque`); a plain "Phòng Đọc Kinh Nikaya" sign at the meditation hut's
   door; the sutra board reads its link inline in an iframe instead of a new tab.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 158, app 263; `npm run check` green.
+- Tests: server 159, app 263; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's
@@ -30,8 +30,6 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - Owner applies on the VPS: new `deploy.sh` (guide 11), systemd unit with `ALLOWED_ORIGIN` + hardening (guide 08,
   check `systemctl show chua-server -p Environment`), Caddy headers/compression (guide 09). Then run the Backup
   workflow once by hand.
-- Open bug #35: a malformed %-escape in a boards URL (e.g. `/boards/%E0`) throws `URIError` in the HTTP
-  listener, which can crash the server process. Fix next, test first.
 - Not done yet: a Content-Security-Policy header (needs testing against the YouTube embeds and inline styles).
 - Owner assets: `bell-gong.mp3` and 3 CC0 sounds (`docs/assets/third-party-assets.md`); quote photos in
   `app/public/thirdparty/phap-cu/`; confirm `nguyen-tue.jpg` is on the VPS.
