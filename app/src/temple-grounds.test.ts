@@ -45,4 +45,12 @@ describe("buildTempleGrounds", () => {
     const grounds = await buildTempleGrounds(stubLoader, 4);
     expect(() => grounds.update(1 / 60)).not.toThrow();
   });
+
+  it("renames a registrable cốc's sign once approved, and restores it when cleared", async () => {
+    const grounds = await buildTempleGrounds(stubLoader, 4);
+    expect(() => grounds.setCocOccupant("coc-mo-1", "Mạnh Dung")).not.toThrow();
+    expect(() => grounds.setCocOccupant("coc-mo-1", null)).not.toThrow();
+    // An id that doesn't match any cốc is silently ignored, not an error.
+    expect(() => grounds.setCocOccupant("khong-ton-tai", "Ai Đó")).not.toThrow();
+  });
 });

@@ -159,6 +159,9 @@ export interface TempleScene {
   setPhapCuImage: (imageUrl: string | null) => void;
   // A short line of text on the plaque, used until a real photo is set.
   setPhapCuText: (text: string | null) => void;
+  // A registrable cốc's own sign, renamed once an admin approves its
+  // occupant; null restores the board's seed title.
+  setCocOccupant: (cocId: string, occupantName: string | null) => void;
   dispose: () => void;
 }
 
@@ -574,6 +577,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     setProjectorPreview: (imageUrl) => grounds.setProjectorPreview(imageUrl),
     setPhapCuImage: (imageUrl) => grounds.setPhapCuImage(imageUrl),
     setPhapCuText: (text) => grounds.setPhapCuText(text),
+    setCocOccupant: (cocId, occupantName) => grounds.setCocOccupant(cocId, occupantName),
     dispose,
   };
 }

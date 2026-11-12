@@ -89,6 +89,12 @@ export interface TempleGrounds {
   // "thêm vài câu kinh pháp cú") — used until the owner has real photos;
   // setPhapCuImage (a real photo) takes priority when both are set.
   setPhapCuText: (text: string | null) => void;
+  // A registrable cốc's own sign, renamed to its new occupant once an
+  // admin approves them (owner, 2026-11-12: "sau khi có người đăng ký
+  // xong! thì tự động đổi tên cho tôi") — same "Cốc <name>" style as the
+  // 4 cốc that already have a fixed occupant. null restores the board's
+  // own seed title (not yet occupied, or the registration was rejected).
+  setCocOccupant: (cocId: string, occupantName: string | null) => void;
 }
 
 const PALETTE = {
@@ -249,7 +255,8 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     cap: new BoxGeometry(0.62, 0.22, 0.62),
     bud: new SphereGeometry(0.2, 12, 8),
   };
-  const buildings = [buildHall(), buildGate(), buildWall(), buildBellTower(), buildHut(), ...buildCocHuts()];
+  const cocHuts = buildCocHuts();
+  const buildings = [buildHall(), buildGate(), buildWall(), buildBellTower(), buildHut(), ...cocHuts.groups];
   grounds.add(...buildings);
   grounds.add(buildSutraSign());
   grounds.add(buildPaving());
@@ -277,6 +284,7 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     setProjectorPreview: projector.setPreview,
     setPhapCuImage: phapCuBanner.setImage,
     setPhapCuText: phapCuBanner.setText,
+    setCocOccupant: cocHuts.setOccupant,
   };
 
   // ---- roof helpers -------------------------------------------------------
@@ -991,7 +999,13 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
   // Wooden meditation hut (cốc thiền).
   // A small wooden cốc; `plaqueText` names it (the 8 cốc) or is omitted
   // (the original unlabeled meditation hut).
-  function hutGroup(x: number, z: number, size: number, plaqueText?: string, ornate = true): Group {
+  function hutGroup(
+    x: number,
+    z: number,
+    size: number,
+    plaqueText?: string,
+    ornate = true,
+  ): { group: Group; setPlaqueText: (text: string) => void } {
     const hut = new Group();
     const half = size / 2;
     const wallHeight = 2.2;
@@ -1042,17 +1056,25 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     lamp.position.set(0, 0.2 + wallHeight - 0.2, 0);
     lamp.castShadow = false;
     hut.add(lamp);
+    let plaqueMaterial: MeshStandardMaterial | null = null;
     if (plaqueText) {
-      const plaqueMaterial = new MeshStandardMaterial({ map: nameplateTexture(plaqueText), roughness: 0.6 });
+      plaqueMaterial = new MeshStandardMaterial({ map: nameplateTexture(plaqueText), roughness: 0.6 });
       const plaque = add(hut, new BoxGeometry(size * 0.85, 0.42, 0.06), plaqueMaterial, half + 0.04, wallY + 0.5, 0);
       plaque.rotation.y = Math.PI / 2;
     }
     hut.position.set(x, 0, z);
-    return hut;
+    return {
+      group: hut,
+      setPlaqueText(text) {
+        if (!plaqueMaterial) return;
+        plaqueMaterial.map = nameplateTexture(text);
+        plaqueMaterial.needsUpdate = true;
+      },
+    };
   }
 
   function buildHut(): Group {
-    const hut = hutGroup(HUT.x, HUT.z, HUT.size);
+    const hut = hutGroup(HUT.x, HUT.z, HUT.size).group;
     hut.name = "coc-thien";
     return hut;
   }
@@ -1087,14 +1109,34 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
   // + 4 open for registration (see docs/memory/decisions). Each is walkable
   // up to and opened with E; content lives on the server (board id = hut
   // name), not baked into this geometry.
-  // Returned individually (not wrapped in one Group) so each can also be a
-  // camera blocker, same as the other buildings.
-  function buildCocHuts(): Group[] {
-    return (COC_SPOTS as readonly CocSpot[]).map((spot) => {
-      const hut = hutGroup(spot.x, spot.z, spot.size, spot.title, false);
-      hut.name = spot.id;
-      return hut;
+  // Groups are returned individually (not wrapped in one Group) so each can
+  // also be a camera blocker, same as the other buildings.
+  function buildCocHuts(): {
+    groups: Group[];
+    setOccupant: (cocId: string, occupantName: string | null) => void;
+  } {
+    const plaqueSetters = new Map<string, (text: string) => void>();
+    const defaultTitles = new Map<string, string>();
+    const groups = (COC_SPOTS as readonly CocSpot[]).map((spot) => {
+      const { group, setPlaqueText } = hutGroup(spot.x, spot.z, spot.size, spot.title, false);
+      group.name = spot.id;
+      plaqueSetters.set(spot.id, setPlaqueText);
+      defaultTitles.set(spot.id, spot.title);
+      return group;
     });
+    return {
+      groups,
+      // Owner, 2026-11-12: "sau khi có người đăng ký xong! thì tự động đổi
+      // tên cho tôi" — same "Cốc <name>" style as the 4 cốc already named
+      // for a fixed person. null (not yet occupied, or rejected) restores
+      // the board's own seed title ("Cốc Thuyết Pháp N").
+      setOccupant(cocId, occupantName) {
+        const setText = plaqueSetters.get(cocId);
+        const defaultTitle = defaultTitles.get(cocId);
+        if (!setText || defaultTitle === undefined) return;
+        setText(occupantName === null ? defaultTitle : `Cốc ${occupantName}`);
+      },
+    };
   }
 
   // Thầy Nguyên Tuệ's photo (placeholder until the owner drops the real

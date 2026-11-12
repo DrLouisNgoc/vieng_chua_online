@@ -225,6 +225,17 @@ async function main(): Promise<void> {
     practicePanel.render(practice.view, ambience.ambienceOn);
   }
   renderPractice();
+  // Owner, 2026-11-12: "sau khi có người đăng ký xong! thì tự động đổi tên
+  // cho tôi" — once an admin approves a cốc registration, every visitor's
+  // sign (not just the admin's own panel) should pick it up, so this polls
+  // rather than only refreshing on this client's own actions.
+  const COC_SIGN_POLL_MS = 20_000;
+  async function refreshCocSigns(scene: TempleScene): Promise<void> {
+    const boards = await boardsClient.list();
+    for (const board of boards) {
+      if (board.registrable) scene.setCocOccupant(board.id, board.occupantName);
+    }
+  }
   const scenePromise = createTempleScene(viewport, {
     onMoktakClick: () => moktakController?.strike(),
     onInteractionView: (view) => interactionHud.render(view),
@@ -239,7 +250,7 @@ async function main(): Promise<void> {
       renderPractice();
     },
     onRingBell: () => bellVideo.ring(),
-  }).then((loaded) => {
+  }).then(async (loaded) => {
     temple = loaded;
     performInteraction = loaded.perform;
     moktakController = createMoktakController({
@@ -248,8 +259,12 @@ async function main(): Promise<void> {
         loaded.pulseMoktak();
       },
     });
-    void refreshProjectorPreview(loaded);
-    void refreshPhapCuBanner(loaded);
+    await refreshProjectorPreview(loaded);
+    await refreshPhapCuBanner(loaded);
+    await refreshCocSigns(loaded);
+    setInterval(async () => {
+      await refreshCocSigns(loaded);
+    }, COC_SIGN_POLL_MS);
     return loaded;
   });
 
