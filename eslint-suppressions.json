@@ -61,27 +61,6 @@
       "count": 1
     }
   },
-  "app/src/avatar-svg.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-unnecessary-string-trim": {
-      "count": 1
-    }
-  },
-  "app/src/avatar-svg.ts": {
-    "unicorn/no-asterisk-prefix-in-documentation-comments": {
-      "count": 1
-    },
-    "unicorn/no-unsafe-string-replacement": {
-      "count": 1
-    }
-  },
-  "app/src/background-music.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/background-music.ts": {
     "unicorn/consistent-boolean-name": {
       "count": 3
@@ -101,16 +80,6 @@
       "count": 1
     },
     "unicorn/no-return-array-push": {
-      "count": 1
-    }
-  },
-  "app/src/bead-counter.ts": {
-    "unicorn/prefer-number-coercion": {
-      "count": 1
-    }
-  },
-  "app/src/bell-video.test.ts": {
-    "simple-import-sort/imports": {
       "count": 1
     }
   },
@@ -229,46 +198,12 @@
       "count": 1
     }
   },
-  "app/src/body-pose.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "no-continue": {
-      "count": 1
-    }
-  },
-  "app/src/browser-storage.ts": {
-    "unicorn/prefer-global-this": {
-      "count": 1
-    }
-  },
-  "app/src/chant.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/chat-panel.ts": {
     "@typescript-eslint/strict-boolean-expressions": {
       "count": 2
     },
     "no-param-reassign": {
       "count": 2
-    }
-  },
-  "app/src/collision.test.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "app/src/collision.ts": {
-    "unicorn/no-negated-array-predicate": {
-      "count": 1
-    },
-    "unicorn/prefer-ternary": {
-      "count": 1
     }
   },
   "app/src/curved-roof.test.ts": {
@@ -319,22 +254,12 @@
       "count": 2
     }
   },
-  "app/src/i18n.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/interaction-hud.ts": {
     "@typescript-eslint/strict-boolean-expressions": {
       "count": 1
     },
     "no-param-reassign": {
       "count": 2
-    }
-  },
-  "app/src/interaction-prompts.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
     }
   },
   "app/src/interaction-prompts.ts": {
@@ -415,11 +340,6 @@
       "count": 5
     }
   },
-  "app/src/interaction-state.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/interaction-state.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -428,11 +348,6 @@
       "count": 2
     },
     "unicorn/prefer-export-from": {
-      "count": 1
-    }
-  },
-  "app/src/interaction-targets.test.ts": {
-    "simple-import-sort/imports": {
       "count": 1
     }
   },
@@ -447,16 +362,6 @@
       "count": 1
     },
     "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
-  "app/src/key-state.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "app/src/lantern-layout.test.ts": {
-    "simple-import-sort/imports": {
       "count": 1
     }
   },
@@ -553,16 +458,6 @@
       "count": 3
     }
   },
-  "app/src/moktak.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "app/src/movement.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/onboarding.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
@@ -571,19 +466,6 @@
       "count": 1
     },
     "unicorn/prefer-string-repeat": {
-      "count": 1
-    }
-  },
-  "app/src/onboarding.ts": {
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/prefer-export-from": {
-      "count": 1
-    }
-  },
-  "app/src/pose-for-activity.test.ts": {
-    "simple-import-sort/imports": {
       "count": 1
     }
   },
@@ -718,29 +600,6 @@
       "count": 2
     }
   },
-  "app/src/remote-motion.ts": {
-    "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
-  "app/src/remote-visitors.ts": {
-    "@typescript-eslint/no-unnecessary-condition": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "app/src/runtime-urls.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
-  "app/src/runtime-urls.ts": {
-    "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
   "app/src/scene.ts": {
     "@typescript-eslint/consistent-type-imports": {
       "count": 1
@@ -815,11 +674,6 @@
       "count": 1
     }
   },
-  "app/src/shared-protocol.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/simplify-geometry.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
@@ -831,11 +685,6 @@
       "count": 1
     },
     "unicorn/prefer-iterator-to-array": {
-      "count": 1
-    }
-  },
-  "app/src/simplify-geometry.ts": {
-    "simple-import-sort/imports": {
       "count": 1
     }
   },
@@ -997,11 +846,6 @@
       "count": 2
     }
   },
-  "app/src/third-person-camera.ts": {
-    "unicorn/prefer-ternary": {
-      "count": 2
-    }
-  },
   "app/src/visitor-protocol.test.ts": {
     "import-x/consistent-type-specifier-style": {
       "count": 1
@@ -1046,11 +890,6 @@
     },
     "unicorn/switch-case-braces": {
       "count": 7
-    }
-  },
-  "app/src/walk-cycle.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
     }
   }
 }

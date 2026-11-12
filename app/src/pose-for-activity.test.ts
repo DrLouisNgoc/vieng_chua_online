@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { poseForActivity } from "./pose-for-activity";
+import { describe, expect, it } from "vitest";
+
 import {
   BEADS,
   BEADS_SEATED,
@@ -13,8 +13,9 @@ import {
   sweepPose,
   walkPose,
 } from "./body-pose";
-import { BOW_SECONDS } from "./interaction-state";
 import type { InteractionSnapshot } from "./interaction-state";
+import { BOW_SECONDS } from "./interaction-state";
+import { poseForActivity } from "./pose-for-activity";
 
 const base: InteractionSnapshot = {
   activity: "idle",

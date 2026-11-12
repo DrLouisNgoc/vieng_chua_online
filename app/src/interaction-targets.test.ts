@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { findTargets, seatHeading } from "./interaction-targets";
-import { BANYAN, BROOM_SPOT, MEDITATION_SEATS, SEAT_REACH, BROOM_REACH, STATUE_ZONE } from "./temple-layout";
+import { BANYAN, BROOM_REACH, BROOM_SPOT, MEDITATION_SEATS, SEAT_REACH, STATUE_ZONE } from "./temple-layout";
 
 const seats = [
   { x: 0, z: 0 },

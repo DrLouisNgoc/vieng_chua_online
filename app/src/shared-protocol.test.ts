@@ -2,7 +2,8 @@
 // These pin the app's own layout and palette to the same numbers, so a
 // cushion or robe colour added on one side cannot silently be refused by
 // the other.
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { ROBE_COLOR_COUNT, SEAT_COUNT, WORLD_LIMIT } from "../../shared/protocol";
 import { ROBE_COLORS } from "./onboarding";
 import { MEDITATION_SEATS, WORLD_LIMIT as LAYOUT_WORLD_LIMIT } from "./temple-layout";

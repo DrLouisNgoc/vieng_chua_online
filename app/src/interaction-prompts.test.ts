@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { INTERACTION_TEXT, promptsFor, beadCounterText } from "./interaction-prompts";
+import { describe, expect, it } from "vitest";
+
+import { beadCounterText, INTERACTION_TEXT, promptsFor } from "./interaction-prompts";
 import type { InteractionSnapshot } from "./interaction-state";
 import type { Targets } from "./interaction-targets";
 

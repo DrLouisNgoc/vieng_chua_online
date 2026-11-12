@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { renderAvatarSvg } from "./avatar-svg";
 
 describe("renderAvatarSvg", () => {
@@ -11,6 +12,6 @@ describe("renderAvatarSvg", () => {
     const svg = renderAvatarSvg("nam");
     expect(svg).toContain('<svg class="va-figure"');
     expect(svg).toContain('viewBox="0 0 140 170"');
-    expect(svg.trim().endsWith("</svg>")).toBe(true);
+    expect(svg.trimEnd().endsWith("</svg>")).toBe(true);
   });
 });

@@ -44,8 +44,7 @@ export function desiredCameraPosition(target: Vec3, heading: number, rig: Camera
 // Rotate `current` toward `target` by at most `maxStep`, the short way round.
 export function turnTowards(current: number, target: number, maxStep: number): number {
   const diff = normalizeAngle(target - current);
-  if (Math.abs(diff) <= maxStep) return current + diff;
-  return current + Math.sign(diff) * maxStep;
+  return current + (Math.abs(diff) <= maxStep ? diff : Math.sign(diff) * maxStep);
 }
 
 // Camera-relative walking direction: W/S along where the camera looks,
@@ -54,8 +53,7 @@ export function moveDirection(cameraYaw: number, forward: number, right: number)
   const x = Math.sin(cameraYaw) * forward - Math.cos(cameraYaw) * right;
   const z = Math.cos(cameraYaw) * forward + Math.sin(cameraYaw) * right;
   const length = Math.hypot(x, z);
-  if (length < 1e-6) return null;
-  return { x: x / length, z: z / length };
+  return length < 1e-6 ? null : { x: x / length, z: z / length };
 }
 
 export function applyDrag(rig: CameraRig, dx: number, dy: number): CameraRig {

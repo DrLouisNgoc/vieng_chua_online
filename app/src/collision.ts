@@ -12,7 +12,7 @@ export function isInside(point: Point, box: Box): boolean {
 }
 
 function isFree(point: Point, boxes: readonly Box[]): boolean {
-  return !boxes.some((box) => isInside(point, box));
+  return boxes.every((box) => !isInside(point, box));
 }
 
 export function resolveMove(from: Point, to: Point, boxes: readonly Box[]): Point {
@@ -20,6 +20,5 @@ export function resolveMove(from: Point, to: Point, boxes: readonly Box[]): Poin
   const slideZ = { x: from.x, z: to.z };
   if (isFree(slideZ, boxes)) return slideZ;
   const slideX = { x: to.x, z: from.z };
-  if (isFree(slideX, boxes)) return slideX;
-  return from;
+  return isFree(slideX, boxes) ? slideX : from;
 }

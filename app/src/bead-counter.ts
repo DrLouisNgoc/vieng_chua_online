@@ -44,6 +44,7 @@ export function createStorageBeadStore(storage: KeyValueStorage, key: string): B
   return {
     load() {
       try {
+        // eslint-disable-next-line unicorn/prefer-number-coercion -- parseInt reads "" (missing key) as NaN, Number() would read it as 0
         const value = Number.parseInt(storage.getItem(key) ?? "", 10);
         return Number.isFinite(value) && value >= 0 ? value : null;
       } catch (error: unknown) {

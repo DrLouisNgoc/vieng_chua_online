@@ -168,18 +168,21 @@ function lerp(a: number, b: number, k: number): number {
   return a + (b - a) * k;
 }
 
+function blendRotation(a: BoneRotation | undefined, b: BoneRotation | undefined, k: number): BoneRotation {
+  return {
+    x: lerp(a?.x ?? 0, b?.x ?? 0, k),
+    y: lerp(a?.y ?? 0, b?.y ?? 0, k),
+    z: lerp(a?.z ?? 0, b?.z ?? 0, k),
+  };
+}
+
 export function blendPose(from: BodyPose, to: BodyPose, factor: number): BodyPose {
   const k = Math.min(1, Math.max(0, factor));
   const bones: BodyPose["bones"] = {};
   for (const name of BONE_NAMES) {
     const a = from.bones[name];
     const b = to.bones[name];
-    if (!a && !b) continue;
-    bones[name] = {
-      x: lerp(a?.x ?? 0, b?.x ?? 0, k),
-      y: lerp(a?.y ?? 0, b?.y ?? 0, k),
-      z: lerp(a?.z ?? 0, b?.z ?? 0, k),
-    };
+    if (a || b) bones[name] = blendRotation(a, b, k);
   }
   return { bones, hipsDrop: lerp(from.hipsDrop, to.hipsDrop, k) };
 }

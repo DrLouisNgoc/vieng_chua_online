@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { bellVideoEmbedUrl } from "./bell-video";
 
 // createBellVideo is DOM-wiring only (no jsdom in this test environment,

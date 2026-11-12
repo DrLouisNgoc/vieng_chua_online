@@ -47,34 +47,76 @@ interface Remote {
 const LABEL_HEIGHT = 2.05;
 const LABEL_MAX_DISTANCE = 40;
 
+interface Frame {
+  factor: number;
+  cameraPosition: Vector3;
+  groundY: number;
+}
+
+function createRemote(scene: Scene, template: Object3D, view: VisitorView, robe: string): Remote {
+  const avatar = cloneSkinned(template);
+  avatar.visible = true;
+  tintRobe(avatar, robe);
+  scene.add(avatar);
+  const label = createNameLabel();
+  scene.add(label.sprite);
+  return {
+    view,
+    avatar,
+    rig: createAvatarRig(avatar),
+    label,
+    props: createHeldProps(scene),
+    x: view.x,
+    z: view.z,
+    heading: view.heading,
+    walkSeconds: 0,
+    activitySeconds: 0,
+  };
+}
+
+// Poses and places the avatar, its held props and its label at the
+// remote's current (already smoothed) position.
+function placeRemote(remote: Readonly<Remote>, frame: Frame): void {
+  const { factor, cameraPosition } = frame;
+  const { view, avatar, props } = remote;
+  const pose = poseForActivity(view, remote.activitySeconds, remote.walkSeconds);
+  const floorY = frame.groundY + groundHeightAt({ x: remote.x, z: remote.z }) - pose.hipsDrop;
+  avatar.position.set(remote.x, approach(avatar.position.y, floorY, factor), remote.z);
+  // +PI: monk.glb's modelled front faces the opposite of the heading convention
+  avatar.rotation.y = remote.heading + Math.PI;
+  remote.rig.applyPose(pose);
+  placeHeldProps(
+    remote.props,
+    avatar,
+    remote.rig,
+    {
+      holdingBroom: view.holdingBroom,
+      beadsVisible: view.beadsVisible,
+      walking: view.activity === "walking",
+    },
+    remote.walkSeconds,
+  );
+  props.broom.visible = view.holdingBroom;
+
+  const { sprite } = remote.label;
+  sprite.position.set(remote.x, avatar.position.y + LABEL_HEIGHT - pose.hipsDrop * 0.3, remote.z);
+  sprite.visible = sprite.position.distanceTo(cameraPosition) < LABEL_MAX_DISTANCE;
+  remote.label.setText(labelText(view.name, view.beadsVisible, view.beadTotal));
+}
+
 export function createRemoteVisitors(options: RemoteVisitorsOptions): RemoteVisitors {
   const { scene, template } = options;
+  // Typed as possibly missing: a visitor's colorIndex can be out of range.
+  const robeColors: readonly ({ base: string } | undefined)[] = options.robeColors;
   const remotes = new Map<string, Remote>();
   let occupied: ReadonlySet<number> = new Set();
 
   function robeColor(index: number): string {
-    return options.robeColors[index]?.base ?? options.robeColors[0]?.base ?? "#3f6e9c";
+    return robeColors[index]?.base ?? robeColors[0]?.base ?? "#3f6e9c";
   }
 
   function add(view: VisitorView): Remote {
-    const avatar = cloneSkinned(template);
-    avatar.visible = true;
-    tintRobe(avatar, robeColor(view.colorIndex));
-    scene.add(avatar);
-    const label = createNameLabel();
-    scene.add(label.sprite);
-    const remote: Remote = {
-      view,
-      avatar,
-      rig: createAvatarRig(avatar),
-      label,
-      props: createHeldProps(scene),
-      x: view.x,
-      z: view.z,
-      heading: view.heading,
-      walkSeconds: 0,
-      activitySeconds: 0,
-    };
+    const remote = createRemote(scene, template, view, robeColor(view.colorIndex));
     remotes.set(view.id, remote);
     return remote;
   }
@@ -105,37 +147,15 @@ export function createRemoteVisitors(options: RemoteVisitorsOptions): RemoteVisi
     },
     update(deltaSeconds, cameraPosition) {
       const factor = smoothingFactor(deltaSeconds);
+      const frame = { factor, cameraPosition, groundY: options.groundY };
       for (const remote of remotes.values()) {
-        const { view, avatar } = remote;
+        const { view } = remote;
         remote.x = approach(remote.x, view.x, factor);
         remote.z = approach(remote.z, view.z, factor);
         remote.heading = approachAngle(remote.heading, view.heading, factor);
         remote.activitySeconds += deltaSeconds;
         remote.walkSeconds = view.activity === "walking" ? remote.walkSeconds + deltaSeconds : 0;
-
-        const pose = poseForActivity(view, remote.activitySeconds, remote.walkSeconds);
-        const floorY = options.groundY + groundHeightAt({ x: remote.x, z: remote.z }) - pose.hipsDrop;
-        avatar.position.set(remote.x, approach(avatar.position.y, floorY, factor), remote.z);
-        // +PI: monk.glb's modelled front faces the opposite of the heading convention
-        avatar.rotation.y = remote.heading + Math.PI;
-        remote.rig.applyPose(pose);
-        placeHeldProps(
-          remote.props,
-          avatar,
-          remote.rig,
-          {
-            holdingBroom: view.holdingBroom,
-            beadsVisible: view.beadsVisible,
-            walking: view.activity === "walking",
-          },
-          remote.walkSeconds,
-        );
-        remote.props.broom.visible = view.holdingBroom;
-
-        const { sprite } = remote.label;
-        sprite.position.set(remote.x, avatar.position.y + LABEL_HEIGHT - pose.hipsDrop * 0.3, remote.z);
-        sprite.visible = sprite.position.distanceTo(cameraPosition) < LABEL_MAX_DISTANCE;
-        remote.label.setText(labelText(view.name, view.beadsVisible, view.beadTotal));
+        placeRemote(remote, frame);
       }
     },
     occupiedSeats: () => occupied,

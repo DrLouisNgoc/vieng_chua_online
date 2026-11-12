@@ -1,5 +1,5 @@
-import { BufferAttribute, BufferGeometry } from "three";
 import { MeshoptSimplifier } from "meshoptimizer";
+import { BufferAttribute, BufferGeometry } from "three";
 
 // Relative to the mesh size. Topology-aware simplification stops early on
 // meshes made of many separate pieces (foliage cards), so if it misses the

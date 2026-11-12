@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { defaultBoardsUrl, defaultPresenceUrl } from "./runtime-urls";
 
 const prodLocation = { protocol: "https:", host: "chua.io.vn", origin: "https://chua.io.vn" };
