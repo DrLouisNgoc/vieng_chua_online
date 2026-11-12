@@ -205,12 +205,13 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   const gltfLoader = new GLTFLoader();
   gltfLoader.setMeshoptDecoder(MeshoptDecoder);
 
-  async function addModel(path: string, position: Vector3, targetHeight: number): Promise<Object3D> {
+  async function addModel(path: string, position: Vector3, targetHeight: number, rotationY = 0): Promise<Object3D> {
     const gltf = await gltfLoader.loadAsync(`${ASSET_ROOT}/models/${path}`);
     const model = gltf.scene;
     const originalSize = new Box3().setFromObject(model).getSize(new Vector3());
     const scale = originalSize.y > 0 ? targetHeight / originalSize.y : 1;
     model.scale.setScalar(scale);
+    model.rotation.y = rotationY;
 
     const scaledBox = new Box3().setFromObject(model);
     const scaledCenter = scaledBox.getCenter(new Vector3());
@@ -223,16 +224,18 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   function addStatue(
     path: string,
     statue: { x: number; z: number; height: number; pedestal: number },
+    rotationY = 0,
   ): Promise<Object3D> {
-    return addModel(path, new Vector3(statue.x, ALTAR_TOP + statue.pedestal, statue.z), statue.height);
+    return addModel(path, new Vector3(statue.x, ALTAR_TOP + statue.pedestal, statue.z), statue.height, rotationY);
   }
 
   const [firstPine, ...otherPines] = PINE_POSITIONS;
   if (!firstPine) throw new Error("PINE_POSITIONS is empty");
-  const [, , , avatar, pine, grounds] = await Promise.all([
-    addStatue("buddha.glb", STATUES.buddha),
-    addStatue("avalokitesvara.glb", STATUES.avalokitesvara),
-    addStatue("mahastamaprapta.glb", STATUES.mahastamaprapta),
+  // buddha.glb (owner, 2026-11-12: replaced with a simplified Tripo export)
+  // faces +x by default, not -z toward the congregation like the rest of
+  // this scene's models — rotate it to match.
+  const [, avatar, pine, grounds] = await Promise.all([
+    addStatue("buddha.glb", STATUES.buddha, Math.PI / 2),
     addModel("monk.glb", new Vector3(AVATAR_START.x, 0, AVATAR_START.z), 1.7),
     addModel("pine.glb", new Vector3(firstPine.x, 0, firstPine.z), 4),
     buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
