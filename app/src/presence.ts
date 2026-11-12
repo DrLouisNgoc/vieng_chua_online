@@ -1,13 +1,5 @@
-import {
-  encodeChat,
-  encodeJoin,
-  encodeState,
-  parseServerMessage,
-  shouldSendState,
-  type ChatEntry,
-  type OutgoingState,
-  type VisitorView,
-} from "./visitor-protocol";
+import type { ChatEntry, OutgoingState, ServerMessage, VisitorView } from "./visitor-protocol";
+import { encodeChat, encodeJoin, encodeState, parseServerMessage, shouldSendState } from "./visitor-protocol";
 
 const DEFAULT_RECONNECT_DELAY_MS = 2000;
 
@@ -47,10 +39,96 @@ export interface PresenceClient {
   dispose: () => void;
 }
 
+type Callbacks = Required<Omit<PresenceClientOptions, "url" | "reconnectDelayMs" | "now">>;
+
+function ignore(): void {
+  // a callback the caller did not ask for
+}
+
+function withDefaults(options: PresenceClientOptions): Callbacks {
+  return {
+    onStatus: options.onStatus,
+    onVisitors: options.onVisitors ?? ignore,
+    onSeatRefused: options.onSeatRefused ?? ignore,
+    onChat: options.onChat ?? ignore,
+    onChatHistory: options.onChatHistory ?? ignore,
+    onBell: options.onBell ?? ignore,
+    onNameLock: options.onNameLock ?? ignore,
+    onWelcome: options.onWelcome ?? ignore,
+    onJoinRefused: options.onJoinRefused ?? ignore,
+  };
+}
+
+// Hands one server message to its callback. Returns this visitor's own id,
+// which "welcome" sets and "visitors" uses to leave this visitor out.
+function deliver(message: ServerMessage, on: Callbacks, ownId: string | null): string | null {
+  switch (message.type) {
+    case "presence": {
+      on.onStatus({ kind: "online", count: message.count });
+      return ownId;
+    }
+    case "welcome": {
+      on.onWelcome();
+      return message.id;
+    }
+    case "visitors": {
+      on.onVisitors(message.visitors.filter((visitor) => visitor.id !== ownId));
+      return ownId;
+    }
+    case "seat-refused": {
+      on.onSeatRefused(message.seatIndex);
+      return ownId;
+    }
+    case "chat": {
+      on.onChat(message.message);
+      return ownId;
+    }
+    case "chat-history": {
+      on.onChatHistory(message.messages);
+      return ownId;
+    }
+    case "bell": {
+      on.onBell();
+      return ownId;
+    }
+    case "name-lock": {
+      on.onNameLock(message.name);
+      return ownId;
+    }
+    case "join-refused": {
+      on.onJoinRefused(message.reason);
+      return ownId;
+    }
+    default: {
+      return ownId;
+    }
+  }
+}
+
+interface SocketEvents {
+  onOpen: () => void;
+  onMessage: (data: string) => void;
+  onClose: () => void;
+}
+
+function openSocket(url: string, events: SocketEvents): WebSocket {
+  const socket = new WebSocket(url);
+  socket.addEventListener("open", events.onOpen);
+  socket.addEventListener("message", (event: MessageEvent<string>) => {
+    events.onMessage(event.data);
+  });
+  socket.addEventListener("close", events.onClose);
+  socket.addEventListener("error", () => {
+    socket.close();
+  });
+  return socket;
+}
+
 export function createPresenceClient(options: PresenceClientOptions): PresenceClient {
   const reconnectDelayMs = options.reconnectDelayMs ?? DEFAULT_RECONNECT_DELAY_MS;
   const now = options.now ?? (() => performance.now());
-  let disposed = false;
+  const on = withDefaults(options);
+  let isDisposed = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let socket: WebSocket | undefined;
   let identity: { name: string; colorIndex: number } | null = null;
@@ -63,68 +141,27 @@ export function createPresenceClient(options: PresenceClientOptions): PresenceCl
   }
 
   function sendJoin(): void {
-    if (identity && isOpen()) {
-      socket?.send(encodeJoin(identity.name, identity.colorIndex));
-      // the server may have forgotten us; the next state must go out
-      lastSent = null;
-    }
+    if (!identity || !isOpen()) return;
+    socket?.send(encodeJoin(identity.name, identity.colorIndex));
+    // the server may have forgotten us; the next state must go out
+    lastSent = null;
   }
 
   function connect(): void {
-    options.onStatus({ kind: "connecting" });
-    socket = new WebSocket(options.url);
-
-    socket.onopen = () => {
-      sendJoin();
-    };
-
-    socket.onmessage = (event: MessageEvent<string>) => {
-      const message = parseServerMessage(event.data);
-      if (!message) return;
-      switch (message.type) {
-        case "presence":
-          options.onStatus({ kind: "online", count: message.count });
-          break;
-        case "welcome":
-          ownId = message.id;
-          options.onWelcome?.();
-          break;
-        case "visitors":
-          options.onVisitors?.(message.visitors.filter((visitor) => visitor.id !== ownId));
-          break;
-        case "seat-refused":
-          options.onSeatRefused?.(message.seatIndex);
-          break;
-        case "chat":
-          options.onChat?.(message.message);
-          break;
-        case "chat-history":
-          options.onChatHistory?.(message.messages);
-          break;
-        case "bell":
-          options.onBell?.();
-          break;
-        case "name-lock":
-          options.onNameLock?.(message.name);
-          break;
-        case "join-refused":
-          options.onJoinRefused?.(message.reason);
-          break;
-      }
-    };
-
-    socket.onclose = () => {
-      options.onStatus({ kind: "offline" });
-      options.onVisitors?.([]);
-      ownId = null;
-      if (!disposed) {
-        reconnectTimer = setTimeout(connect, reconnectDelayMs);
-      }
-    };
-
-    socket.onerror = () => {
-      socket?.close();
-    };
+    on.onStatus({ kind: "connecting" });
+    socket = openSocket(options.url, {
+      onOpen: sendJoin,
+      onMessage(data) {
+        const message = parseServerMessage(data);
+        if (message) ownId = deliver(message, on, ownId);
+      },
+      onClose() {
+        on.onStatus({ kind: "offline" });
+        on.onVisitors([]);
+        ownId = null;
+        if (!isDisposed) reconnectTimer = setTimeout(connect, reconnectDelayMs);
+      },
+    });
   }
 
   connect();
@@ -147,10 +184,8 @@ export function createPresenceClient(options: PresenceClientOptions): PresenceCl
       socket?.send(encodeChat(text));
     },
     dispose() {
-      disposed = true;
-      if (reconnectTimer !== undefined) {
-        clearTimeout(reconnectTimer);
-      }
+      isDisposed = true;
+      if (reconnectTimer !== undefined) clearTimeout(reconnectTimer);
       socket?.close();
     },
   };

@@ -27,7 +27,7 @@ export function parseTalks(body: string): Talk[] {
       if (bar === -1) return { title: line, url: line };
       const title = line.slice(0, bar).trim();
       const url = line.slice(bar + 1).trim();
-      return { title: title || url, url };
+      return { title: title === "" ? url : title, url };
     });
 }
 
@@ -48,8 +48,9 @@ export function parseQuoteImages(body: string): QuoteImage[] {
     .filter(Boolean)
     .map((line) => {
       const bar = line.indexOf("|");
-      if (bar === -1) return { file: line, caption: "" };
-      return { file: line.slice(0, bar).trim(), caption: line.slice(bar + 1).trim() };
+      return bar === -1
+        ? { file: line, caption: "" }
+        : { file: line.slice(0, bar).trim(), caption: line.slice(bar + 1).trim() };
     });
 }
 
@@ -127,9 +128,16 @@ export type AnswerOutcome = "ok" | "wrong-password" | "not-found" | "error";
 export type ReadQuestionsResult =
   { outcome: "ok"; questions: Question[] } | { outcome: "wrong-password" | "not-found" | "error" };
 
+// What an edit changes; talks and title are sent only when given.
+export interface BoardEdit {
+  body: string;
+  talks?: string;
+  title?: string;
+}
+
 export interface BoardsClient {
   list: () => Promise<BoardView[]>;
-  edit: (id: string, password: string, body: string, talks?: string, title?: string) => Promise<EditOutcome>;
+  edit: (id: string, password: string, changes: BoardEdit) => Promise<EditOutcome>;
   register: (id: string, name: string, note: string) => Promise<RegisterOutcome>;
   ask: (id: string, name: string, text: string) => Promise<AskOutcome>;
   readQuestions: (id: string, password: string) => Promise<ReadQuestionsResult>;
@@ -139,26 +147,62 @@ export interface BoardsClient {
   adminReject: (id: string, password: string) => Promise<AdminDecisionOutcome>;
 }
 
+interface JsonReply {
+  status: number;
+  json: unknown;
+}
+
 function errorField(json: unknown): string | null {
   if (typeof json !== "object" || json === null) return null;
-  const error = (json as Record<string, unknown>).error;
+  const { error } = json as Record<string, unknown>;
   return typeof error === "string" ? error : null;
 }
 
-export function createBoardsClient(baseUrl: string, fetchImpl: typeof fetch = fetch): BoardsClient {
-  async function postJson(path: string, body: unknown): Promise<{ status: number; json: unknown }> {
-    try {
-      const res = await fetchImpl(`${baseUrl}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json().catch(() => null);
-      return { status: res.status, json };
-    } catch {
-      return { status: 0, json: null };
-    }
+// The server's error field when it is one the caller knows, else "error".
+function knownError<T extends string>(json: unknown, known: readonly T[]): T | "error" {
+  const error = errorField(json);
+  return known.find((outcome) => outcome === error) ?? "error";
+}
+
+function outcomeOf<T extends string>(reply: JsonReply, known: readonly T[]): "ok" | T | "error" {
+  return reply.status === 200 ? "ok" : knownError(reply.json, known);
+}
+
+// The array under `key` in a 200 reply, else null.
+function listIn(reply: JsonReply, key: string): unknown[] | null {
+  if (reply.status !== 200 || typeof reply.json !== "object" || reply.json === null) return null;
+  const list = (reply.json as Record<string, unknown>)[key];
+  return Array.isArray(list) ? list : null;
+}
+
+async function readJson(res: Response): Promise<unknown> {
+  try {
+    return await res.json();
+  } catch {
+    return null;
   }
+}
+
+async function postJson(fetchImpl: typeof fetch, url: string, body: unknown): Promise<JsonReply> {
+  try {
+    const res = await fetchImpl(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return { status: res.status, json: await readJson(res) };
+  } catch {
+    return { status: 0, json: null };
+  }
+}
+
+function boardPath(id: string, action = ""): string {
+  return `/boards/${encodeURIComponent(id)}${action}`;
+}
+
+export function createBoardsClient(baseUrl: string, fetchImpl: typeof fetch = fetch): BoardsClient {
+  const post = async (path: string, body: unknown): Promise<JsonReply> =>
+    postJson(fetchImpl, `${baseUrl}${path}`, body);
 
   return {
     async list() {
@@ -172,89 +216,55 @@ export function createBoardsClient(baseUrl: string, fetchImpl: typeof fetch = fe
       }
     },
 
-    async edit(id, password, body, talks, title) {
-      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}`, {
+    async edit(id, password, { body, talks, title }) {
+      const reply = await post(boardPath(id), {
         password,
         body,
-        ...(talks !== undefined ? { talks } : {}),
-        ...(title !== undefined ? { title } : {}),
+        ...(talks !== undefined && { talks }),
+        ...(title !== undefined && { title }),
       });
-      if (status === 200) return "ok";
-      const error = errorField(json);
-      if (error === "wrong-password" || error === "not-found" || error === "not-assigned") return error;
-      return "error";
+      return outcomeOf(reply, ["wrong-password", "not-found", "not-assigned"] as const);
     },
 
     async ask(id, name, text) {
-      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/ask`, { name, text });
-      if (status === 200) return "ok";
-      const error = errorField(json);
-      if (error === "not-found" || error === "not-assigned") return error;
-      return "error";
+      const reply = await post(boardPath(id, "/ask"), { name, text });
+      return outcomeOf(reply, ["not-found", "not-assigned"] as const);
     },
 
     async readQuestions(id, password) {
-      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/questions`, { password });
-      if (status === 200 && typeof json === "object" && json !== null) {
-        const questions = (json as { questions?: Question[] }).questions;
-        if (Array.isArray(questions)) return { outcome: "ok", questions };
-      }
-      const error = errorField(json);
-      if (error === "wrong-password" || error === "not-found") return { outcome: error };
-      return { outcome: "error" };
+      const reply = await post(boardPath(id, "/questions"), { password });
+      const questions = listIn(reply, "questions") as Question[] | null;
+      return questions
+        ? { outcome: "ok", questions }
+        : { outcome: knownError(reply.json, ["wrong-password", "not-found"] as const) };
     },
 
     async answer(id, password, questionId, answer) {
-      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/answer`, {
-        password,
-        questionId,
-        answer,
-      });
-      if (status === 200) return "ok";
-      const error = errorField(json);
-      if (error === "wrong-password" || error === "not-found") return error;
-      return "error";
+      const reply = await post(boardPath(id, "/answer"), { password, questionId, answer });
+      return outcomeOf(reply, ["wrong-password", "not-found"] as const);
     },
 
     async register(id, name, note) {
-      const { status, json } = await postJson(`/boards/${encodeURIComponent(id)}/register`, { name, note });
-      if (status === 200) return "ok";
-      const error = errorField(json);
-      if (
-        error === "not-found" ||
-        error === "not-registrable" ||
-        error === "already-pending" ||
-        error === "already-assigned"
-      ) {
-        return error;
-      }
-      return "error";
+      const reply = await post(boardPath(id, "/register"), { name, note });
+      return outcomeOf(reply, ["not-found", "not-registrable", "already-pending", "already-assigned"] as const);
     },
 
     async adminPending(password) {
-      const { status, json } = await postJson("/admin/pending", { password });
-      if (status === 200 && typeof json === "object" && json !== null) {
-        const registrations = (json as { registrations?: AdminPendingEntry[] }).registrations;
-        if (Array.isArray(registrations)) return { outcome: "ok", registrations };
-      }
-      if (errorField(json) === "wrong-password") return { outcome: "wrong-password" };
-      return { outcome: "error" };
+      const reply = await post("/admin/pending", { password });
+      const registrations = listIn(reply, "registrations") as AdminPendingEntry[] | null;
+      return registrations
+        ? { outcome: "ok", registrations }
+        : { outcome: knownError(reply.json, ["wrong-password"] as const) };
     },
 
     async adminApprove(id, password) {
-      const { status, json } = await postJson(`/admin/approve/${encodeURIComponent(id)}`, { password });
-      if (status === 200) return "ok";
-      const error = errorField(json);
-      if (error === "wrong-password" || error === "not-found" || error === "no-pending") return error;
-      return "error";
+      const reply = await post(`/admin/approve/${encodeURIComponent(id)}`, { password });
+      return outcomeOf(reply, ["wrong-password", "not-found", "no-pending"] as const);
     },
 
     async adminReject(id, password) {
-      const { status, json } = await postJson(`/admin/reject/${encodeURIComponent(id)}`, { password });
-      if (status === 200) return "ok";
-      const error = errorField(json);
-      if (error === "wrong-password" || error === "not-found" || error === "no-pending") return error;
-      return "error";
+      const reply = await post(`/admin/reject/${encodeURIComponent(id)}`, { password });
+      return outcomeOf(reply, ["wrong-password", "not-found", "no-pending"] as const);
     },
   };
 }

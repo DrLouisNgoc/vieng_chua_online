@@ -2,20 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createPresenceClient } from "./presence";
 
-class FakeWebSocket {
+// A stand-in for the browser WebSocket: the node test runner has none.
+class FakeWebSocket extends EventTarget {
   static readonly OPEN = 1;
 
   static readonly instances: FakeWebSocket[] = [];
 
   readyState = 0;
-
-  onopen: (() => void) | null = null;
-
-  onclose: (() => void) | null = null;
-
-  onmessage: ((event: { data: string }) => void) | null = null;
-
-  onerror: (() => void) | null = null;
 
   closed = false;
 
@@ -24,17 +17,22 @@ class FakeWebSocket {
   url: string;
 
   constructor(url: string) {
+    super();
     this.url = url;
     FakeWebSocket.instances.push(this);
   }
 
   open(): void {
     this.readyState = FakeWebSocket.OPEN;
-    this.onopen?.();
+    this.dispatchEvent(new Event("open"));
   }
 
   message(data: unknown): void {
-    this.onmessage?.({ data: JSON.stringify(data) });
+    this.rawMessage(JSON.stringify(data));
+  }
+
+  rawMessage(data: string): void {
+    this.dispatchEvent(new MessageEvent("message", { data }));
   }
 
   send(data: string): void {
@@ -44,7 +42,7 @@ class FakeWebSocket {
   close(): void {
     this.closed = true;
     this.readyState = 3;
-    this.onclose?.();
+    this.dispatchEvent(new Event("close"));
   }
 }
 
@@ -116,7 +114,7 @@ describe("createPresenceClient", () => {
 
     const socket = FakeWebSocket.instances[0];
     socket.open();
-    expect(() => socket.onmessage?.({ data: "not json" })).not.toThrow();
+    expect(() => socket.rawMessage("not json")).not.toThrow();
   });
 });
 

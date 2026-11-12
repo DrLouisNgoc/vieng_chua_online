@@ -25,7 +25,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 ## Open work
 All open work is a GitHub Issue: `gh issue list --state open`. Read the pinned one first.
 - **Big refactor in progress: pinned Issue #25** (decision 0017; steps and what is left are in its body). Lint
-  cleanup paused at 392 suppressions while the other machine codes.
+  cleanup at 294 suppressions (2026-11-12), all in 5 files.
 - Also open (2026-11-12): CSP header #56; owner assets #57; owner answers on hall/yard size #58 and Tâm Kinh
   proofreading #59; frame rate #60.
 

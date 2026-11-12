@@ -162,17 +162,39 @@ describe("boards-client", () => {
 
   it("edit: ok on 200", async () => {
     const client = createBoardsClient("http://localhost", fakeFetch(200, { ok: true }));
-    expect(await client.edit("a", "p", "body")).toBe("ok");
+    expect(await client.edit("a", "p", { body: "body" })).toBe("ok");
   });
 
   it("edit: maps the error field for known failures", async () => {
     const client = createBoardsClient("http://localhost", fakeFetch(403, { error: "wrong-password" }));
-    expect(await client.edit("a", "p", "body")).toBe("wrong-password");
+    expect(await client.edit("a", "p", { body: "body" })).toBe("wrong-password");
+  });
+
+  it("edit: posts talks and title only when given", async () => {
+    const fetchImpl = fakeFetch(200, { ok: true });
+    const client = createBoardsClient("http://localhost", fetchImpl);
+    await client.edit("a b", "p", { body: "body" });
+    await client.edit("a", "p", { body: "body", talks: "t1", title: "Tên" });
+    const bodies = vi.mocked(fetchImpl).mock.calls.map(([, init]) => init?.body);
+    expect(vi.mocked(fetchImpl).mock.calls[0]?.[0]).toBe("http://localhost/boards/a%20b");
+    expect(bodies).toStrictEqual([
+      JSON.stringify({ password: "p", body: "body" }),
+      JSON.stringify({ password: "p", body: "body", talks: "t1", title: "Tên" }),
+    ]);
+  });
+
+  it("edit: a reply that is not JSON becomes 'error'", async () => {
+    const response = { ok: false, status: 502, json: vi.fn().mockRejectedValue(new SyntaxError("not json")) };
+    const client = createBoardsClient(
+      "http://localhost",
+      vi.fn<typeof fetch>().mockResolvedValue(response as unknown as Response),
+    );
+    expect(await client.edit("a", "p", { body: "body" })).toBe("error");
   });
 
   it("edit: unknown failure becomes 'error'", async () => {
     const client = createBoardsClient("http://localhost", fakeFetch(500, {}));
-    expect(await client.edit("a", "p", "body")).toBe("error");
+    expect(await client.edit("a", "p", { body: "body" })).toBe("error");
   });
 
   it("register: ok and each known 409 reason", async () => {

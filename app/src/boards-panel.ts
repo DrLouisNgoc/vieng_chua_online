@@ -314,7 +314,11 @@ export function createBoardsPanel(
       event.preventDefault();
       void (async () => {
         const pw = board.requiresPassword ? password.value : "";
-        const result = await client.edit(board.id, pw, content.value, talks?.value, title.value);
+        const result = await client.edit(board.id, pw, {
+          body: content.value,
+          talks: talks?.value,
+          title: title.value,
+        });
         if (result === "ok") {
           storage.setItem(passwordKey(board.id), password.value);
           message = "Đã lưu.";
