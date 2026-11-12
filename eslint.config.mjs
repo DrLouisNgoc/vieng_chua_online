@@ -25,7 +25,16 @@ const TS_FILES = ["**/*.ts"];
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/dist-*/**", "app/public/**", "docs/**"],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/dist-*/**",
+      "app/public/**",
+      "docs/**",
+      // A personal, machine-local tool folder that ended up inside the repo
+      // root (git-excluded via .git/info/exclude, which ESLint doesn't read).
+      "_chuyen-may/**",
+    ],
   },
 
   // 1. Airbnb
