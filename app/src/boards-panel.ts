@@ -1,7 +1,9 @@
 import {
   parseQuoteImages,
   parseTalks,
+  sutraFlipDirection,
   sutraOfTheDay,
+  turnSutraPage,
   youtubeVideoId,
   type AdminPendingEntry,
   type AnsweredQuestion,
@@ -41,6 +43,77 @@ function statusLine(board: BoardView): string {
   return "Còn trống — đăng ký để thuyết pháp tại đây";
 }
 
+// One "page" of the Đọc Kinh Nikaya book: the sutra's own budsas.org page,
+// framed like a sheet of paper. flipDirection, when set, starts the page
+// rotated/transparent so the next frame can transition it back to flat —
+// a page-turn animation (owner, 2026-11-11: "lướt sang trang như đọc 1
+// quyển sách thật") around content this app never copies (see sutraOfTheDay).
+function buildSutraPage(current: Talk, flipDirection: "next" | "prev" | null): HTMLElement {
+  const page = document.createElement("div");
+  page.className = "boards__page";
+  if (flipDirection !== null) page.classList.add(`boards__page--turn-${flipDirection}`);
+
+  const title = document.createElement("p");
+  title.className = "boards__page-title";
+  title.textContent = current.title;
+  page.append(title);
+
+  // Read right here, like a page (owner, 2026-11-10: "mở kinh như trang
+  // giấy, đừng chuyển link sang link khác") — not a plain outbound link
+  // that leaves the app. If the source site refuses to be framed, "Mở
+  // trang gốc" below still works.
+  const frame = document.createElement("iframe");
+  frame.className = "boards__sutra-frame";
+  frame.src = current.url;
+  page.append(frame);
+
+  const openLink = document.createElement("a");
+  openLink.className = "boards__sutra-open";
+  openLink.href = current.url;
+  openLink.target = "_blank";
+  openLink.rel = "noopener noreferrer";
+  openLink.textContent = "Mở trang gốc ↗";
+  page.append(openLink);
+
+  if (flipDirection !== null) {
+    // Let the browser paint the rotated/transparent starting state first,
+    // then drop it so the turn back to flat/opaque actually animates
+    // instead of jumping straight to the resting position.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        page.classList.remove("boards__page--turn-next", "boards__page--turn-prev");
+      });
+    });
+  }
+  return page;
+}
+
+function buildSutraPageNav(currentIndex: number, length: number, turnPage: (direction: 1 | -1) => void): HTMLElement {
+  const nav = document.createElement("div");
+  nav.className = "boards__page-nav";
+
+  const prevButton = document.createElement("button");
+  prevButton.type = "button";
+  prevButton.className = "boards__page-turn";
+  prevButton.textContent = "‹ Trang trước";
+  prevButton.disabled = currentIndex <= 0;
+  prevButton.addEventListener("click", () => turnPage(-1));
+
+  const pageNumber = document.createElement("span");
+  pageNumber.className = "boards__page-number";
+  pageNumber.textContent = `Trang ${String(currentIndex + 1)} / ${String(length)}`;
+
+  const nextButton = document.createElement("button");
+  nextButton.type = "button";
+  nextButton.className = "boards__page-turn";
+  nextButton.textContent = "Trang sau ›";
+  nextButton.disabled = currentIndex >= length - 1;
+  nextButton.addEventListener("click", () => turnPage(1));
+
+  nav.append(prevButton, pageNumber, nextButton);
+  return nav;
+}
+
 export function createBoardsPanel(
   root: HTMLElement,
   client: BoardsClient,
@@ -76,6 +149,9 @@ export function createBoardsPanel(
   // null = today's automatic pick (sutraOfTheDay); an index once the
   // visitor picks a different one from the list to read instead.
   let selectedSutraIndex: number | null = null;
+  // The actual page index shown last render, to tell which way to turn the
+  // page (null right after opening, so the first paint never animates).
+  let lastRenderedSutraIndex: number | null = null;
   // Questions a board's occupant has pulled up with their password (E,
   // "hỏi pháp") — null until they ask to see them, cleared when leaving
   // the board so a later visitor never sees a stale list. questionsPassword
@@ -89,6 +165,7 @@ export function createBoardsPanel(
     message = "";
     selectedTalkIndex = 0;
     selectedSutraIndex = null;
+    lastRenderedSutraIndex = null;
     questionsView = null;
     questionsPassword = "";
     panel.hidden = false;
@@ -444,6 +521,7 @@ export function createBoardsPanel(
   // one but never changes which one is "today's" for other visitors.
   function renderSutraBoard(linksText: string): HTMLElement {
     const wrap = document.createElement("div");
+    wrap.className = "boards__book";
     const sutras = parseTalks(linksText);
     if (sutras.length === 0) {
       const p = document.createElement("p");
@@ -453,36 +531,30 @@ export function createBoardsPanel(
       return wrap;
     }
     const today = sutraOfTheDay(sutras);
-    const current: Talk | undefined = selectedSutraIndex !== null ? sutras[selectedSutraIndex] : (today ?? sutras[0]);
+    const todayIndex = today ? sutras.indexOf(today) : 0;
+    const currentIndex = selectedSutraIndex ?? todayIndex;
+    const current = sutras[currentIndex];
+
+    const flipDirection = sutraFlipDirection(lastRenderedSutraIndex, currentIndex);
+    lastRenderedSutraIndex = currentIndex;
+
+    const pickSutra = (index: number): void => {
+      selectedSutraIndex = index;
+      render();
+    };
 
     const label = document.createElement("p");
     label.className = "boards__status";
     label.textContent = selectedSutraIndex === null ? "Hôm nay:" : "Đang xem:";
     wrap.append(label);
 
-    if (current) {
-      const title = document.createElement("p");
-      title.className = "boards__content";
-      title.textContent = current.title;
-      wrap.append(title);
+    if (current) wrap.append(buildSutraPage(current, flipDirection));
 
-      // Read right here, like a page (owner, 2026-11-10: "mở kinh như
-      // trang giấy, đừng chuyển link sang link khác") — not a plain
-      // outbound link that leaves the app. If the source site refuses to
-      // be framed, "Mở trang gốc" below still works.
-      const frame = document.createElement("iframe");
-      frame.className = "boards__sutra-frame";
-      frame.src = current.url;
-      wrap.append(frame);
-
-      const openLink = document.createElement("a");
-      openLink.className = "boards__sutra-open";
-      openLink.href = current.url;
-      openLink.target = "_blank";
-      openLink.rel = "noopener noreferrer";
-      openLink.textContent = "Mở trang gốc ↗";
-      wrap.append(openLink);
-    }
+    wrap.append(
+      buildSutraPageNav(currentIndex, sutras.length, (direction) =>
+        pickSutra(turnSutraPage(currentIndex, sutras.length, direction)),
+      ),
+    );
 
     if (sutras.length > 1) {
       const listLabel = document.createElement("p");
@@ -496,11 +568,8 @@ export function createBoardsPanel(
         pick.type = "button";
         pick.className = "boards__video-pick";
         pick.textContent = sutra.title;
-        if (sutra === current) pick.setAttribute("aria-current", "true");
-        pick.addEventListener("click", () => {
-          selectedSutraIndex = index;
-          render();
-        });
+        if (index === currentIndex) pick.setAttribute("aria-current", "true");
+        pick.addEventListener("click", () => pickSutra(index));
         li.append(pick);
         list.append(li);
       });
