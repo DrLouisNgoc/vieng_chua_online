@@ -1016,6 +1016,16 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     roofMesh.castShadow = false;
     hut.add(roofMesh);
     if (ornate) cornerCurls(hut, roof, 0.2 + wallHeight, 0.3);
+    // A small lamp so the inside reads lit rather than solid black (owner,
+    // 2026-11-12: "các cốc bị tối, tăng độ sáng bên trong cốc"). Kept to a
+    // short reach + decay 2 (the chánh điện's long-reach lamps leaked out
+    // of the building and overexposed the yard outside — see git history)
+    // so it lights this one small room, not the whole courtyard.
+    const lampReach = size * 1.3;
+    const lamp = new PointLight(PALETTE.lamp, 3 * lampReach * lampReach, lampReach, 2);
+    lamp.position.set(0, 0.2 + wallHeight - 0.2, 0);
+    lamp.castShadow = false;
+    hut.add(lamp);
     if (plaqueText) {
       const plaqueMaterial = new MeshStandardMaterial({ map: nameplateTexture(plaqueText), roughness: 0.6 });
       const plaque = add(hut, new BoxGeometry(size * 0.85, 0.42, 0.06), plaqueMaterial, half + 0.04, wallY + 0.5, 0);
