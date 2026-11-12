@@ -78,13 +78,15 @@ export function createBoardsPanel(
   let boards: BoardView[] = [];
   let message = "";
   let selectedTalkIndex = 0;
-  // The Đọc Kinh Nikaya PDF book: loaded once per panel-open (undefined
-  // until the fetch settles, null if there's no PDF there), then one page
-  // at a time (pdfPageImageFor tracks which page pdfPageImage actually
-  // belongs to, since loading a page is itself async and the visitor can
-  // flip away before it resolves).
-  let hasRequestedPdfBook = false;
-  let pdfBook: PdfBook | null | undefined;
+  // A PDF book, keyed by its own URL so more than one can be open across a
+  // visit (owner, 2026-11-12: "sửa lại cốc của sư như 1 thư viện sách") —
+  // cached once loaded so flipping back to an earlier book doesn't refetch
+  // it. undefined in the cache means still loading, null means the fetch
+  // failed/no file there. pdfPage/pdfPageImage are shared since only one
+  // viewer is ever on screen at once; pdfPageImageFor tracks which page
+  // pdfPageImage actually belongs to, since loading a page is itself async
+  // and the visitor can flip (or switch books) away before it resolves.
+  const pdfBookCache = new Map<string, PdfBook | null | undefined>();
   let pdfPage = 1;
   let pdfPageImage: string | null = null;
   let pdfPageImageFor: number | null = null;
@@ -100,8 +102,6 @@ export function createBoardsPanel(
     view = next;
     message = "";
     selectedTalkIndex = 0;
-    hasRequestedPdfBook = false;
-    pdfBook = undefined;
     pdfPage = 1;
     pdfPageImage = null;
     pdfPageImageFor = null;
@@ -458,101 +458,6 @@ export function createBoardsPanel(
     return wrap;
   }
 
-  // Owner, 2026-11-12: "tôi đưa file PDF vào và bạn làm như 1 quyển sách,
-  // tôi sẽ đưa cả file của trung bộ kinh vào" — a full PDF (the owner's
-  // own file, dropped in like the teacher's photo/quote images: gitignored,
-  // never in git) rendered page by page. Falls back to the board's plain
-  // pasted text (an earlier, smaller step on the same request — "mình post
-  // text vào đây") when no PDF is there yet.
-  function requestPdfBook(): void {
-    if (hasRequestedPdfBook) return;
-    hasRequestedPdfBook = true;
-    void loadPdfBook(KINH_PDF_URL).then((book) => {
-      pdfBook = book;
-      render();
-    });
-  }
-
-  function requestPdfPageImage(book: PdfBook): void {
-    if (pdfPageImageFor === pdfPage) return;
-    const requestedPage = pdfPage;
-    void book.pageImageUrl(requestedPage).then((url) => {
-      if (pdfPage !== requestedPage) return; // navigated away before it loaded
-      pdfPageImage = url;
-      pdfPageImageFor = requestedPage;
-      render();
-    });
-  }
-
-  function turnToPdfPage(page: number): void {
-    pdfPage = page;
-    render();
-  }
-
-  function buildPdfPageNav(book: PdfBook): HTMLElement {
-    const nav = document.createElement("div");
-    nav.className = "boards__page-nav";
-    const prevButton = document.createElement("button");
-    prevButton.type = "button";
-    prevButton.className = "boards__page-turn";
-    prevButton.textContent = "‹ Trang trước";
-    prevButton.disabled = pdfPage <= 1;
-    prevButton.addEventListener("click", () => turnToPdfPage(turnPdfPage(pdfPage, book.numPages, -1)));
-    const pageNumber = document.createElement("span");
-    pageNumber.className = "boards__page-number";
-    pageNumber.textContent = `Trang ${String(pdfPage)} / ${String(book.numPages)}`;
-    const nextButton = document.createElement("button");
-    nextButton.type = "button";
-    nextButton.className = "boards__page-turn";
-    nextButton.textContent = "Trang sau ›";
-    nextButton.disabled = pdfPage >= book.numPages;
-    nextButton.addEventListener("click", () => turnToPdfPage(turnPdfPage(pdfPage, book.numPages, 1)));
-    nav.append(prevButton, pageNumber, nextButton);
-    return nav;
-  }
-
-  function renderSutraBoard(fallbackText: string): HTMLElement {
-    const wrap = document.createElement("div");
-    wrap.className = "boards__book";
-    requestPdfBook();
-
-    if (pdfBook === undefined) {
-      const loading = document.createElement("p");
-      loading.className = "boards__status";
-      loading.textContent = "Đang tải sách...";
-      wrap.append(loading);
-      return wrap;
-    }
-
-    if (pdfBook === null) {
-      const content = document.createElement("p");
-      content.className = "boards__content";
-      content.textContent = fallbackText || "Chưa có bài kinh nào.";
-      wrap.append(content);
-      return wrap;
-    }
-
-    const book = pdfBook;
-    if (pdfPage > book.numPages) pdfPage = book.numPages;
-    requestPdfPageImage(book);
-
-    if (pdfPageImageFor === pdfPage && pdfPageImage !== null) {
-      const img = document.createElement("img");
-      img.className = "boards__pdf-page";
-      img.src = pdfPageImage;
-      img.alt = `Trang ${String(pdfPage)}`;
-      wrap.append(img);
-    } else {
-      const loading = document.createElement("p");
-      loading.className = "boards__status";
-      loading.textContent = "Đang tải trang...";
-      wrap.append(loading);
-    }
-
-    wrap.append(buildPdfPageNav(book));
-    return wrap;
-  }
-
   function renderBoardDetail(board: BoardView): void {
     const title = document.createElement("h2");
     title.textContent = board.title;
@@ -677,6 +582,131 @@ export function createBoardsPanel(
       return;
     }
     renderBoardDetail(board);
+  }
+
+  // Owner, 2026-11-12: "tôi đưa file PDF vào và bạn làm như 1 quyển sách,
+  // tôi sẽ đưa cả file của trung bộ kinh vào", then "tôi muốn tải full bài
+  // giảng và sách của thiền sư nguyên tuệ, sửa lại cốc của sư như 1 thư
+  // viện sách" — any number of PDFs (the owner's own files, dropped in
+  // like the teacher's photo/quote images: gitignored, never in git)
+  // rendered page by page, cached by url in pdfBookCache so re-opening one
+  // doesn't refetch it.
+  async function loadPdfBookInto(url: string): Promise<void> {
+    const book = await loadPdfBook(url);
+    pdfBookCache.set(url, book);
+    render();
+  }
+
+  function requestPdfBook(url: string): void {
+    if (pdfBookCache.has(url)) return;
+    pdfBookCache.set(url, undefined);
+    void (async () => {
+      try {
+        await loadPdfBookInto(url);
+      } catch {
+        pdfBookCache.set(url, null);
+        render();
+      }
+    })();
+  }
+
+  async function loadPdfPageImageInto(book: PdfBook, requestedPage: number): Promise<void> {
+    const url = await book.pageImageUrl(requestedPage);
+    if (pdfPage !== requestedPage) return; // navigated away before it loaded
+    pdfPageImage = url;
+    pdfPageImageFor = requestedPage;
+    render();
+  }
+
+  function requestPdfPageImage(book: PdfBook): void {
+    if (pdfPageImageFor === pdfPage) return;
+    // A page that fails to render just stays on "Đang tải trang..."; the nav
+    // still lets the visitor try another page.
+    void (async () => {
+      try {
+        await loadPdfPageImageInto(book, pdfPage);
+      } catch {
+        // see comment above
+      }
+    })();
+  }
+
+  function turnToPdfPage(page: number): void {
+    pdfPage = page;
+    pdfPageImage = null;
+    pdfPageImageFor = null;
+    render();
+  }
+
+  function buildPdfPageNav(book: PdfBook): HTMLElement {
+    const nav = document.createElement("div");
+    nav.className = "boards__page-nav";
+    const prevButton = document.createElement("button");
+    prevButton.type = "button";
+    prevButton.className = "boards__page-turn";
+    prevButton.textContent = "‹ Trang trước";
+    prevButton.disabled = pdfPage <= 1;
+    prevButton.addEventListener("click", () => turnToPdfPage(turnPdfPage(pdfPage, book.numPages, -1)));
+    const pageNumber = document.createElement("span");
+    pageNumber.className = "boards__page-number";
+    pageNumber.textContent = `Trang ${String(pdfPage)} / ${String(book.numPages)}`;
+    const nextButton = document.createElement("button");
+    nextButton.type = "button";
+    nextButton.className = "boards__page-turn";
+    nextButton.textContent = "Trang sau ›";
+    nextButton.disabled = pdfPage >= book.numPages;
+    nextButton.addEventListener("click", () => turnToPdfPage(turnPdfPage(pdfPage, book.numPages, 1)));
+    nav.append(prevButton, pageNumber, nextButton);
+    return nav;
+  }
+
+  // The viewer for one PDF at `url`; fallbackText shows instead if there's
+  // no file there (only meaningful for the single-book Đọc Kinh Nikaya
+  // board — a library entry with no file just says so).
+  function buildPdfViewer(url: string, fallbackText = "Không tải được file này."): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = "boards__book";
+    requestPdfBook(url);
+    const book = pdfBookCache.get(url);
+
+    if (book === undefined) {
+      const loading = document.createElement("p");
+      loading.className = "boards__status";
+      loading.textContent = "Đang tải sách...";
+      wrap.append(loading);
+      return wrap;
+    }
+
+    if (book === null) {
+      const content = document.createElement("p");
+      content.className = "boards__content";
+      content.textContent = fallbackText;
+      wrap.append(content);
+      return wrap;
+    }
+
+    if (pdfPage > book.numPages) pdfPage = book.numPages;
+    requestPdfPageImage(book);
+
+    if (pdfPageImageFor === pdfPage && pdfPageImage !== null) {
+      const img = document.createElement("img");
+      img.className = "boards__pdf-page";
+      img.src = pdfPageImage;
+      img.alt = `Trang ${String(pdfPage)}`;
+      wrap.append(img);
+    } else {
+      const loading = document.createElement("p");
+      loading.className = "boards__status";
+      loading.textContent = "Đang tải trang...";
+      wrap.append(loading);
+    }
+
+    wrap.append(buildPdfPageNav(book));
+    return wrap;
+  }
+
+  function renderSutraBoard(fallbackText: string): HTMLElement {
+    return buildPdfViewer(KINH_PDF_URL, fallbackText || "Chưa có bài kinh nào.");
   }
 
   toggle.addEventListener("click", () => {
