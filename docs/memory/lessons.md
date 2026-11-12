@@ -53,3 +53,7 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
   synchronously via a temporary `window.__perf` hook; never commit such hooks (`window.__verify` either).
 - `eslint --fix` also applies autofixes for findings listed in `eslint-suppressions.json`: touching one line of an
   old file rewrites its logic. Only `npm run lint:fix` may fix (on purpose, in a cleanup PR); hooks only check.
+- Lint cleanup in app/src: tsconfig has no `noUncheckedIndexedAccess`, so `arr[i]?.x ?? fallback` is flagged as
+  unnecessary although `i` can be out of range at run time. Widen the type (`readonly (T | undefined)[]`) instead of
+  dropping the fallback. `unicorn/prefer-number-coercion` would turn a missing key (`""`) into 0, not NaN: check
+  before applying it to `parseInt`.
