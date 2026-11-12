@@ -567,12 +567,6 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     const fill = new PointLight(PALETTE.lamp, 2 * reach * reach, reach * 1.6, 2);
     fill.position.set(buddha.x, HALL.roofBaseY - 1.5, buddha.z + buddha.height * 0.5);
     hall.add(fill);
-    for (const side of [STATUES.avalokitesvara, STATUES.mahastamaprapta]) {
-      const r = side.height * 1.5;
-      const lamp = new PointLight(PALETTE.lamp, 2.5 * r * r, r * 1.6, 2);
-      lamp.position.set(side.x, altarTop + side.height * 0.8, side.z + side.height * 0.6);
-      hall.add(lamp);
-    }
   }
 
   // Four tries at brightening the whole hall (owner, 2026-11-10/11:

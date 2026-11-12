@@ -271,9 +271,6 @@
     "unicorn/consistent-function-scoping": {
       "count": 1
     },
-    "unicorn/no-unreadable-array-destructuring": {
-      "count": 1
-    },
     "unicorn/numeric-separators-style": {
       "count": 4
     },
@@ -331,7 +328,7 @@
       "count": 1
     },
     "max-lines-per-function": {
-      "count": 6
+      "count": 5
     },
     "max-params": {
       "count": 4

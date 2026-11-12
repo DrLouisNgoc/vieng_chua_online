@@ -47,12 +47,9 @@ export const STAIRS = {
 const STAIRS_FOOT_Z = STAIRS.frontZ + STAIRS.count * STAIRS.tread;
 
 // The Shakyamuni Buddha is the large central figure on its own lotus
-// pedestal, reaching almost to the ceiling; the two bodhisattvas flank it
-// lower and smaller.
+// pedestal, reaching almost to the ceiling.
 export const STATUES = {
   buddha: { x: 0, z: -49.5, height: 12, pedestal: 1 },
-  avalokitesvara: { x: -8.5, z: -49, height: 6, pedestal: 0 },
-  mahastamaprapta: { x: 8.5, z: -49, height: 6, pedestal: 0 },
 } as const;
 
 export const AVATAR_START: Point = { x: 0, z: STAIRS_FOOT_Z + 2 };

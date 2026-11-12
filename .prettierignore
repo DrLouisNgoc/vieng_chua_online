@@ -8,3 +8,8 @@ docs
 .claude
 # Written by ESLint itself (--suppress-all / --prune-suppressions)
 eslint-suppressions.json
+# Gitignored runtime data (server/.gitignore) — never formatted, never committed
+server/data
+# A personal, machine-local tool folder that ended up inside the repo root
+# (git-excluded via .git/info/exclude, which Prettier doesn't read)
+_chuyen-may
