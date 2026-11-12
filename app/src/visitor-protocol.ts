@@ -1,6 +1,7 @@
-import { ACTIVITIES, MAX_CHAT_LENGTH, type Activity } from "../../shared/protocol";
+import type { Activity } from "../../shared/protocol";
+import { ACTIVITIES } from "../../shared/protocol";
 
-export { MAX_CHAT_LENGTH };
+export { MAX_CHAT_LENGTH } from "../../shared/protocol";
 
 // Client side of the visitor protocol (server/src/protocol.ts is the
 // server side; docs/specs/milestone-6-visitors/design.md). Messages from
@@ -63,13 +64,12 @@ export function encodeState(state: OutgoingState): string {
   return JSON.stringify({ type: "state", ...rounded(state) });
 }
 
-function sameState(a: OutgoingState, b: OutgoingState): boolean {
+function isSameState(a: OutgoingState, b: OutgoingState): boolean {
   return JSON.stringify(rounded(a)) === JSON.stringify(rounded(b));
 }
 
 export function shouldSendState(lastSent: OutgoingState | null, next: OutgoingState, msSinceLastSend: number): boolean {
-  if (lastSent === null) return true;
-  return msSinceLastSend >= STATE_INTERVAL_MS && !sameState(lastSent, next);
+  return lastSent === null || (msSinceLastSend >= STATE_INTERVAL_MS && !isSameState(lastSent, next));
 }
 
 type Fields = Record<string, unknown>;
@@ -81,28 +81,27 @@ function isFiniteNumber(value: unknown): value is number {
 function parseChatEntry(value: unknown): ChatEntry | null {
   if (typeof value !== "object" || value === null) return null;
   const v = value as Fields;
-  if (typeof v.id === "string" && typeof v.name === "string" && typeof v.text === "string" && Number.isFinite(v.ts)) {
-    return { id: v.id, name: v.name, text: v.text, ts: v.ts as number };
-  }
-  return null;
+  return typeof v.id === "string" && typeof v.name === "string" && typeof v.text === "string" && Number.isFinite(v.ts)
+    ? { id: v.id, name: v.name, text: v.text, ts: v.ts as number }
+    : null;
 }
 
 function parseVisitor(value: unknown): VisitorView | null {
   if (typeof value !== "object" || value === null) return null;
   const v = value as Fields;
-  const valid =
+  const isValid =
     typeof v.id === "string" &&
     typeof v.name === "string" &&
-    Number.isInteger(v.colorIndex) &&
+    Number.isSafeInteger(v.colorIndex) &&
     isFiniteNumber(v.x) &&
     isFiniteNumber(v.z) &&
     isFiniteNumber(v.heading) &&
     ACTIVITIES.includes(v.activity as Activity) &&
-    (v.seatIndex === null || Number.isInteger(v.seatIndex)) &&
+    (v.seatIndex === null || Number.isSafeInteger(v.seatIndex)) &&
     typeof v.holdingBroom === "boolean" &&
     typeof v.beadsVisible === "boolean" &&
-    Number.isInteger(v.beadTotal);
-  if (!valid) return null;
+    Number.isSafeInteger(v.beadTotal);
+  if (!isValid) return null;
   return {
     id: v.id as string,
     name: v.name as string,
@@ -118,6 +117,42 @@ function parseVisitor(value: unknown): VisitorView | null {
   };
 }
 
+function parseList<T>(items: unknown, parseItem: (item: unknown) => T | null): T[] | null {
+  return Array.isArray(items) ? items.map((item) => parseItem(item)).filter((item): item is T => item !== null) : null;
+}
+
+function parseVisitors(m: Fields): ServerMessage | null {
+  const visitors = parseList(m.visitors, parseVisitor);
+  return visitors ? { type: "visitors", visitors } : null;
+}
+
+function parseChatHistory(m: Fields): ServerMessage | null {
+  const messages = parseList(m.messages, parseChatEntry);
+  return messages ? { type: "chat-history", messages } : null;
+}
+
+function parseChat(m: Fields): ServerMessage | null {
+  const message = parseChatEntry(m.message);
+  return message ? { type: "chat", message } : null;
+}
+
+// One parser per message type. A Map, so an unknown type such as
+// "toString" finds nothing instead of an Object.prototype method.
+const MESSAGE_PARSERS = new Map<unknown, (m: Fields) => ServerMessage | null>([
+  ["presence", (m) => (Number.isSafeInteger(m.count) ? { type: "presence", count: m.count as number } : null)],
+  ["welcome", (m) => (typeof m.id === "string" ? { type: "welcome", id: m.id } : null)],
+  ["bell", () => ({ type: "bell" })],
+  ["name-lock", (m) => (typeof m.name === "string" || m.name === null ? { type: "name-lock", name: m.name } : null)],
+  ["join-refused", (m) => (m.reason === "default-name" ? { type: "join-refused", reason: "default-name" } : null)],
+  [
+    "seat-refused",
+    (m) => (Number.isSafeInteger(m.seatIndex) ? { type: "seat-refused", seatIndex: m.seatIndex as number } : null),
+  ],
+  ["visitors", parseVisitors],
+  ["chat", parseChat],
+  ["chat-history", parseChatHistory],
+]);
+
 export function parseServerMessage(text: string): ServerMessage | null {
   let value: unknown;
   try {
@@ -128,34 +163,5 @@ export function parseServerMessage(text: string): ServerMessage | null {
   }
   if (typeof value !== "object" || value === null) return null;
   const m = value as Fields;
-  switch (m.type) {
-    case "presence":
-      return Number.isInteger(m.count) ? { type: "presence", count: m.count as number } : null;
-    case "welcome":
-      return typeof m.id === "string" ? { type: "welcome", id: m.id } : null;
-    case "bell":
-      return { type: "bell" };
-    case "name-lock":
-      return typeof m.name === "string" || m.name === null ? { type: "name-lock", name: m.name } : null;
-    case "join-refused":
-      return m.reason === "default-name" ? { type: "join-refused", reason: "default-name" } : null;
-    case "seat-refused":
-      return Number.isInteger(m.seatIndex) ? { type: "seat-refused", seatIndex: m.seatIndex as number } : null;
-    case "visitors": {
-      if (!Array.isArray(m.visitors)) return null;
-      const visitors = m.visitors.map(parseVisitor).filter((visitor): visitor is VisitorView => visitor !== null);
-      return { type: "visitors", visitors };
-    }
-    case "chat": {
-      const message = parseChatEntry(m.message);
-      return message ? { type: "chat", message } : null;
-    }
-    case "chat-history": {
-      if (!Array.isArray(m.messages)) return null;
-      const messages = m.messages.map(parseChatEntry).filter((entry): entry is ChatEntry => entry !== null);
-      return { type: "chat-history", messages };
-    }
-    default:
-      return null;
-  }
+  return MESSAGE_PARSERS.get(m.type)?.(m) ?? null;
 }

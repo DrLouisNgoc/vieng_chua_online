@@ -64,3 +64,6 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
   raise a count (only the dedicated cleanup PRs for Issue #25 do); if new code would push a suppressed rule over
   its budget (e.g. a new `render()` reference before its definition), restructure the new code to reuse an
   existing call site instead (one shared local function) rather than adding another occurrence.
+- Lint autofix rewrites `socket.onopen = ...` to `addEventListener("open", ...)`; a test fake that only calls
+  `this.onopen?.()` then silently never fires. Make such fakes extend `EventTarget` and `dispatchEvent`
+  (`app/src/presence.test.ts`).

@@ -1,36 +1,4 @@
 {
-  "app/src/boards-client.ts": {
-    "@typescript-eslint/max-params": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-destructuring": {
-      "count": 3
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "max-params": {
-      "count": 2
-    },
-    "unicorn/consistent-conditional-object-spread": {
-      "count": 2
-    },
-    "unicorn/no-negated-condition": {
-      "count": 2
-    },
-    "unicorn/prefer-await": {
-      "count": 1
-    },
-    "unicorn/prefer-ternary": {
-      "count": 9
-    }
-  },
   "app/src/boards-panel.ts": {
     "@typescript-eslint/no-shadow": {
       "count": 1
@@ -193,35 +161,6 @@
       "count": 3
     }
   },
-  "app/src/presence.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "default-case": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 3
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/prefer-add-event-listener": {
-      "count": 4
-    },
-    "unicorn/prefer-early-return": {
-      "count": 1
-    },
-    "unicorn/switch-case-braces": {
-      "count": 9
-    }
-  },
   "app/src/scene.ts": {
     "@typescript-eslint/consistent-type-imports": {
       "count": 1
@@ -371,38 +310,6 @@
     },
     "unicorn/prefer-smaller-scope": {
       "count": 1
-    }
-  },
-  "app/src/visitor-protocol.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/cognitive-complexity": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 2
-    },
-    "unicorn/no-array-callback-reference": {
-      "count": 2
-    },
-    "unicorn/prefer-export-from": {
-      "count": 1
-    },
-    "unicorn/prefer-number-is-safe-integer": {
-      "count": 5
-    },
-    "unicorn/prefer-ternary": {
-      "count": 2
-    },
-    "unicorn/switch-case-braces": {
-      "count": 7
     }
   }
 }
