@@ -780,18 +780,19 @@ body {
   font-weight: 600;
 }
 
-.boards__sutra-frame {
-  width: 100%;
-  height: min(60vh, 26rem);
-  border: 1px solid oklch(72% 0.1 80deg / 45%);
-  border-radius: 0.4rem;
-  background: #fff;
+.boards__sutra-notice {
+  margin: 0.4rem 0 0;
+  color: var(--color-ink);
+  font-size: 0.9rem;
 }
 
 .boards__sutra-open {
   align-self: flex-start;
-  font-size: 0.85rem;
-  color: var(--color-gold);
+  padding: 0.5rem 1rem;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-weight: 600;
+  border-radius: 0.4rem;
 }
 
 .boards__page-nav {
