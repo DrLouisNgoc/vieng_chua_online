@@ -1154,9 +1154,12 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     const standMaterial = pbr("wood", 1, 1, PALETTE.lacquer);
     const frameMaterial = new MeshStandardMaterial({ color: PALETTE.gold, metalness: 0.3, roughness: 0.5 });
 
-    const frameWidth = 1.4;
-    const frameHeight = 1.9;
-    const photoX = x - 1.3;
+    // Owner, 2026-11-12: "phóng to màn chiếu và ảnh ra được không" — both
+    // enlarged ~1.35x; offsets widened to match so they still clear each
+    // other.
+    const frameWidth = 1.9;
+    const frameHeight = 2.6;
+    const photoX = x - 1.6;
     add(
       group,
       new BoxGeometry(0.12, frameHeight + 0.6, 0.12),
@@ -1173,8 +1176,14 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
       y + frameHeight / 2 + 0.6,
       z,
     );
+    // Owner, 2026-11-12: "buổi tối cũng cho tranh của sư" — same always-lit
+    // reasoning as the TV screen below, so the photo stays visible once
+    // the hall's own lighting fades at night.
+    const teacherPhotoTexture = teacherPhoto ?? portraitPlaceholder("Thiền Sư", "Nguyên Tuệ");
     const photoMaterial = new MeshStandardMaterial({
-      map: teacherPhoto ?? portraitPlaceholder("Thiền Sư", "Nguyên Tuệ"),
+      map: teacherPhotoTexture,
+      emissive: 0xff_ff_ff,
+      emissiveMap: teacherPhotoTexture,
     });
     const photo = add(
       group,
@@ -1186,9 +1195,9 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     );
     photo.castShadow = false;
 
-    const screenWidth = 2.4;
-    const screenHeight = 1.6;
-    const screenX = x + 1.3;
+    const screenWidth = 3.2;
+    const screenHeight = 2.2;
+    const screenX = x + 1.8;
     add(
       group,
       new BoxGeometry(screenWidth + 0.14, screenHeight + 0.14, 0.08),
@@ -1197,7 +1206,16 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
       y + screenHeight / 2 + 0.6,
       z,
     );
-    const screenMaterial = new MeshStandardMaterial({ color: 0x15171c, roughness: 0.35 });
+    // Owner, 2026-11-12: "buổi tối... màn hình tv này luôn sáng nhé" — a
+    // real screen reads as lit on its own, not just reflecting the hall's
+    // (fading-at-night) lights, so this always glows from its own content
+    // rather than relying on external illumination.
+    const screenMaterial = new MeshStandardMaterial({
+      color: 0x15171c,
+      roughness: 0.35,
+      emissive: 0x1c_24_36,
+      emissiveIntensity: 1,
+    });
     const screen = add(
       group,
       new PlaneGeometry(screenWidth, screenHeight),
@@ -1220,14 +1238,18 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     function setPreview(imageUrl: string | null): void {
       if (!imageUrl) {
         screenMaterial.map = null;
+        screenMaterial.emissiveMap = null;
         screenMaterial.color.setHex(0x15171c);
+        screenMaterial.emissive.setHex(0x1c_24_36);
         screenMaterial.needsUpdate = true;
         return;
       }
       textureLoader.load(imageUrl, (texture) => {
         texture.colorSpace = SRGBColorSpace;
         screenMaterial.map = texture;
-        screenMaterial.color.setHex(0xffffff);
+        screenMaterial.emissiveMap = texture;
+        screenMaterial.color.setHex(0xff_ff_ff);
+        screenMaterial.emissive.setHex(0xff_ff_ff);
         screenMaterial.needsUpdate = true;
       });
     }
@@ -1262,25 +1284,38 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     setImage: (imageUrl: string | null) => void;
     setText: (text: string | null) => void;
   } {
-    const plaqueMaterial = new MeshStandardMaterial({ map: quotePlaceholder() });
+    // Owner, 2026-11-12: "buổi tối cũng cho tranh của sư" — reads from its
+    // own content at full brightness regardless of the hall's (fading-at-
+    // night) lighting, same reasoning as the projector screen below.
+    const placeholder = quotePlaceholder();
+    const plaqueMaterial = new MeshStandardMaterial({
+      map: placeholder,
+      emissive: 0xff_ff_ff,
+      emissiveMap: placeholder,
+    });
     const group = buildWallPlaque(HALL.minX + HALL.wallThickness + 0.1, -25, Math.PI / 2, plaqueMaterial);
     group.name = "loi-phap-chanh-dien";
 
     function setImage(imageUrl: string | null): void {
       if (!imageUrl) {
-        plaqueMaterial.map = quotePlaceholder();
+        const texture = quotePlaceholder();
+        plaqueMaterial.map = texture;
+        plaqueMaterial.emissiveMap = texture;
         plaqueMaterial.needsUpdate = true;
         return;
       }
       textureLoader.load(imageUrl, (texture) => {
         texture.colorSpace = SRGBColorSpace;
         plaqueMaterial.map = texture;
+        plaqueMaterial.emissiveMap = texture;
         plaqueMaterial.needsUpdate = true;
       });
     }
 
     function setText(text: string | null): void {
-      plaqueMaterial.map = text ? quoteTextTexture(text) : quotePlaceholder();
+      const texture = text ? quoteTextTexture(text) : quotePlaceholder();
+      plaqueMaterial.map = texture;
+      plaqueMaterial.emissiveMap = texture;
       plaqueMaterial.needsUpdate = true;
     }
 
