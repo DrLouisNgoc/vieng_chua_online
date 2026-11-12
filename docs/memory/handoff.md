@@ -22,20 +22,12 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   `passwordHash`) in `server/data/boards.json` on the VPS, restart, set it again at once.
 - `server/data/` (boards, pháp danh locks) exists only on the VPS: back it up; never in git.
 
-## Open work (to move into GitHub Issues)
-- **Big refactor in progress (pinned Issue #25, decision 0017).** Done: whole-repo Prettier, strict standard and
-  all tooling, server files in kebab-case. Clearing `eslint-suppressions.json` area by area: 392 left (2026-11-12),
-  all in 8 app files — `presence.ts`, `visitor-protocol.ts`, `boards-client.ts`, `interaction-runtime.ts`, `scene.ts`,
-  `main.ts`, `boards-panel.ts`, `temple-grounds.ts`; server/, scripts/, shared/ and the rest of app/src are clean
-  (areas 1–6, #33–#45). Paused while the other machine codes; the next area PR names itself in #25. Then delete it, set `IS_RETIRED` in `scripts/check-suppressions.mjs`, enable oxlint type-aware + more
-  categories, make knip blocking; split `temple-grounds.ts`, `style.css`, `boards-panel.ts`, `scene.ts`,
-  `main.ts`; then `check-size --strict` in CI.
-- Not done yet: a Content-Security-Policy header (needs testing against the YouTube embeds and inline styles).
-- Owner assets: `bell-gong.mp3` and 3 CC0 sounds (`docs/assets/third-party-assets.md`); quote photos in
-  `app/public/thirdparty/phap-cu/`; confirm `nguyen-tue.jpg` is on the VPS.
-- Owner answers pending: yard-size rulings (Milestone 4 status.md); Tâm Kinh proofreading
-  (`app/src/chant-texts.ts`).
-- Frame rate ~22–40 fps, noisy; next suspects: light count, MSAA, pixel ratio. Measure on an idle machine.
+## Open work
+All open work is a GitHub Issue: `gh issue list --state open`. Read the pinned one first.
+- **Big refactor in progress: pinned Issue #25** (decision 0017; steps and what is left are in its body). Lint
+  cleanup paused at 392 suppressions while the other machine codes.
+- Also open (2026-11-12): CSP header #56; owner assets #57; owner answers on hall/yard size #58 and Tâm Kinh
+  proofreading #59; frame rate #60.
 
 ## Constraints
 - No DRM bypass; only publicly fetchable assets. Never monetise.

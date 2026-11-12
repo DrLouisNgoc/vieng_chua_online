@@ -29,12 +29,8 @@ docs/product/vieng-chua-online.prd.md
   cache.
 - **Resolved, 2026-11-10**: owner's own VPS + domain `chua.io.vn`, Caddy
   reverse proxy, systemd service — live now (no Tailscale, see above).
-- Frame rate 11-15 fps on the owner's machine class (Intel UHD) in the big
-  hall — acceptable to the owner? Main cost not identified yet.
-- Is the 76x54 hall what "gấp 10 lần" meant (10x area), or 10x each side?
-  See status.md ruling.
-- Yard size: "nhỏ đi 2 lần" read as half the area (front 130, sides 53);
-  the alternative is halving each gap (105 / 42.5). Not confirmed.
+- Moved to GitHub Issues (2026-11-12): frame rate → #60; hall and yard size
+  rulings → #58; Tâm Kinh proofreading → #59.
 - Third-party assets (decision 0009): owner said they would provide a
   Mixamo character + animations, audio and reference screenshots; none
   provided yet. Architecture: owner chose procedural (no purchase).
