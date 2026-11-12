@@ -352,6 +352,32 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
 
   // ---- main hall ----------------------------------------------------------
 
+  // Four tries at brightening the WHOLE hall (owner, 2026-11-10/11:
+  // "sáng trưng hơn nữa", "sáng trưng luôn tất cả chánh điện", "sáng thêm
+  // cho tôi nhé", a fix attempt) each overexposed the hall itself or leaked
+  // through the open front onto the entrance terrace. Owner: "vẫn thế, thôi
+  // để màu như ban đầu đi" — reverted; buildShrine's own altar lights were
+  // the hall's only lighting for a while.
+  //
+  // Owner, 2026-11-12, with a screenshot circling the two dark side aisles
+  // (between the pillar row at x=±28 and the side walls): "thêm cho tôi ánh
+  // sáng ở 2 khu vực này". Unlike the earlier whole-hall attempts, this is
+  // two short-reach lamps per side wall, not lamps reaching all the way to
+  // the open front — same reach/decay-2 magnitude as buildShrine's own fill
+  // light (reach ≈ buddha height × 1.8), which never overexposed.
+  function buildHallSideLights(hall: Group, top: number, wallHeight: number): void {
+    const y = top + wallHeight * 0.75;
+    const reach = 18;
+    for (const x of [-31, 31]) {
+      for (const z of [-15, -32]) {
+        const lamp = new PointLight(PALETTE.lamp, 3 * reach * reach, reach, 2);
+        lamp.position.set(x, y, z);
+        lamp.castShadow = false;
+        hall.add(lamp);
+      }
+    }
+  }
+
   function buildHall(): Group {
     const hall = new Group();
     hall.name = "chinh-dien";
@@ -393,6 +419,7 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
       (altar.minZ + altar.maxZ) / 2,
     );
     buildShrine(hall, top + HALL.altarHeight);
+    buildHallSideLights(hall, top, wallHeight);
 
     const pillarGeometry = new CylinderGeometry(0.55, 0.62, wallHeight, 20);
     const baseGeometry = new CylinderGeometry(0.85, 0.85, 0.35, 16);
@@ -564,13 +591,6 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     fill.position.set(buddha.x, HALL.roofBaseY - 1.5, buddha.z + buddha.height * 0.5);
     hall.add(fill);
   }
-
-  // Four tries at brightening the whole hall (owner, 2026-11-10/11:
-  // "sáng trưng hơn nữa", "sáng trưng luôn tất cả chánh điện", "sáng thêm
-  // cho tôi nhé", a fix attempt) each overexposed the hall itself or leaked
-  // through the open front onto the entrance terrace. Owner: "vẫn thế, thôi
-  // để màu như ban đầu đi" — reverted; buildShrine's own altar lights are
-  // the hall's only lighting again.
 
   // ---- courtyard, path, pillars, urn --------------------------------------
 
