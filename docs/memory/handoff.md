@@ -8,13 +8,14 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   onboarding with pháp danh locked per ip, movement/interactions/practice, other visitors live, 8 cốc boards
   + hall projector + quote plaque, hỏi pháp with public answers, public chat, bell on join and hourly,
   background music, "Đọc Kinh Nikaya" board (a title + link to budsas.org, one per day via `sutraOfTheDay()`;
-  links only, never the copyrighted translation; starts empty, the owner fills it in).
-- This PR (ngoc): chánh điện brighter across 4 passes (9-lamp ceiling grid, `buildHallAmbientLights`); chánh
-  điện plaque cycles short own-words lines (`setPhapCuText`, not a copy of any Pháp Cú translation) plus two
-  static entrance quote tiles (`buildWallPlaque`); a plain "Phòng Đọc Kinh Nikaya" sign at the meditation hut's
-  door; the sutra board reads its link inline in an iframe instead of a new tab.
+  links only, never the copyrighted translation; starts empty, the owner fills it in) now shown as a book —
+  each sutra link is a "page" (`.boards__page`) with a page-turn flip animation and Trang trước/sau nav
+  (owner, 2026-11-11: "lướt sang trang như đọc 1 quyển sách thật"); content is still only the budsas.org
+  iframe, never copied in.
+- This PR (ngoc): the sutra reader's page-flip book UI above (`boards-panel.ts` `buildSutraPage`/
+  `buildSutraPageNav`, `boards-client.ts` `turnSutraPage`/`sutraFlipDirection`).
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 159, app 263; `npm run check` green.
+- Tests: server 159, app 282; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

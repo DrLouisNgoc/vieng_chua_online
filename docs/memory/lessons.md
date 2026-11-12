@@ -57,3 +57,10 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
   unnecessary although `i` can be out of range at run time. Widen the type (`readonly (T | undefined)[]`) instead of
   dropping the fallback. `unicorn/prefer-number-coercion` would turn a missing key (`""`) into 0, not NaN: check
   before applying it to `parseInt`.
+- After the tooling PR (#27/#29), `npm ci` in the repo root (not just `app/`/`server/`) is needed once per
+  machine to get `oxlint`/`stylelint`; without it `npm run lint` fails with "not recognized" rather than a lint
+  finding.
+- `eslint-suppressions.json` is a per-file, per-rule occurrence **count**, not line-based. A normal PR must not
+  raise a count (only the dedicated cleanup PRs for Issue #25 do); if new code would push a suppressed rule over
+  its budget (e.g. a new `render()` reference before its definition), restructure the new code to reuse an
+  existing call site instead (one shared local function) rather than adding another occurrence.

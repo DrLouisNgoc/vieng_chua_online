@@ -5,6 +5,7 @@
   --space-hud: clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem);
   --duration-fast: 150ms;
   --duration-normal: 280ms;
+  --duration-page-flip: 450ms;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   /*
@@ -732,11 +733,58 @@ body {
   border-radius: 0.6rem;
 }
 
+.boards__book {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  perspective: 1800px;
+}
+
+.boards__page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.7rem 0.8rem 0.9rem;
+  background: var(--color-parchment);
+  border: 1px solid oklch(72% 0.1 80deg / 45%);
+  border-radius: 0.6rem;
+  box-shadow: 0 6px 16px oklch(0% 0 0deg / 25%);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition:
+    transform var(--duration-page-flip) var(--ease-out-expo),
+    opacity var(--duration-page-flip) var(--ease-out-expo);
+}
+
+.boards__page--turn-next {
+  transform-origin: left center;
+  transform: rotateY(-100deg);
+  opacity: 0;
+}
+
+.boards__page--turn-prev {
+  transform-origin: right center;
+  transform: rotateY(100deg);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boards__page {
+    transition: none;
+  }
+}
+
+.boards__page-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
 .boards__sutra-frame {
   width: 100%;
   height: min(60vh, 26rem);
   border: 1px solid oklch(72% 0.1 80deg / 45%);
-  border-radius: 0.6rem;
+  border-radius: 0.4rem;
   background: #fff;
 }
 
@@ -744,6 +792,41 @@ body {
   align-self: flex-start;
   font-size: 0.85rem;
   color: var(--color-gold);
+}
+
+.boards__page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.boards__page-turn {
+  padding: 0.35rem 0.8rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-ink);
+  background: var(--color-gold);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out-expo),
+    opacity var(--duration-fast) var(--ease-out-expo);
+}
+
+.boards__page-turn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.boards__page-turn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.boards__page-number {
+  font-size: 0.8rem;
+  opacity: 0.85;
 }
 
 .boards__video-list {

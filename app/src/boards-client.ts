@@ -69,6 +69,20 @@ export function sutraOfTheDay(sutras: Talk[], now: Date = new Date()): Talk | nu
   return sutras[((dayIndex % sutras.length) + sutras.length) % sutras.length] ?? null;
 }
 
+// Turning a page of the sutra reader (owner, 2026-11-11: "lướt sang trang
+// như đọc 1 quyển sách thật") — stops at the first/last sutra instead of
+// wrapping, like a real book's covers.
+export function turnSutraPage(current: number, length: number, direction: 1 | -1): number {
+  return Math.max(0, Math.min(current + direction, length - 1));
+}
+
+// Which way to animate the page turn: null on first open or a render that
+// didn't change the page (e.g. a background refresh).
+export function sutraFlipDirection(previousIndex: number | null, currentIndex: number): "next" | "prev" | null {
+  if (previousIndex === null || previousIndex === currentIndex) return null;
+  return currentIndex > previousIndex ? "next" : "prev";
+}
+
 export interface BoardView {
   id: string;
   title: string;
