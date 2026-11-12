@@ -27,7 +27,8 @@ export const CHANTS: readonly ChantText[] = [
     title: "Niệm Bổn Sư Thích Ca",
     unit: "câu",
     bpm: 100,
-    lines: syllables("Nam Mô Bổn Sư Thích Ca Mâu Ni Phật"),
+    // Owner, 2026-11-12: "thay câu đó bằng câu 'thấy, thấy, thấy, thấy'".
+    lines: syllables("thấy, thấy, thấy, thấy"),
   },
   {
     id: "adida",
