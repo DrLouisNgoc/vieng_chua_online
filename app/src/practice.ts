@@ -86,7 +86,7 @@ function chantBeats(session: ChantSession, beats: number, deps: PracticeDeps, tu
 
 export function createPractice(deps: PracticeDeps): Practice {
   const counters = new Map<ChantId, BeadCounter>();
-  let chantId: ChantId = CHANTS[0]?.id ?? "adida";
+  let chantId: ChantId = CHANTS[0]?.id ?? "thichca";
   let session: ChantSession | null = null;
   let chantClock: BeatClock | null = null;
   let isAutoplay = false;
