@@ -1,15 +1,4 @@
 {
-  "app/src/boards-client.test.ts": {
-    "@typescript-eslint/require-await": {
-      "count": 3
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/no-clear-text-protocols": {
-      "count": 11
-    }
-  },
   "app/src/boards-client.ts": {
     "@typescript-eslint/max-params": {
       "count": 2
@@ -90,20 +79,6 @@
     },
     "unicorn/prefer-smaller-scope": {
       "count": 1
-    }
-  },
-  "app/src/interaction-props.ts": {
-    "no-param-reassign": {
-      "count": 3
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-for-each": {
-      "count": 1
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 9
     }
   },
   "app/src/interaction-runtime.ts": {
@@ -218,20 +193,6 @@
       "count": 3
     }
   },
-  "app/src/presence.test.ts": {
-    "@stylistic/lines-between-class-members": {
-      "count": 9
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/no-clear-text-protocols": {
-      "count": 1
-    },
-    "sonarjs/public-static-readonly": {
-      "count": 2
-    }
-  },
   "app/src/presence.ts": {
     "complexity": {
       "count": 1
@@ -333,23 +294,6 @@
     },
     "unicorn/prefer-observer-apis": {
       "count": 1
-    }
-  },
-  "app/src/sky-cycle.ts": {
-    "@typescript-eslint/no-non-null-assertion": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 2
-    },
-    "no-bitwise": {
-      "count": 7
-    },
-    "unicorn/no-zero-fractions": {
-      "count": 3
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 33
     }
   },
   "app/src/temple-grounds.ts": {

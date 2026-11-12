@@ -12,6 +12,7 @@ import {
   SphereGeometry,
   Vector3,
 } from "three";
+
 import type { Leaf } from "./leaf-field";
 import type { Point } from "./movement";
 
@@ -21,7 +22,7 @@ import type { Point } from "./movement";
 const BROOM_LENGTH = 1.5;
 const BROOM_HEAD_LENGTH = 0.45;
 // Yellow, olive and dark brown: contrast with the terracotta paving.
-const LEAF_COLORS = [0xe8c547, 0x8f9a35, 0x4f3420, 0xd9b84a, 0x6b7a2a];
+const LEAF_COLORS = [0xe8_c5_47, 0x8f_9a_35, 0x4f_34_20, 0xd9_b8_4a, 0x6b_7a_2a];
 const BEAD_COUNT = 27;
 const BEAD_RING_RADIUS = 0.11;
 
@@ -30,12 +31,12 @@ export function createBroom(): Group {
   const broom = new Group();
   const handle = new Mesh(
     new CylinderGeometry(0.022, 0.022, BROOM_LENGTH - BROOM_HEAD_LENGTH * 0.5, 8),
-    new MeshStandardMaterial({ color: 0x8a6440, roughness: 0.8 }),
+    new MeshStandardMaterial({ color: 0x8a_64_40, roughness: 0.8 }),
   );
   handle.position.y = BROOM_HEAD_LENGTH * 0.5 + (BROOM_LENGTH - BROOM_HEAD_LENGTH * 0.5) / 2;
   const head = new Mesh(
     new CylinderGeometry(0.05, 0.17, BROOM_HEAD_LENGTH, 10),
-    new MeshStandardMaterial({ color: 0xc9a85a, roughness: 1 }),
+    new MeshStandardMaterial({ color: 0xc9_a8_5a, roughness: 1 }),
   );
   head.position.y = BROOM_HEAD_LENGTH / 2;
   for (const part of [handle, head]) {
@@ -66,7 +67,7 @@ export function createLeafMesh(cap: number): InstancedMesh {
   const mesh = new InstancedMesh(geometry, material, cap);
   const color = new Color();
   for (let i = 0; i < cap; i += 1) {
-    mesh.setColorAt(i, color.setHex(LEAF_COLORS[i % LEAF_COLORS.length] ?? 0xc8862e));
+    mesh.setColorAt(i, color.setHex(LEAF_COLORS[i % LEAF_COLORS.length] ?? 0xc8_86_2e));
   }
   mesh.count = 0;
   mesh.receiveShadow = true;
@@ -78,21 +79,23 @@ export function createLeafMesh(cap: number): InstancedMesh {
 const placement = new Object3D();
 
 export function syncLeafMesh(mesh: InstancedMesh, leaves: readonly Leaf[], heightAt: (point: Point) => number): void {
-  leaves.forEach((leaf, index) => {
+  for (const [index, leaf] of leaves.entries()) {
     placement.position.set(leaf.x, heightAt(leaf) + 0.015, leaf.z);
     placement.rotation.set(0, leaf.rotation, 0);
     placement.updateMatrix();
     mesh.setMatrixAt(index, placement.matrix);
-  });
+  }
+  // eslint-disable-next-line no-param-reassign -- an InstancedMesh's draw count has no setter; updating it is this function's job
   mesh.count = leaves.length;
-  mesh.instanceMatrix.needsUpdate = true;
+  const { instanceMatrix } = mesh;
+  instanceMatrix.needsUpdate = true;
 }
 
 // A ring of beads lying in its own XY plane.
 export function createBeadString(): InstancedMesh {
   const mesh = new InstancedMesh(
     new SphereGeometry(0.022, 8, 6),
-    new MeshStandardMaterial({ color: 0x4a2a18, roughness: 0.5 }),
+    new MeshStandardMaterial({ color: 0x4a_2a_18, roughness: 0.5 }),
     BEAD_COUNT,
   );
   for (let i = 0; i < BEAD_COUNT; i += 1) {
@@ -108,5 +111,6 @@ export function createBeadString(): InstancedMesh {
 
 // Advance the ring by one bead, so each turn is visible.
 export function turnBeadString(beads: Object3D): void {
-  beads.rotation.z += (Math.PI * 2) / BEAD_COUNT;
+  const { rotation } = beads;
+  rotation.z += (Math.PI * 2) / BEAD_COUNT;
 }
