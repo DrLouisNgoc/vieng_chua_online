@@ -1,22 +1,22 @@
 import type { Object3D, Scene } from "three";
-import { blendPose, type BodyPose } from "./body-pose";
+
 import type { AvatarRig } from "./avatar-rig";
-import { createHeldProps, placeHeldProps } from "./held-props";
+import type { BeadCounter } from "./bead-counter";
 import { BEAD_TOTAL_KEY, createBeadCounter, createStorageBeadStore } from "./bead-counter";
-import { createInteractionState, type InteractionSnapshot } from "./interaction-state";
-import { findTargets, seatHeading, type Targets } from "./interaction-targets";
-import {
-  beadCounterText,
-  promptsFor,
-  type InteractionAction,
-  type InteractionKey,
-  type Prompt,
-} from "./interaction-prompts";
+import type { BodyPose } from "./body-pose";
+import { blendPose } from "./body-pose";
+import { createHeldProps, placeHeldProps } from "./held-props";
+import type { InteractionAction, InteractionKey, Prompt } from "./interaction-prompts";
+import { beadCounterText, promptsFor } from "./interaction-prompts";
 import { createLeafMesh, syncLeafMesh, turnBeadString } from "./interaction-props";
+import type { InteractionSnapshot, InteractionState } from "./interaction-state";
+import { createInteractionState } from "./interaction-state";
+import type { Targets } from "./interaction-targets";
+import { findTargets, seatHeading } from "./interaction-targets";
 import { createLeafField } from "./leaf-field";
-import type { MovementController } from "./movement";
+import type { MovementController, Point } from "./movement";
 import { poseForActivity } from "./pose-for-activity";
-import { BELL_TOWER, BROOM_SPOT, LEAF_SOURCES, MEDITATION_SEATS, STATUE_ZONE, groundHeightAt } from "./temple-layout";
+import { BELL_TOWER, BROOM_SPOT, groundHeightAt, LEAF_SOURCES, MEDITATION_SEATS, STATUE_ZONE } from "./temple-layout";
 
 // Ties the pure interaction modules to the 3D scene: input -> state,
 // state -> pose and props, state -> HUD view. scene.ts calls it once per
@@ -58,158 +58,215 @@ export interface InteractionRuntime {
   readonly beadTotal: number;
 }
 
-const KEY_CODES: Record<string, InteractionKey> = { KeyE: "E", KeyQ: "Q", KeyB: "B" };
+const KEY_CODES = new Map<string, InteractionKey>([
+  ["KeyE", "E"],
+  ["KeyQ", "Q"],
+  ["KeyB", "B"],
+]);
 const POSE_BLEND_SECONDS = 0.25;
-const SWEEP_RADIUS = 1.0;
+const SWEEP_RADIUS = 1;
 const LEAF_CAP = 160;
 const LEAF_INITIAL = 90;
 
 const noStorage = { getItem: () => null, setItem: () => {} };
 
-export function createInteractionRuntime(deps: InteractionRuntimeDeps): InteractionRuntime {
-  const { scene, avatar, movement } = deps;
-  const state = createInteractionState();
-  const beads = createBeadCounter(createStorageBeadStore(deps.storage ?? noStorage, BEAD_TOTAL_KEY));
-  const leafField = createLeafField({ sources: LEAF_SOURCES, cap: LEAF_CAP, initial: LEAF_INITIAL });
-  const targetLayout = {
-    seats: MEDITATION_SEATS,
-    broomSpot: BROOM_SPOT,
-    statueZone: STATUE_ZONE,
-    bell: BELL_TOWER,
+const TARGET_LAYOUT = {
+  seats: MEDITATION_SEATS,
+  broomSpot: BROOM_SPOT,
+  statueZone: STATUE_ZONE,
+  bell: BELL_TOWER,
+};
+
+function standBroomAtSpot(broom: Object3D): void {
+  broom.position.set(BROOM_SPOT.x, groundHeightAt(BROOM_SPOT), BROOM_SPOT.z);
+  broom.rotation.set(0, 0, 0.12);
+  broom.scale.set(1, 1, 1);
+}
+
+// The falling leaves; each frame they fall, and a walking broom sweeps them.
+function createLeaves(scene: Scene): (deltaSeconds: number, sweepAt: Point | null) => void {
+  const field = createLeafField({ sources: LEAF_SOURCES, cap: LEAF_CAP, initial: LEAF_INITIAL });
+  const mesh = createLeafMesh(LEAF_CAP);
+  scene.add(mesh);
+  syncLeafMesh(mesh, field.leaves, groundHeightAt);
+  return (deltaSeconds, sweepAt) => {
+    const isChanged = field.update(deltaSeconds);
+    const swept = sweepAt ? field.sweep(sweepAt, SWEEP_RADIUS) : 0;
+    if (isChanged || swept > 0) syncLeafMesh(mesh, field.leaves, groundHeightAt);
   };
+}
 
-  const held = createHeldProps(scene);
-  const { broom, beadString } = held;
-  const leafMesh = createLeafMesh(LEAF_CAP);
-  scene.add(leafMesh);
-  syncLeafMesh(leafMesh, leafField.leaves, groundHeightAt);
-  standBroomAtSpot();
-
-  let targets: Targets = findTargets(movement.position, targetLayout);
-  let prompts: Prompt[] = [];
-  let lastViewKey = "";
+// Blends over a short time whenever the kind of pose changes.
+function createPoseBlender(): (snapshot: InteractionSnapshot, target: BodyPose, deltaSeconds: number) => BodyPose {
   let poseKey = "";
   let blendFrom: BodyPose = { bones: {}, hipsDrop: 0 };
   let blendSeconds = POSE_BLEND_SECONDS;
   let shownPose: BodyPose = blendFrom;
+  return (snapshot, target, deltaSeconds) => {
+    const nextKey = `${snapshot.activity}|${String(snapshot.seatIndex !== null)}|${String(snapshot.holdingBroom)}`;
+    if (nextKey !== poseKey) {
+      poseKey = nextKey;
+      blendFrom = shownPose;
+      blendSeconds = 0;
+    }
+    blendSeconds += deltaSeconds;
+    shownPose =
+      blendSeconds < POSE_BLEND_SECONDS ? blendPose(blendFrom, target, blendSeconds / POSE_BLEND_SECONDS) : target;
+    return shownPose;
+  };
+}
 
-  function standBroomAtSpot(): void {
-    broom.position.set(BROOM_SPOT.x, groundHeightAt(BROOM_SPOT), BROOM_SPOT.z);
-    broom.quaternion.identity();
-    broom.rotation.z = 0.12;
-    broom.scale.set(1, 1, 1);
-  }
-
-  function publishView(): void {
-    prompts = promptsFor(state.snapshot, targets);
-    const view: InteractionView = {
-      prompts,
-      beadText: state.snapshot.beadsVisible ? beadCounterText(beads.round, beads.total) : null,
-    };
+// Passes a view on only when it differs from the last one.
+function createViewPublisher(onView?: (view: InteractionView) => void): (view: InteractionView) => void {
+  let lastViewKey = "";
+  return (view) => {
     const key = JSON.stringify(view);
     if (key === lastViewKey) return;
     lastViewKey = key;
-    deps.onView?.(view);
-  }
+    onView?.(view);
+  };
+}
 
-  function perform(action: InteractionAction): void {
-    // Only what the HUD currently offers, so keys and buttons share the rules.
-    if (!prompts.some((prompt) => prompt.action === action)) return;
-    switch (action) {
-      case "sit": {
-        const index = targets.seatIndex;
-        const seat = index === null ? undefined : MEDITATION_SEATS[index];
-        if (index === null || !seat || !state.sit(index)) return;
-        movement.placeAt(seat);
-        deps.setHeading(seatHeading(seat));
-        break;
-      }
-      case "bow":
-        state.bow(targets.inStatueZone);
-        break;
-      case "takeBroom":
-      case "leaveBroom":
-        if (state.toggleBroom() && !state.snapshot.holdingBroom) standBroomAtSpot();
-        break;
-      case "greet":
-        state.greet();
-        break;
-      case "ringBell":
-        deps.onRingBell?.();
-        break;
-      case "bead":
-        if (state.turnBead()) {
-          beads.turn();
-          turnBeadString(beadString);
-        }
-        break;
+interface ActionContext {
+  state: InteractionState;
+  targets: Targets;
+  deps: InteractionRuntimeDeps;
+  beads: BeadCounter;
+  broom: Object3D;
+  beadString: Object3D;
+}
+
+function didSit({ state, targets, deps }: ActionContext): boolean {
+  const index = targets.seatIndex;
+  const seat = index === null ? undefined : MEDITATION_SEATS[index];
+  if (index === null || !seat || !state.sit(index)) return false;
+  deps.movement.placeAt(seat);
+  deps.setHeading(seatHeading(seat));
+  return true;
+}
+
+// Returns false when nothing happened and the view need not be refreshed.
+function didRunAction(action: InteractionAction, context: ActionContext): boolean {
+  const { state } = context;
+  switch (action) {
+    case "sit": {
+      return didSit(context);
     }
-    publishView();
-  }
-
-  return {
-    perform,
-    handleKey(code) {
-      const key = KEY_CODES[code];
-      const prompt = key ? prompts.find((candidate) => candidate.key === key) : undefined;
-      if (!prompt) return false;
-      perform(prompt.action);
+    case "bow": {
+      state.bow(context.targets.inStatueZone);
       return true;
-    },
+    }
+    case "takeBroom":
+    case "leaveBroom": {
+      if (state.toggleBroom() && !state.snapshot.holdingBroom) standBroomAtSpot(context.broom);
+      return true;
+    }
+    case "greet": {
+      state.greet();
+      return true;
+    }
+    case "ringBell": {
+      context.deps.onRingBell?.();
+      return true;
+    }
+    case "bead": {
+      if (state.turnBead()) {
+        context.beads.turn();
+        turnBeadString(context.beadString);
+      }
+      return true;
+    }
+    default: {
+      return true;
+    }
+  }
+}
+
+function offeredPrompt(prompts: Prompt[], code: string): Prompt | undefined {
+  const key = KEY_CODES.get(code);
+  return key === undefined ? undefined : prompts.find((candidate) => candidate.key === key);
+}
+
+type ActivityControls = Pick<
+  InteractionRuntime,
+  "startMoving" | "stopMoving" | "standUp" | "startChanting" | "stopChanting"
+>;
+
+// Activity changes that need no target; those that can change the HUD refresh it.
+function activityControls(state: InteractionState, publishView: () => void): ActivityControls {
+  return {
     startMoving() {
       if (state.snapshot.activity !== "walking") state.startMoving();
     },
     stopMoving() {
       state.stopMoving();
     },
-    update(deltaSeconds, walkSeconds) {
-      state.tick(deltaSeconds);
-      const snapshot = state.snapshot;
-      targets = findTargets(movement.position, {
-        ...targetLayout,
-        occupied: deps.occupiedSeats?.(),
-      });
-
-      const changed = leafField.update(deltaSeconds);
-      const swept =
-        snapshot.holdingBroom && snapshot.activity === "walking" ? leafField.sweep(movement.position, SWEEP_RADIUS) : 0;
-      if (changed || swept > 0) syncLeafMesh(leafMesh, leafField.leaves, groundHeightAt);
-      publishView();
-
-      // Blend over a short time whenever the kind of pose changes.
-      const nextKey = `${snapshot.activity}|${snapshot.seatIndex !== null}|${snapshot.holdingBroom}`;
-      if (nextKey !== poseKey) {
-        poseKey = nextKey;
-        blendFrom = shownPose;
-        blendSeconds = 0;
-      }
-      blendSeconds += deltaSeconds;
-      const target = poseForActivity(snapshot, state.activitySeconds, walkSeconds);
-      shownPose =
-        blendSeconds < POSE_BLEND_SECONDS ? blendPose(blendFrom, target, blendSeconds / POSE_BLEND_SECONDS) : target;
-      return shownPose;
-    },
-    placeProps(walkSeconds) {
-      const snapshot = state.snapshot;
-      placeHeldProps(held, avatar, deps.rig, {
-        holdingBroom: snapshot.holdingBroom,
-        beadsVisible: snapshot.beadsVisible,
-        walking: snapshot.activity === "walking",
-        walkSeconds,
-      });
-    },
     standUp() {
       state.standUp();
       publishView();
     },
     startChanting() {
-      const started = state.chant();
+      const isStarted = state.chant();
       publishView();
-      return started;
+      return isStarted;
     },
     stopChanting() {
       state.stopChant();
       publishView();
+    },
+  };
+}
+
+export function createInteractionRuntime(deps: InteractionRuntimeDeps): InteractionRuntime {
+  const { scene, avatar, movement } = deps;
+  const state = createInteractionState();
+  const beads = createBeadCounter(createStorageBeadStore(deps.storage ?? noStorage, BEAD_TOTAL_KEY));
+  const held = createHeldProps(scene);
+  const updateLeaves = createLeaves(scene);
+  standBroomAtSpot(held.broom);
+  const blendTo = createPoseBlender();
+  const publish = createViewPublisher(deps.onView);
+  let targets: Targets = findTargets(movement.position, TARGET_LAYOUT);
+  let prompts: Prompt[] = [];
+
+  function publishView(): void {
+    prompts = promptsFor(state.snapshot, targets);
+    const beadText = state.snapshot.beadsVisible ? beadCounterText(beads.round, beads.total) : null;
+    publish({ prompts, beadText });
+  }
+
+  function perform(action: InteractionAction): void {
+    // Only what the HUD currently offers, so keys and buttons share the rules.
+    if (prompts.every((prompt) => prompt.action !== action)) return;
+    const { broom, beadString } = held;
+    if (didRunAction(action, { state, targets, deps, beads, broom, beadString })) publishView();
+  }
+
+  return {
+    perform,
+    handleKey(code) {
+      const prompt = offeredPrompt(prompts, code);
+      if (!prompt) return false;
+      perform(prompt.action);
+      return true;
+    },
+    ...activityControls(state, publishView),
+    update(deltaSeconds, walkSeconds) {
+      state.tick(deltaSeconds);
+      const { snapshot } = state;
+      targets = findTargets(movement.position, { ...TARGET_LAYOUT, occupied: deps.occupiedSeats?.() });
+      updateLeaves(deltaSeconds, snapshot.holdingBroom && snapshot.activity === "walking" ? movement.position : null);
+      publishView();
+      return blendTo(snapshot, poseForActivity(snapshot, state.activitySeconds, walkSeconds), deltaSeconds);
+    },
+    placeProps(walkSeconds) {
+      const { holdingBroom, beadsVisible, activity } = state.snapshot;
+      placeHeldProps(held, avatar, deps.rig, {
+        holdingBroom,
+        beadsVisible,
+        walking: activity === "walking",
+        walkSeconds,
+      });
     },
     get snapshot() {
       return state.snapshot;

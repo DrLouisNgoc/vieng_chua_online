@@ -49,50 +49,6 @@
       "count": 1
     }
   },
-  "app/src/interaction-runtime.ts": {
-    "@typescript-eslint/no-unnecessary-condition": {
-      "count": 1
-    },
-    "@typescript-eslint/no-use-before-define": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-destructuring": {
-      "count": 2
-    },
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 2
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "complexity": {
-      "count": 1
-    },
-    "default-case": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 6
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 2
-    },
-    "unicorn/no-negated-array-predicate": {
-      "count": 1
-    },
-    "unicorn/no-zero-fractions": {
-      "count": 1
-    },
-    "unicorn/switch-case-braces": {
-      "count": 5
-    }
-  },
   "app/src/main.ts": {
     "@typescript-eslint/no-unnecessary-condition": {
       "count": 1
