@@ -297,9 +297,6 @@
     "@typescript-eslint/array-type": {
       "count": 1
     },
-    "@typescript-eslint/consistent-type-definitions": {
-      "count": 1
-    },
     "@typescript-eslint/consistent-type-imports": {
       "count": 1
     },
@@ -307,10 +304,10 @@
       "count": 4
     },
     "@typescript-eslint/no-unnecessary-condition": {
-      "count": 6
+      "count": 4
     },
     "@typescript-eslint/no-use-before-define": {
-      "count": 29
+      "count": 27
     },
     "@typescript-eslint/prefer-destructuring": {
       "count": 2
@@ -319,7 +316,7 @@
       "count": 5
     },
     "@typescript-eslint/strict-boolean-expressions": {
-      "count": 10
+      "count": 8
     },
     "import-x/consistent-type-specifier-style": {
       "count": 2
@@ -337,7 +334,7 @@
       "count": 1
     },
     "no-param-reassign": {
-      "count": 5
+      "count": 3
     },
     "simple-import-sort/imports": {
       "count": 1
@@ -345,17 +342,14 @@
     "unicorn/consistent-boolean-name": {
       "count": 3
     },
-    "unicorn/consistent-function-scoping": {
-      "count": 1
-    },
     "unicorn/no-for-each": {
-      "count": 9
+      "count": 5
     },
     "unicorn/no-unnecessary-parameters": {
       "count": 1
     },
     "unicorn/no-zero-fractions": {
-      "count": 16
+      "count": 3
     },
     "unicorn/numeric-separators-style": {
       "count": 41
