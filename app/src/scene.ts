@@ -47,7 +47,16 @@ import {
   moveDirection,
   turnTowards,
 } from "./third-person-camera";
-import { AVATAR_START, COLLIDERS, HALL, PINE_POSITIONS, STATUES, groundHeightAt } from "./temple-layout";
+import {
+  AVATAR_START,
+  BANYAN,
+  BROADLEAF_TREES,
+  COLLIDERS,
+  HALL,
+  PINE_POSITIONS,
+  STATUES,
+  groundHeightAt,
+} from "./temple-layout";
 
 const ASSET_ROOT = "/sansatemple";
 const MOKTAK_BASE_SCALE = 0.8;
@@ -234,21 +243,32 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   // buddha.glb (owner, 2026-11-12: replaced with a simplified Tripo export)
   // faces +x by default, not -z toward the congregation like the rest of
   // this scene's models — rotate it to match.
-  const [, avatar, pine, grounds] = await Promise.all([
+  const [, avatar, bodhi, grounds] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
     addModel("monk.glb", new Vector3(AVATAR_START.x, 0, AVATAR_START.z), 1.7),
-    addModel("pine.glb", new Vector3(firstPine.x, 0, firstPine.z), 4),
+    addModel("bodhi.glb", new Vector3(firstPine.x, 0, firstPine.z), 5),
     buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
   ]);
   scene.add(grounds.group);
   // Other visitors are cloned from this unposed copy (posing changes bones).
   const visitorTemplate = cloneSkinned(avatar);
-  // pine.glb is ~395k triangles per tree (95% of the scene). The pines stand
-  // outside the wall; at 10% they look the same from the yard and only a
-  // little thinner up close. Clones below share the simplified geometry.
-  await simplifyMeshes(pine, PINE_DETAIL);
+  // Owner, 2026-11-12: "thay toàn bộ cây trong chùa = cây bồ đề" — one
+  // bodhi tree model stands in for the old pines (outside the wall), the
+  // courtyard's round-canopy trees, and the big banyan by the pond. The
+  // courtyard/banyan spots keep this clone at full detail (visitors walk
+  // right up to them); the many boundary spots (far outside the wall, only
+  // ever seen at a distance) get a further-simplified clone instead.
+  const distantBodhi = bodhi.clone();
+  await simplifyMeshes(distantBodhi, PINE_DETAIL);
   for (const spot of otherPines) {
-    const tree = pine.clone();
+    const tree = distantBodhi.clone();
+    tree.position.x += spot.x - firstPine.x;
+    tree.position.z += spot.z - firstPine.z;
+    tree.rotation.y = (spot.x * 7 + spot.z * 13) % (Math.PI * 2);
+    scene.add(tree);
+  }
+  for (const spot of [...BROADLEAF_TREES, BANYAN]) {
+    const tree = bodhi.clone();
     tree.position.x += spot.x - firstPine.x;
     tree.position.z += spot.z - firstPine.z;
     tree.rotation.y = (spot.x * 7 + spot.z * 13) % (Math.PI * 2);

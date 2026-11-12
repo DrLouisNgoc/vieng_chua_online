@@ -33,10 +33,8 @@ import {
 import { buildCurvedHipRoof, innerEdge, type CurvedRoofOptions } from "./curved-roof";
 import {
   BAMBOO_CLUMPS,
-  BANYAN,
   BELL_TOWER,
   BOUNDARY,
-  BROADLEAF_TREES,
   COC_SPOTS,
   GATE,
   HALL,
@@ -259,8 +257,6 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
   grounds.add(buildStonePillars());
   grounds.add(buildUrn());
   grounds.add(buildPond());
-  grounds.add(buildBanyan());
-  grounds.add(buildBroadleafTrees());
   grounds.add(buildBamboo());
   grounds.add(buildSeats());
   const projector = buildHallProjector();
@@ -1466,119 +1462,10 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
   }
 
   // ---- trees ---------------------------------------------------------------
-
-  function buildBanyan(): Group {
-    const tree = new Group();
-    tree.name = "cay-da";
-    const bark = pbr("rock", 1, 3, PALETTE.bark);
-    add(tree, new CylinderGeometry(0.6, 1.0, 3.4, 12), bark, 0, 1.7, 0);
-    add(tree, new CylinderGeometry(1.0, 1.4, 0.4, 12), bark, 0, 0.2, 0);
-
-    const branchGeometry = new CylinderGeometry(0.18, 0.32, 3.0, 8);
-    for (let i = 0; i < 5; i += 1) {
-      const angle = (i / 5) * Math.PI * 2 + 0.3;
-      const branch = add(tree, branchGeometry, bark, Math.cos(angle) * 1.0, 3.9, Math.sin(angle) * 1.0);
-      branch.rotation.z = Math.cos(angle) * -0.9;
-      branch.rotation.x = Math.sin(angle) * 0.9;
-    }
-
-    const leafMaterials = PALETTE.leaves.map(
-      (color) => new MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }),
-    );
-    const clumps = [
-      [0, 6.2, 0, 2.6],
-      [2.4, 5.4, 0.6, 2.1],
-      [-2.3, 5.5, -0.4, 2.2],
-      [0.5, 5.3, 2.4, 2.0],
-      [-0.6, 5.4, -2.4, 2.1],
-      [2.0, 5.0, -2.0, 1.8],
-      [-2.0, 5.0, 2.0, 1.8],
-      [3.6, 4.6, -0.6, 1.5],
-      [-3.6, 4.7, 0.8, 1.5],
-      [1.2, 6.8, -1.0, 1.7],
-      [-1.3, 6.7, 1.1, 1.7],
-      [0.2, 4.6, 3.6, 1.4],
-      [-0.3, 4.6, -3.6, 1.4],
-    ] as const;
-    clumps.forEach(([x, y, z, r], index) => {
-      const material = leafMaterials[index % leafMaterials.length];
-      if (material) add(tree, new IcosahedronGeometry(r, 1), material, x, y, z);
-    });
-
-    const rootMaterial = new MeshStandardMaterial({ color: PALETTE.root, roughness: 0.9 });
-    for (let i = 0; i < 12; i += 1) {
-      const angle = (i / 12) * Math.PI * 2 + Math.PI / 12;
-      const radius = 1.7 + (i % 3) * 0.7;
-      const length = 3.2 + (i % 2) * 0.6;
-      add(
-        tree,
-        new CylinderGeometry(0.035, 0.06, length, 5),
-        rootMaterial,
-        Math.cos(angle) * radius,
-        length / 2,
-        Math.sin(angle) * radius,
-      );
-    }
-    tree.position.set(BANYAN.x, 0, BANYAN.z);
-    return tree;
-  }
-
-  // Instanced instead of one Group per tree (status.md: this was 96 meshes
-  // for 16 trees — 1 trunk + 5 crown clumps each). Trunks share one
-  // InstancedMesh; crowns share one InstancedMesh per leaf colour, since the
-  // 3 colours cycle per tree+clump rather than belonging to one tree each.
-  function buildBroadleafTrees(): Group {
-    const trees = new Group();
-    trees.name = "cay-xanh";
-    const bark = pbr("rock", 1, 2, PALETTE.bark);
-    const trunk = new CylinderGeometry(0.28, 0.42, 3.2, 8);
-    const crown = new IcosahedronGeometry(1, 1);
-    const leafMaterials = PALETTE.leaves.map(
-      (color) => new MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }),
-    );
-    const crownOffsets = [
-      [0, 4.3, 0, 2.1],
-      [1.3, 3.8, 0.4, 1.5],
-      [-1.2, 3.9, -0.3, 1.6],
-      [0.2, 3.7, 1.3, 1.4],
-      [-0.3, 3.8, -1.3, 1.4],
-    ] as const;
-    const treeScale = (index: number): number => 0.9 + (index % 4) * 0.15;
-
-    trees.add(
-      instancedCopies(trunk, bark, BROADLEAF_TREES, (dummy, spot, index) => {
-        const scale = treeScale(index);
-        dummy.position.set(spot.x, 1.6 * scale, spot.z);
-        dummy.rotation.y = index * 1.7;
-        dummy.scale.setScalar(scale);
-      }),
-    );
-
-    const up = new Vector3(0, 1, 0);
-    type Clump = { spot: { x: number; z: number }; index: number; offset: (typeof crownOffsets)[number] };
-    const clumpsByMaterial: Clump[][] = leafMaterials.map(() => []);
-    BROADLEAF_TREES.forEach((spot, index) => {
-      crownOffsets.forEach((offset, i) => {
-        clumpsByMaterial[(index + i) % leafMaterials.length]?.push({ spot, index, offset });
-      });
-    });
-    clumpsByMaterial.forEach((clumps, materialIndex) => {
-      const material = leafMaterials[materialIndex];
-      if (!material || clumps.length === 0) return;
-      trees.add(
-        instancedCopies(crown, material, clumps, (dummy, clump) => {
-          const scale = treeScale(clump.index);
-          const [ox, oy, oz, r] = clump.offset;
-          const local = new Vector3(ox, oy, oz).multiplyScalar(scale).applyAxisAngle(up, clump.index * 1.7);
-          dummy.position.set(clump.spot.x + local.x, local.y, clump.spot.z + local.z);
-          dummy.rotation.y = clump.index * 1.7;
-          dummy.scale.setScalar(scale * r);
-        }),
-      );
-    });
-
-    return trees;
-  }
+  // The banyan and round-canopy broadleaf trees that used to be built here
+  // procedurally are now clones of a real bodhi.glb model, placed by
+  // scene.ts (owner, 2026-11-12: "thay toàn bộ cây trong chùa = cây bồ đề")
+  // alongside the boundary pines, which the same model also replaced.
 
   // Bamboo groves: one InstancedMesh for all culms and one for all leaf tufts.
   function buildBamboo(): Group {
