@@ -191,17 +191,12 @@ export function createInteractionRuntime(deps: InteractionRuntimeDeps): Interact
     },
     placeProps(walkSeconds) {
       const snapshot = state.snapshot;
-      placeHeldProps(
-        held,
-        avatar,
-        deps.rig,
-        {
-          holdingBroom: snapshot.holdingBroom,
-          beadsVisible: snapshot.beadsVisible,
-          walking: snapshot.activity === "walking",
-        },
+      placeHeldProps(held, avatar, deps.rig, {
+        holdingBroom: snapshot.holdingBroom,
+        beadsVisible: snapshot.beadsVisible,
+        walking: snapshot.activity === "walking",
         walkSeconds,
-      );
+      });
     },
     standUp() {
       state.standUp();

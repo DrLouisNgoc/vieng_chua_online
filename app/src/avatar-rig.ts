@@ -1,5 +1,8 @@
-import { Euler, Quaternion, type Object3D } from "three";
-import { BONE_NAMES, type BodyPose, type BoneName, type BoneRotation } from "./body-pose";
+import type { Object3D } from "three";
+import { Euler, Quaternion } from "three";
+
+import type { BodyPose, BoneName, BoneRotation } from "./body-pose";
+import { BONE_NAMES } from "./body-pose";
 
 // Poses one monk.glb instance (the visitor's own avatar or another
 // visitor's). Create it before the avatar is posed: rest rotations are
@@ -22,9 +25,10 @@ export function createAvatarRig(avatar: Object3D): AvatarRig {
   // load as "thighL".
   const bones = new Map<BoneName, Object3D>();
   const restQuaternions = new Map<Object3D, Quaternion>();
-  for (const name of BONE_NAMES) {
-    const bone = avatar.getObjectByName(name);
-    if (!bone) continue;
+  const found = BONE_NAMES.map((name) => ({ name, bone: avatar.getObjectByName(name) })).filter(
+    (entry): entry is { name: BoneName; bone: Object3D } => entry.bone !== undefined,
+  );
+  for (const { name, bone } of found) {
     bones.set(name, bone);
     restQuaternions.set(bone, bone.quaternion.clone());
   }

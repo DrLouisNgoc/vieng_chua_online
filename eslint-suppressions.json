@@ -1,66 +1,4 @@
 {
-  "app/src/ambience.ts": {
-    "@typescript-eslint/no-use-before-define": {
-      "count": 2
-    },
-    "no-param-reassign": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 4
-    },
-    "unicorn/prefer-await": {
-      "count": 1
-    }
-  },
-  "app/src/avatar-look.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/better-dom-traversing": {
-      "count": 5
-    },
-    "unicorn/consistent-function-scoping": {
-      "count": 1
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 3
-    }
-  },
-  "app/src/avatar-look.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "import-x/no-duplicates": {
-      "count": 2
-    },
-    "no-param-reassign": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/no-computed-property-existence-check": {
-      "count": 1
-    }
-  },
-  "app/src/avatar-rig.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 4
-    },
-    "no-continue": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/boards-client.test.ts": {
     "@typescript-eslint/require-await": {
       "count": 3
@@ -154,63 +92,6 @@
       "count": 1
     }
   },
-  "app/src/curved-roof.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "no-restricted-properties": {
-      "count": 3
-    },
-    "prefer-exponentiation-operator": {
-      "count": 3
-    },
-    "unicorn/prefer-smaller-scope": {
-      "count": 1
-    }
-  },
-  "app/src/held-props.ts": {
-    "@typescript-eslint/max-params": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 3
-    },
-    "max-params": {
-      "count": 1
-    },
-    "no-param-reassign": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/prefer-early-return": {
-      "count": 1
-    },
-    "unicorn/prefer-simple-condition-first": {
-      "count": 2
-    }
-  },
-  "app/src/interaction-prompts.ts": {
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 3
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 2
-    },
-    "unicorn/no-declarations-before-early-exit": {
-      "count": 1
-    },
-    "unicorn/prefer-simple-condition-first": {
-      "count": 2
-    }
-  },
   "app/src/interaction-props.ts": {
     "no-param-reassign": {
       "count": 3
@@ -267,17 +148,6 @@
     },
     "unicorn/switch-case-braces": {
       "count": 5
-    }
-  },
-  "app/src/leaf-field.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 4
     }
   },
   "app/src/main.ts": {
@@ -346,86 +216,6 @@
     },
     "unicorn/switch-case-braces": {
       "count": 3
-    }
-  },
-  "app/src/pose-for-activity.ts": {
-    "consistent-return": {
-      "count": 1
-    },
-    "default-case": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/switch-case-braces": {
-      "count": 5
-    }
-  },
-  "app/src/practice-panel.ts": {
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 2
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "no-param-reassign": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    }
-  },
-  "app/src/practice.test.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "no-return-assign": {
-      "count": 1
-    },
-    "no-void": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/void-use": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 2
-    }
-  },
-  "app/src/practice.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 5
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 2
-    },
-    "unicorn/prefer-early-return": {
-      "count": 1
     }
   },
   "app/src/presence.test.ts": {
@@ -543,14 +333,6 @@
     },
     "unicorn/prefer-observer-apis": {
       "count": 1
-    }
-  },
-  "app/src/sky-cycle.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 6
     }
   },
   "app/src/sky-cycle.ts": {

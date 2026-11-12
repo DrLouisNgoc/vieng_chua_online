@@ -85,17 +85,12 @@ function placeRemote(remote: Readonly<Remote>, frame: Frame): void {
   // +PI: monk.glb's modelled front faces the opposite of the heading convention
   avatar.rotation.y = remote.heading + Math.PI;
   remote.rig.applyPose(pose);
-  placeHeldProps(
-    remote.props,
-    avatar,
-    remote.rig,
-    {
-      holdingBroom: view.holdingBroom,
-      beadsVisible: view.beadsVisible,
-      walking: view.activity === "walking",
-    },
-    remote.walkSeconds,
-  );
+  placeHeldProps(remote.props, avatar, remote.rig, {
+    holdingBroom: view.holdingBroom,
+    beadsVisible: view.beadsVisible,
+    walking: view.activity === "walking",
+    walkSeconds: remote.walkSeconds,
+  });
   props.broom.visible = view.holdingBroom;
 
   const { sprite } = remote.label;

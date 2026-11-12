@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { createLeafField } from "./leaf-field";
 
 // Deterministic random numbers in [0, 1).
 function seeded(seed: number): () => number {
   let state = seed;
   return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
+    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return state / 4_294_967_296;
   };
 }
 
@@ -41,8 +42,8 @@ describe("createLeafField", () => {
   it("drops leaves within the radius of a source", () => {
     const field = createLeafField({ sources, initial: 200, cap: 200, radius: 4, random: seeded(3) });
     for (const leaf of field.leaves) {
-      const near = sources.some((s) => Math.hypot(leaf.x - s.x, leaf.z - s.z) <= 4);
-      expect(near).toBe(true);
+      const isNear = sources.some((s) => Math.hypot(leaf.x - s.x, leaf.z - s.z) <= 4);
+      expect(isNear).toBe(true);
     }
   });
 

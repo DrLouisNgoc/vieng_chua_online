@@ -20,8 +20,11 @@ class FakeAudio extends EventTarget {
 
   isBlocked = false;
 
-  constructor(readonly src: string) {
+  readonly src: string;
+
+  constructor(src: string) {
     super();
+    this.src = src;
     FakeAudio.created.push(this);
   }
 
