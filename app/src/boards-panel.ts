@@ -58,21 +58,23 @@ function buildSutraPage(current: Talk, flipDirection: "next" | "prev" | null): H
   title.textContent = current.title;
   page.append(title);
 
-  // Read right here, like a page (owner, 2026-11-10: "mở kinh như trang
-  // giấy, đừng chuyển link sang link khác") — not a plain outbound link
-  // that leaves the app. If the source site refuses to be framed, "Mở
-  // trang gốc" below still works.
-  const frame = document.createElement("iframe");
-  frame.className = "boards__sutra-frame";
-  frame.src = current.url;
-  page.append(frame);
+  // Owner, 2026-11-10: "mở kinh như trang giấy, đừng chuyển link sang link
+  // khác" — tried an <iframe> so budsas.org's own page reads right here.
+  // budsas.org sends `X-Frame-Options: SAMEORIGIN` (owner, 2026-11-12, with
+  // a screenshot: "refused to connect"), which blocks every embedding site,
+  // not just this one — no code on our side can change that. Showing a
+  // plain, honest "mở trang gốc" button reads better than a broken frame.
+  const notice = document.createElement("p");
+  notice.className = "boards__sutra-notice";
+  notice.textContent = "Trang kinh này không cho nhúng trực tiếp — bấm để đọc ở tab mới:";
+  page.append(notice);
 
   const openLink = document.createElement("a");
   openLink.className = "boards__sutra-open";
   openLink.href = current.url;
   openLink.target = "_blank";
   openLink.rel = "noopener noreferrer";
-  openLink.textContent = "Mở trang gốc ↗";
+  openLink.textContent = "Đọc kinh ↗";
   page.append(openLink);
 
   if (flipDirection !== null) {
