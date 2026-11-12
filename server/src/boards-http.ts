@@ -185,11 +185,21 @@ function matchAdminRoute(parts: string[]): Route | null {
   return action === "reject" ? { kind: "admin-reject", id } : null;
 }
 
+function decodePathParts(pathname: string): string[] | null {
+  try {
+    return pathname
+      .split("/")
+      .filter(Boolean)
+      .map((part) => decodeURIComponent(part));
+  } catch {
+    // A malformed %-escape (e.g. "%E0") names no route: the caller answers 404.
+    return null;
+  }
+}
+
 function matchRoute(pathname: string): Route | null {
-  const parts = pathname
-    .split("/")
-    .filter(Boolean)
-    .map((part) => decodeURIComponent(part));
+  const parts = decodePathParts(pathname);
+  if (parts === null) return null;
   if (parts[0] === "boards") return matchBoardsRoute(parts);
   if (parts[0] === "admin") return matchAdminRoute(parts);
   return null;

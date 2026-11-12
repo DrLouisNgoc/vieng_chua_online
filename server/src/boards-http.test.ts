@@ -307,6 +307,13 @@ describe("boards HTTP API", () => {
     expect(await getStatus(`${url}/boards/a`, { method: "PUT" })).toBe(404);
   });
 
+  it("404s a path with a malformed percent-escape instead of throwing", async () => {
+    const { url } = start();
+    expect(await getStatus(`${url}/boards/%E0`)).toBe(404);
+    expect(await postStatus(`${url}/admin/approve/%E0`, { password: "adminpass" })).toBe(404);
+    expect(await getStatus(`${url}/boards/a`)).toBe(200);
+  });
+
   it("400s a body of the wrong shape on every write route", async () => {
     const { url } = start();
     const boardRoutes = ["/boards/a", "/boards/a/ask", "/boards/a/answer", "/boards/o/register", "/boards/a/questions"];
