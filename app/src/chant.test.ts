@@ -5,9 +5,8 @@ import { createChantSession } from "./chant-session";
 import { chantById, CHANTS } from "./chant-texts";
 
 describe("chant texts", () => {
-  it("has the chants the owner chose, as lines of syllables", () => {
-    expect(CHANTS.map((chant) => chant.id)).toEqual(["thichca", "adida", "quanam", "tamkinh"]);
-    expect(chantById("adida").lines).toEqual([["Nam", "Mô", "A", "Di", "Đà", "Phật"]]);
+  it("has the chant the owner chose, as lines of syllables", () => {
+    expect(CHANTS.map((chant) => chant.id)).toEqual(["thichca"]);
     expect(chantById("thichca").lines).toEqual([["thấy,", "thấy,", "thấy,", "thấy"]]);
     for (const chant of CHANTS) {
       expect(chant.bpm).toBeGreaterThan(40);
@@ -16,12 +15,6 @@ describe("chant texts", () => {
         for (const syllable of line) expect(syllable).not.toMatch(/\s/);
       }
     }
-  });
-
-  it("starts the Heart Sutra with Quán Tự Tại and ends with the mantra", () => {
-    const sutra = chantById("tamkinh");
-    expect(sutra.lines[0]?.slice(0, 3)).toEqual(["Quán", "Tự", "Tại"]);
-    expect(sutra.lines.at(-1)?.slice(-2)).toEqual(["bà", "ha."]);
   });
 });
 
