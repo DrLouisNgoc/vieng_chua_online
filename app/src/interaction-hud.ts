@@ -19,17 +19,17 @@ export function createInteractionHud(root: HTMLElement, onAction: (action: Inter
   beadChip.setAttribute("aria-live", "polite");
   beadChip.hidden = true;
   root.append(beadChip, bar);
-  root.hidden = true;
+  root.toggleAttribute("hidden", true);
 
   bar.addEventListener("click", (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-action]");
     const action = button?.dataset.action as InteractionAction | undefined;
-    if (action) onAction(action);
+    if (action !== undefined) onAction(action);
   });
 
   return {
     show() {
-      root.hidden = false;
+      root.toggleAttribute("hidden", false);
     },
     render(view) {
       bar.replaceChildren(

@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  DEFAULT_RIG,
   applyDrag,
   applyZoom,
+  DEFAULT_RIG,
   desiredCameraPosition,
   moveDirection,
   normalizeAngle,
@@ -81,8 +82,8 @@ describe("applyDrag", () => {
   });
 
   it("clamps pitch so the camera never goes under the ground or straight overhead", () => {
-    expect(applyDrag(DEFAULT_RIG, 0, 100000).pitch).toBeLessThan(Math.PI / 2);
-    expect(applyDrag(DEFAULT_RIG, 0, -100000).pitch).toBeGreaterThan(0);
+    expect(applyDrag(DEFAULT_RIG, 0, 100_000).pitch).toBeLessThan(Math.PI / 2);
+    expect(applyDrag(DEFAULT_RIG, 0, -100_000).pitch).toBeGreaterThan(0);
   });
 });
 

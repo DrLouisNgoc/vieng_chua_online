@@ -12,7 +12,7 @@ export interface ChatPanel {
 const MAX_RENDERED = 100;
 
 export function createChatPanel(root: HTMLElement, onSend: (text: string) => void): ChatPanel {
-  root.hidden = true;
+  root.toggleAttribute("hidden", true);
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "chat__toggle";
@@ -53,20 +53,20 @@ export function createChatPanel(root: HTMLElement, onSend: (text: string) => voi
   }
 
   toggle.addEventListener("click", () => {
-    panel.hidden = !panel.hidden;
+    panel.hidden = panel.hidden === false;
     toggle.setAttribute("aria-expanded", String(!panel.hidden));
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const text = input.value.trim();
-    if (!text) return;
+    if (text === "") return;
     onSend(text);
     input.value = "";
   });
 
   return {
     show() {
-      root.hidden = false;
+      root.toggleAttribute("hidden", false);
     },
     setHistory(messages) {
       log.replaceChildren();

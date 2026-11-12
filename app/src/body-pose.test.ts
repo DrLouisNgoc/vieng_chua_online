@@ -1,16 +1,12 @@
-import { describe, it, expect } from "vitest";
-import {
-  BONE_NAMES,
-  BOW_SEATED,
-  BOW_STANDING,
-  GREET,
-  IDLE,
-  SEATED,
-  blendPose,
-  walkPose,
-  type BodyPose,
-} from "./body-pose";
+import { describe, expect, it } from "vitest";
+
+import type { BodyPose } from "./body-pose";
+import { blendPose, BONE_NAMES, BOW_SEATED, BOW_STANDING, GREET, IDLE, SEATED, walkPose } from "./body-pose";
 import { computeWalkPose } from "./walk-cycle";
+
+function order(name: string): number {
+  return BONE_NAMES.indexOf(name as never);
+}
 
 describe("walkPose", () => {
   it("keeps the existing walk cycle's angles", () => {
@@ -67,7 +63,6 @@ describe("named poses", () => {
   });
 
   it("lists bones parents first", () => {
-    const order = (name: string): number => BONE_NAMES.indexOf(name as never);
     expect(order("hips")).toBeLessThan(order("spine"));
     expect(order("spine")).toBeLessThan(order("chest"));
     expect(order("chest")).toBeLessThan(order("upper_armL"));

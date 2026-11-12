@@ -23,19 +23,20 @@ function distance(a: Point, b: Point): number {
   return Math.hypot(a.x - b.x, a.z - b.z);
 }
 
-export function findTargets(position: Point, layout: TargetLayout): Targets {
-  let seatIndex: number | null = null;
-  let nearest = SEAT_REACH;
-  layout.seats.forEach((seat, index) => {
-    if (layout.occupied?.has(index)) return;
+// The closest free seat within reach; on a tie, the later seat wins.
+function nearestFreeSeat(position: Point, layout: TargetLayout): number | null {
+  let best: { index: number | null; gap: number } = { index: null, gap: SEAT_REACH };
+  for (const [index, seat] of layout.seats.entries()) {
     const gap = distance(position, seat);
-    if (gap <= nearest) {
-      nearest = gap;
-      seatIndex = index;
-    }
-  });
+    const isCloser = layout.occupied?.has(index) !== true && gap <= best.gap;
+    best = isCloser ? { index, gap } : best;
+  }
+  return best.index;
+}
+
+export function findTargets(position: Point, layout: TargetLayout): Targets {
   return {
-    seatIndex,
+    seatIndex: nearestFreeSeat(position, layout),
     nearBroom: distance(position, layout.broomSpot) <= BROOM_REACH,
     nearBell: layout.bell !== undefined && distance(position, layout.bell) <= BELL_REACH,
     inStatueZone: isInside(position, layout.statueZone),
@@ -45,6 +46,5 @@ export function findTargets(position: Point, layout: TargetLayout): Targets {
 // Heading (atan2(dx, dz) convention, as movement uses) a seated visitor
 // faces: hall cushions face the altar, banyan seats face the trunk.
 export function seatHeading(seat: Point): number {
-  if (isInside(seat, HALL)) return Math.PI;
-  return Math.atan2(BANYAN.x - seat.x, BANYAN.z - seat.z);
+  return isInside(seat, HALL) ? Math.PI : Math.atan2(BANYAN.x - seat.x, BANYAN.z - seat.z);
 }

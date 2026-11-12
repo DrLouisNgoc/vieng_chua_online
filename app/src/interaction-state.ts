@@ -6,7 +6,7 @@
 import type { Activity } from "../../shared/protocol";
 
 // The list of activities is a protocol rule (the server rejects others).
-export type { Activity };
+export { type Activity } from "../../shared/protocol";
 
 export interface InteractionSnapshot {
   activity: Activity;
@@ -23,7 +23,7 @@ export interface InteractionState {
   stopMoving: () => void;
   sit: (seatIndex: number) => boolean;
   greet: () => boolean;
-  bow: (inStatueZone: boolean) => boolean;
+  bow: (isInStatueZone: boolean) => boolean;
   turnBead: () => boolean;
   toggleBroom: () => boolean;
   // Chanting (Milestone 7) lasts until moving or stopChant.
@@ -42,94 +42,111 @@ const TIMED: Partial<Record<Activity, number>> = {
   bowing: BOW_SECONDS,
 };
 
+interface Machine {
+  activity: Activity;
+  seatIndex: number | null;
+  isHoldingBroom: boolean;
+  activitySeconds: number;
+}
+
+function enter(machine: Machine, next: Activity): Machine {
+  return { ...machine, activity: next, activitySeconds: 0 };
+}
+
+// Standing still or seated, not mid-greeting/bow: hands are free to act.
+function isAtRest({ activity }: Machine): boolean {
+  return activity === "idle" || activity === "seated" || activity === "beads";
+}
+
+function restingActivity({ seatIndex }: Machine): Activity {
+  return seatIndex === null ? "idle" : "seated";
+}
+
+function canUseHands(machine: Machine): boolean {
+  return !machine.isHoldingBroom && isAtRest(machine);
+}
+
+// Each action below returns the next state, or null when it is refused.
+
+function sit(machine: Machine, index: number): Machine | null {
+  if (machine.isHoldingBroom || machine.seatIndex !== null) return null;
+  if (machine.activity !== "idle" && machine.activity !== "beads") return null;
+  return enter({ ...machine, seatIndex: index }, "seated");
+}
+
+function bow(machine: Machine, isInStatueZone: boolean): Machine | null {
+  if (!canUseHands(machine)) return null;
+  if (!isInStatueZone && machine.seatIndex === null) return null;
+  return enter(machine, "bowing");
+}
+
+function turnBead(machine: Machine): Machine | null {
+  if (!canUseHands(machine)) return null;
+  return machine.activity === "beads" ? machine : enter(machine, "beads");
+}
+
+function toggleBroom(machine: Machine): Machine | null {
+  if (machine.seatIndex !== null) return null;
+  if (machine.activity !== "idle" && machine.activity !== "beads") return null;
+  return enter({ ...machine, isHoldingBroom: !machine.isHoldingBroom }, "idle");
+}
+
+function startMoving(machine: Machine): Machine {
+  const standing = { ...machine, seatIndex: null };
+  return machine.activity === "walking" ? standing : enter(standing, "walking");
+}
+
+function standUp(machine: Machine): Machine {
+  return machine.seatIndex === null ? machine : enter({ ...machine, seatIndex: null }, "idle");
+}
+
+function tick(machine: Machine, deltaSeconds: number): Machine {
+  const aged = { ...machine, activitySeconds: machine.activitySeconds + deltaSeconds };
+  const duration = TIMED[aged.activity];
+  return duration !== undefined && aged.activitySeconds >= duration ? enter(aged, restingActivity(aged)) : aged;
+}
+
 export function createInteractionState(): InteractionState {
-  let activity: Activity = "idle";
-  let seatIndex: number | null = null;
-  let holdingBroom = false;
-  let activitySeconds = 0;
+  let machine: Machine = { activity: "idle", seatIndex: null, isHoldingBroom: false, activitySeconds: 0 };
 
-  function enter(next: Activity): void {
-    activity = next;
-    activitySeconds = 0;
-  }
-
-  // Standing still or seated, not mid-greeting/bow: hands are free to act.
-  function isAtRest(): boolean {
-    return activity === "idle" || activity === "seated" || activity === "beads";
-  }
-
-  function restingActivity(): Activity {
-    return seatIndex === null ? "idle" : "seated";
+  function didApply(next: Machine | null): boolean {
+    if (next === null) return false;
+    machine = next;
+    return true;
   }
 
   return {
     get snapshot() {
       return {
-        activity,
-        seatIndex,
-        holdingBroom,
-        beadsVisible: activity === "beads",
+        activity: machine.activity,
+        seatIndex: machine.seatIndex,
+        holdingBroom: machine.isHoldingBroom,
+        beadsVisible: machine.activity === "beads",
       };
     },
     get activitySeconds() {
-      return activitySeconds;
+      return machine.activitySeconds;
     },
     startMoving() {
-      seatIndex = null;
-      if (activity !== "walking") enter("walking");
+      machine = startMoving(machine);
     },
     stopMoving() {
-      if (activity === "walking") enter("idle");
+      if (machine.activity === "walking") machine = enter(machine, "idle");
     },
-    sit(index) {
-      if (holdingBroom || seatIndex !== null) return false;
-      if (activity !== "idle" && activity !== "beads") return false;
-      seatIndex = index;
-      enter("seated");
-      return true;
-    },
-    greet() {
-      if (holdingBroom || !isAtRest()) return false;
-      enter("greeting");
-      return true;
-    },
-    bow(inStatueZone) {
-      if (holdingBroom || !isAtRest()) return false;
-      if (seatIndex === null && !inStatueZone) return false;
-      enter("bowing");
-      return true;
-    },
-    turnBead() {
-      if (holdingBroom || !isAtRest()) return false;
-      if (activity !== "beads") enter("beads");
-      return true;
-    },
-    toggleBroom() {
-      if (seatIndex !== null) return false;
-      if (activity !== "idle" && activity !== "beads") return false;
-      holdingBroom = !holdingBroom;
-      enter("idle");
-      return true;
-    },
-    chant() {
-      if (holdingBroom || !isAtRest()) return false;
-      enter("chanting");
-      return true;
-    },
+    sit: (index) => didApply(sit(machine, index)),
+    greet: () => didApply(canUseHands(machine) ? enter(machine, "greeting") : null),
+    bow: (isInStatueZone) => didApply(bow(machine, isInStatueZone)),
+    turnBead: () => didApply(turnBead(machine)),
+    toggleBroom: () => didApply(toggleBroom(machine)),
+    chant: () => didApply(canUseHands(machine) ? enter(machine, "chanting") : null),
     stopChant() {
-      if (activity === "chanting") enter(restingActivity());
+      if (machine.activity === "chanting") machine = enter(machine, restingActivity(machine));
     },
     standUp() {
-      if (seatIndex === null) return;
-      seatIndex = null;
-      enter("idle");
+      machine = standUp(machine);
     },
     tick(deltaSeconds) {
-      activitySeconds += deltaSeconds;
-      const duration = TIMED[activity];
-      if (duration !== undefined && activitySeconds >= duration) {
-        enter(restingActivity());
-      }
+      machine = tick(machine, deltaSeconds);
     },
   };
 }

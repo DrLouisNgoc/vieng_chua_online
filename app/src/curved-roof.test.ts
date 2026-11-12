@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { buildCurvedHipRoof, innerEdge, type CurvedRoofOptions } from "./curved-roof";
+import { describe, expect, it } from "vitest";
+
+import type { CurvedRoofOptions } from "./curved-roof";
+import { buildCurvedHipRoof, innerEdge } from "./curved-roof";
 
 const base: CurvedRoofOptions = {
   halfWidth: 10,
@@ -52,7 +54,7 @@ describe("buildCurvedHipRoof", () => {
   it("produces 4 faces of segments x segments quads with valid indices", () => {
     const roof = buildCurvedHipRoof(base);
     const segments = base.segments ?? 0;
-    expect(roof.indices.length).toBe(4 * segments * segments * 6);
+    expect(roof.indices).toHaveLength(4 * segments * segments * 6);
     const vertexCount = roof.positions.length / 3;
     expect(Math.max(...roof.indices)).toBeLessThan(vertexCount);
     expect(roof.uvs.length / 2).toBe(vertexCount);

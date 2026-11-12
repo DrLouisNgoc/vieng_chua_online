@@ -43,8 +43,8 @@ export function createLeafField(options: LeafFieldOptions): LeafField {
   let sinceLastDrop = 0;
 
   function dropLeaf(): void {
-    const source = sources[Math.floor(random() * sources.length)];
-    if (!source) return;
+    const source = sources.at(Math.floor(random() * sources.length));
+    if (source === undefined) return;
     // sqrt spreads leaves evenly over the disc instead of bunching at its centre
     const distance = Math.sqrt(random()) * radius;
     const angle = random() * Math.PI * 2;
@@ -63,15 +63,14 @@ export function createLeafField(options: LeafFieldOptions): LeafField {
     },
     update(deltaSeconds) {
       sinceLastDrop += deltaSeconds;
-      let added = false;
+      let isAdded = false;
       while (sinceLastDrop >= intervalSeconds) {
         sinceLastDrop -= intervalSeconds;
-        if (leaves.length < cap) {
-          dropLeaf();
-          added = true;
-        }
+        const hasRoom = leaves.length < cap;
+        if (hasRoom) dropLeaf();
+        isAdded ||= hasRoom;
       }
-      return added;
+      return isAdded;
     },
     sweep(point, reach) {
       const before = leaves.length;

@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { Mesh, Texture, type TextureLoader } from "three";
+import type { TextureLoader } from "three";
+import { Mesh, Texture } from "three";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { buildTempleGrounds } from "./temple-grounds";
 
 // Smoke test: builds the whole grounds with stubbed textures and canvas, so
@@ -7,22 +9,25 @@ import { buildTempleGrounds } from "./temple-grounds";
 // buildTempleGrounds) fail here instead of only in the browser.
 
 const stubLoader = {
-  loadAsync: async () => new Texture(),
+  loadAsync: async () => {
+    await Promise.resolve();
+    return new Texture();
+  },
 } as unknown as TextureLoader;
 
-const hadDocument = "document" in globalThis;
+const wasDocumentDefined = "document" in globalThis;
 
 beforeAll(() => {
-  if (!hadDocument) {
+  if (!wasDocumentDefined) {
     // No DOM in the node test environment: canvases with no 2D context.
-    (globalThis as { document?: unknown }).document = {
+    vi.stubGlobal("document", {
       createElement: () => ({ width: 0, height: 0, getContext: () => null }),
-    };
+    });
   }
 });
 
 afterAll(() => {
-  if (!hadDocument) delete (globalThis as { document?: unknown }).document;
+  vi.unstubAllGlobals();
 });
 
 describe("buildTempleGrounds", () => {

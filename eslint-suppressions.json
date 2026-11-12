@@ -61,39 +61,6 @@
       "count": 1
     }
   },
-  "app/src/background-music.ts": {
-    "unicorn/consistent-boolean-name": {
-      "count": 3
-    }
-  },
-  "app/src/bead-counter.test.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "no-void": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/void-use": {
-      "count": 1
-    },
-    "unicorn/no-return-array-push": {
-      "count": 1
-    }
-  },
-  "app/src/board-proximity.test.ts": {
-    "@typescript-eslint/no-unnecessary-condition": {
-      "count": 2
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 2
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    }
-  },
   "app/src/boards-client.test.ts": {
     "@typescript-eslint/require-await": {
       "count": 3
@@ -187,36 +154,6 @@
       "count": 1
     }
   },
-  "app/src/body-pose.test.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-function-scoping": {
-      "count": 1
-    }
-  },
-  "app/src/chat-panel.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 2
-    },
-    "no-param-reassign": {
-      "count": 2
-    }
-  },
-  "app/src/curved-roof.test.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/prefer-specific-assertions": {
-      "count": 1
-    }
-  },
   "app/src/curved-roof.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -251,14 +188,6 @@
       "count": 1
     },
     "unicorn/prefer-simple-condition-first": {
-      "count": 2
-    }
-  },
-  "app/src/interaction-hud.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "no-param-reassign": {
       "count": 2
     }
   },
@@ -340,31 +269,6 @@
       "count": 5
     }
   },
-  "app/src/interaction-state.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 2
-    },
-    "unicorn/prefer-export-from": {
-      "count": 1
-    }
-  },
-  "app/src/interaction-targets.ts": {
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "unicorn/no-for-each": {
-      "count": 1
-    },
-    "unicorn/prefer-early-return": {
-      "count": 1
-    },
-    "unicorn/prefer-ternary": {
-      "count": 1
-    }
-  },
   "app/src/leaf-field.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
@@ -374,20 +278,6 @@
     },
     "unicorn/numeric-separators-style": {
       "count": 4
-    }
-  },
-  "app/src/leaf-field.ts": {
-    "@typescript-eslint/no-unnecessary-condition": {
-      "count": 1
-    },
-    "@typescript-eslint/strict-boolean-expressions": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/prefer-continue": {
-      "count": 1
     }
   },
   "app/src/main.ts": {
@@ -456,17 +346,6 @@
     },
     "unicorn/switch-case-braces": {
       "count": 3
-    }
-  },
-  "app/src/onboarding.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/parameterized-tests": {
-      "count": 1
-    },
-    "unicorn/prefer-string-repeat": {
-      "count": 1
     }
   },
   "app/src/pose-for-activity.ts": {
@@ -592,14 +471,6 @@
       "count": 9
     }
   },
-  "app/src/remote-motion.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/no-zero-fractions": {
-      "count": 2
-    }
-  },
   "app/src/scene.ts": {
     "@typescript-eslint/consistent-type-imports": {
       "count": 1
@@ -674,20 +545,6 @@
       "count": 1
     }
   },
-  "app/src/simplify-geometry.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/new-for-builtins": {
-      "count": 1
-    },
-    "unicorn/prefer-array-from-range": {
-      "count": 1
-    },
-    "unicorn/prefer-iterator-to-array": {
-      "count": 1
-    }
-  },
   "app/src/sky-cycle.test.ts": {
     "simple-import-sort/imports": {
       "count": 1
@@ -711,23 +568,6 @@
     },
     "unicorn/numeric-separators-style": {
       "count": 33
-    }
-  },
-  "app/src/temple-grounds.test.ts": {
-    "@typescript-eslint/require-await": {
-      "count": 1
-    },
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/no-global-object-property-assignment": {
-      "count": 1
     }
   },
   "app/src/temple-grounds.ts": {
@@ -814,50 +654,6 @@
     },
     "unicorn/prefer-smaller-scope": {
       "count": 1
-    }
-  },
-  "app/src/temple-layout.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/consistent-boolean-name": {
-      "count": 1
-    },
-    "unicorn/consistent-function-scoping": {
-      "count": 2
-    }
-  },
-  "app/src/temple-layout.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/prefer-combined-guards": {
-      "count": 1
-    },
-    "unicorn/prefer-export-from": {
-      "count": 1
-    }
-  },
-  "app/src/third-person-camera.test.ts": {
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "unicorn/numeric-separators-style": {
-      "count": 2
-    }
-  },
-  "app/src/visitor-protocol.test.ts": {
-    "import-x/consistent-type-specifier-style": {
-      "count": 1
-    },
-    "simple-import-sort/imports": {
-      "count": 1
-    },
-    "sonarjs/prefer-specific-assertions": {
-      "count": 1
-    },
-    "unicorn/prefer-math-constants": {
-      "count": 2
     }
   },
   "app/src/visitor-protocol.ts": {

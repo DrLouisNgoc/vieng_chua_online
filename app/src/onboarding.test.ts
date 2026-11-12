@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { createOnboardingController, ROBE_COLORS } from "./onboarding";
 
 describe("createOnboardingController", () => {
@@ -15,15 +16,14 @@ describe("createOnboardingController", () => {
     expect(controller.state.name).toBe("Diệu Tâm");
   });
 
-  it("isValid is false for an empty (or whitespace-only) name", () => {
+  it.each([
+    ["an empty (or whitespace-only) name", " ".repeat(3)],
+    ["a name longer than 24 characters", "a".repeat(25)],
+    ["the forbidden default pháp danh 'Thiện Tâm'", "Thiện Tâm"],
+    ["the default name regardless of case or diacritics", "thien tam"],
+  ])("isValid is false for %s", (_label, name) => {
     const controller = createOnboardingController();
-    controller.setName("   ");
-    expect(controller.isValid).toBe(false);
-  });
-
-  it("isValid is false for a name longer than 24 characters", () => {
-    const controller = createOnboardingController();
-    controller.setName("a".repeat(25));
+    controller.setName(name);
     expect(controller.isValid).toBe(false);
   });
 
@@ -31,18 +31,6 @@ describe("createOnboardingController", () => {
     const controller = createOnboardingController();
     controller.setName("Diệu Tâm");
     expect(controller.isValid).toBe(true);
-  });
-
-  it("isValid is false for the forbidden default pháp danh 'Thiện Tâm'", () => {
-    const controller = createOnboardingController();
-    controller.setName("Thiện Tâm");
-    expect(controller.isValid).toBe(false);
-  });
-
-  it("isValid is false for the default name regardless of case or diacritics", () => {
-    const controller = createOnboardingController();
-    controller.setName("thien tam");
-    expect(controller.isValid).toBe(false);
   });
 
   it("lockName() sets the name and marks it locked", () => {

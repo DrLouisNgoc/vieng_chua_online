@@ -1,4 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { isInside } from "./collision";
 import {
   AVATAR_START,
   BAMBOO_CLUMPS,
@@ -8,6 +10,7 @@ import {
   COLLIDERS,
   COURTYARD,
   GATE,
+  groundHeightAt,
   HALL,
   MEDITATION_SEATS,
   PATH,
@@ -17,11 +20,20 @@ import {
   STAIRS,
   STONE_PILLARS,
   URN,
-  groundHeightAt,
 } from "./temple-layout";
-import { isInside } from "./collision";
 
 const stairsFoot = STAIRS.frontZ + STAIRS.count * STAIRS.tread;
+
+function isBlocked(x: number, z: number): boolean {
+  return COLLIDERS.some((box) => isInside({ x, z }, box));
+}
+
+function yardArea(front: number, side: number, back: number): number {
+  return (
+    (HALL.maxX - HALL.minX + 2 * side) * (HALL.maxZ - HALL.minZ + front + back) -
+    (HALL.maxX - HALL.minX) * (HALL.maxZ - HALL.minZ)
+  );
+}
 
 describe("groundHeightAt", () => {
   it("is the paving height anywhere in the paved yard", () => {
@@ -59,10 +71,9 @@ describe("main hall stairs (owner 2026-11-04: raised 9 steps)", () => {
   });
 
   it("the platform edges block walking up except over the stairs", () => {
-    const blocked = (x: number, z: number): boolean => COLLIDERS.some((box) => isInside({ x, z }, box));
-    expect(blocked(HALL.maxX - 0.1, -10)).toBe(true); // right side edge
-    expect(blocked(-20, HALL.maxZ - 0.1)).toBe(true); // front edge beside the stairs
-    expect(blocked(0, HALL.maxZ - 0.1)).toBe(false); // top of the stairs
+    expect(isBlocked(HALL.maxX - 0.1, -10)).toBe(true); // right side edge
+    expect(isBlocked(-20, HALL.maxZ - 0.1)).toBe(true); // front edge beside the stairs
+    expect(isBlocked(0, HALL.maxZ - 0.1)).toBe(false); // top of the stairs
   });
 
   it("keeps the start point, urn and stone pillars off the stairs", () => {
@@ -113,9 +124,6 @@ describe("grounds features", () => {
 describe("yard size", () => {
   // Owner 2026-11-04: first front x10 / sides x5 (front 210, sides 85),
   // then "halve the area" between the wall and the hall.
-  const yardArea = (front: number, side: number, back: number): number =>
-    (HALL.maxX - HALL.minX + 2 * side) * (HALL.maxZ - HALL.minZ + front + back) -
-    (HALL.maxX - HALL.minX) * (HALL.maxZ - HALL.minZ);
 
   it("the yard between wall and hall is about half its previous area", () => {
     const previous = yardArea(210, 85, 15);

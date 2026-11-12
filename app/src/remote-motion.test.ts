@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { approach, approachAngle, smoothingFactor } from "./remote-motion";
 
 describe("smoothingFactor", () => {
@@ -27,6 +28,6 @@ describe("approachAngle", () => {
   });
 
   it("reaches the target at factor 1", () => {
-    expect(Math.sin(approachAngle(0.3, 2.0, 1))).toBeCloseTo(Math.sin(2.0));
+    expect(Math.sin(approachAngle(0.3, 2, 1))).toBeCloseTo(Math.sin(2));
   });
 });

@@ -13,40 +13,40 @@ const EMBED_ROOT = "https://www.youtube-nocookie.com/embed";
 // The owner's link: https://www.youtube.com/watch?v=uZatAYlt_dE&si=...
 export const BACKGROUND_MUSIC_VIDEO_ID = "uZatAYlt_dE";
 
-export function backgroundMusicEmbedUrl(videoId: string, muted: boolean): string {
+export function backgroundMusicEmbedUrl(videoId: string, isMuted: boolean): string {
   const params = new URLSearchParams({
     autoplay: "1",
     loop: "1",
     playlist: videoId,
     controls: "0",
     modestbranding: "1",
-    mute: muted ? "1" : "0",
+    mute: isMuted ? "1" : "0",
   });
   return `${EMBED_ROOT}/${videoId}?${params.toString()}`;
 }
 
 export interface BackgroundMusic {
   readonly muted: boolean;
-  setMuted: (muted: boolean) => void;
+  setMuted: (isMuted: boolean) => void;
 }
 
 export function createBackgroundMusic(root: HTMLElement, videoId: string): BackgroundMusic {
-  let muted = true;
+  let isMuted = true;
   const iframe = document.createElement("iframe");
   iframe.className = "background-music__frame";
   iframe.allow = "autoplay";
   iframe.title = "Nhạc nền";
-  iframe.src = backgroundMusicEmbedUrl(videoId, muted);
+  iframe.src = backgroundMusicEmbedUrl(videoId, isMuted);
   root.append(iframe);
 
   return {
     get muted() {
-      return muted;
+      return isMuted;
     },
     setMuted(next) {
-      if (next === muted) return;
-      muted = next;
-      iframe.src = backgroundMusicEmbedUrl(videoId, muted);
+      if (next === isMuted) return;
+      isMuted = next;
+      iframe.src = backgroundMusicEmbedUrl(videoId, isMuted);
     },
   };
 }
