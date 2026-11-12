@@ -1,29 +1,40 @@
-import { describe, it, expect, vi } from "vitest";
-import { createPractice, type PracticeDeps } from "./practice";
+import { describe, expect, it, vi } from "vitest";
+
 import type { BeadStore } from "./bead-counter";
 import { chantById } from "./chant-texts";
+import type { PracticeDeps } from "./practice";
+import { createPractice } from "./practice";
 
 function setup(overrides: Partial<PracticeDeps> = {}) {
-  let chanting = false;
+  let isChanting = false;
   const saved = new Map<string, number>();
   const deps: PracticeDeps = {
     strike: vi.fn(),
     startChanting: vi.fn(() => {
-      chanting = true;
+      isChanting = true;
       return true;
     }),
     stopChanting: vi.fn(() => {
-      chanting = false;
+      isChanting = false;
     }),
-    isChanting: () => chanting,
+    isChanting: () => isChanting,
     storeFor: (id): BeadStore => ({
       load: () => saved.get(id) ?? null,
-      save: (total) => void saved.set(id, total),
+      save: (total) => {
+        saved.set(id, total);
+      },
     }),
     onSessionChange: vi.fn(),
     ...overrides,
   };
-  return { practice: createPractice(deps), deps, saved, setChanting: (v: boolean) => (chanting = v) };
+  return {
+    practice: createPractice(deps),
+    deps,
+    saved,
+    setChanting: (isNow: boolean) => {
+      isChanting = isNow;
+    },
+  };
 }
 
 describe("practice: chanting", () => {

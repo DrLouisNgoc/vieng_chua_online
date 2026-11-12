@@ -1,6 +1,6 @@
+import { BEADS_PER_ROUND } from "./bead-counter";
 import type { InteractionSnapshot } from "./interaction-state";
 import type { Targets } from "./interaction-targets";
-import { BEADS_PER_ROUND } from "./bead-counter";
 
 export type InteractionAction = "sit" | "bow" | "takeBroom" | "leaveBroom" | "greet" | "bead" | "ringBell";
 
@@ -35,27 +35,27 @@ export const ACTION_KEYS: Record<InteractionAction, InteractionKey> = {
 };
 
 export function beadCounterText(round: number, total: number): string {
-  return `Hạt ${round}/${BEADS_PER_ROUND} · tổng ${total}`;
+  return `Hạt ${String(round)}/${String(BEADS_PER_ROUND)} · tổng ${String(total)}`;
 }
 
 // E carries one context action, by priority: broom > bell > bow > sit.
 function contextAction(snapshot: InteractionSnapshot, targets: Targets): InteractionAction | null {
-  const seated = snapshot.seatIndex !== null;
   if (snapshot.holdingBroom) return targets.nearBroom ? "leaveBroom" : null;
-  if (targets.nearBroom && !seated) return "takeBroom";
-  if (targets.nearBell && !seated) return "ringBell";
-  if (seated || targets.inStatueZone) return "bow";
+  const isSeated = snapshot.seatIndex !== null;
+  if (!isSeated && targets.nearBroom) return "takeBroom";
+  if (!isSeated && targets.nearBell) return "ringBell";
+  if (isSeated || targets.inStatueZone) return "bow";
   if (targets.seatIndex !== null) return "sit";
   return null;
 }
 
 export function promptsFor(snapshot: InteractionSnapshot, targets: Targets): Prompt[] {
-  const atRest = snapshot.activity === "idle" || snapshot.activity === "seated" || snapshot.activity === "beads";
-  if (!atRest) return [];
+  const isAtRest = snapshot.activity === "idle" || snapshot.activity === "seated" || snapshot.activity === "beads";
+  if (!isAtRest) return [];
 
   const offered: InteractionAction[] = [];
   const context = contextAction(snapshot, targets);
-  if (context) offered.push(context);
+  if (context !== null) offered.push(context);
   // Both hands are on the broom while holding it.
   if (!snapshot.holdingBroom) offered.push("greet", "bead");
 

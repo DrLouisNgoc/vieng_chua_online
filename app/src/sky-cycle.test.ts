@@ -1,16 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { skyAt } from "./sky-cycle";
 
 describe("skyAt", () => {
   it("keeps today's daylight look at noon", () => {
     const noon = skyAt(12);
-    expect(noon.skyTop).toBe(0x9cbcd6);
-    expect(noon.skyHorizon).toBe(0xe8dcc4);
-    expect(noon.fog).toBe(0xe8dcc4);
-    expect(noon.sunColor).toBe(0xffe8c4);
+    expect(noon.skyTop).toBe(0x9c_bc_d6);
+    expect(noon.skyHorizon).toBe(0xe8_dc_c4);
+    expect(noon.fog).toBe(0xe8_dc_c4);
+    expect(noon.sunColor).toBe(0xff_e8_c4);
     expect(noon.sunIntensity).toBeCloseTo(2.2);
-    expect(noon.hemiSky).toBe(0xdfeaf5);
-    expect(noon.hemiGround).toBe(0x6b5a3e);
+    expect(noon.hemiSky).toBe(0xdf_ea_f5);
+    expect(noon.hemiGround).toBe(0x6b_5a_3e);
     expect(noon.hemiIntensity).toBeCloseTo(0.9);
     expect(noon.exposure).toBeCloseTo(1.05);
     expect(noon.night).toBe(0);

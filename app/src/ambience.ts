@@ -13,51 +13,65 @@ const AMBIENCE_VOLUME = 0.35;
 
 export interface Ambience {
   readonly ambienceOn: boolean;
-  setAmbienceOn: (on: boolean) => void;
+  setAmbienceOn: (isOn: boolean) => void;
   ringBell: () => void;
   strikeBowl: () => void;
 }
 
-function createSound(url: string, loop = false): HTMLAudioElement {
-  const audio = new Audio(url);
-  audio.preload = "auto";
-  audio.loop = loop;
-  audio.addEventListener("error", () => {
-    if (missing.has(audio)) return;
-    missing.add(audio);
-    console.warn(`Sound file not available (add it to app/public${url}):`, url);
-  });
-  return audio;
+interface Sound {
+  play: (shouldRestart: boolean) => Promise<void>;
+  pause: () => void;
 }
 
-// Sounds whose file failed to load: skipped silently after one warning.
-const missing = new WeakSet<HTMLAudioElement>();
+interface SoundOptions {
+  isLooping?: boolean;
+  volume?: number;
+}
 
-function play(audio: HTMLAudioElement, restart: boolean): void {
-  if (missing.has(audio)) return;
-  if (restart) audio.currentTime = 0;
-  audio.play().catch((error: unknown) => {
-    console.warn("Sound could not play:", error);
+// A sound whose file failed to load is skipped silently after one warning.
+function createSound(url: string, { isLooping = false, volume }: SoundOptions = {}): Sound {
+  const audio = new Audio(url);
+  audio.preload = "auto";
+  audio.loop = isLooping;
+  if (volume !== undefined) audio.volume = volume;
+  let isMissing = false;
+  audio.addEventListener("error", () => {
+    if (isMissing) return;
+    isMissing = true;
+    console.warn(`Sound file not available (add it to app/public${url}):`, url);
   });
+  return {
+    async play(shouldRestart) {
+      if (isMissing) return;
+      if (shouldRestart) audio.currentTime = 0;
+      try {
+        await audio.play();
+      } catch (error: unknown) {
+        console.warn("Sound could not play:", error);
+      }
+    },
+    pause() {
+      audio.pause();
+    },
+  };
 }
 
 export function createAmbience(): Ambience {
-  const ambience = createSound(AMBIENCE_FILES.ambience, true);
-  ambience.volume = AMBIENCE_VOLUME;
+  const ambience = createSound(AMBIENCE_FILES.ambience, { isLooping: true, volume: AMBIENCE_VOLUME });
   const bell = createSound(AMBIENCE_FILES.bell);
   const bowl = createSound(AMBIENCE_FILES.bowl);
-  let ambienceOn = false;
+  let isAmbienceOn = false;
 
   return {
     get ambienceOn() {
-      return ambienceOn;
+      return isAmbienceOn;
     },
-    setAmbienceOn(on) {
-      ambienceOn = on;
-      if (on) play(ambience, false);
+    async setAmbienceOn(isOn) {
+      isAmbienceOn = isOn;
+      if (isOn) await ambience.play(false);
       else ambience.pause();
     },
-    ringBell: () => play(bell, true),
-    strikeBowl: () => play(bowl, true),
+    ringBell: async () => bell.play(true),
+    strikeBowl: async () => bowl.play(true),
   };
 }

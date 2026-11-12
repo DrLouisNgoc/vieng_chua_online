@@ -1,13 +1,5 @@
-import type { Material } from "three";
-import {
-  CanvasTexture,
-  Mesh,
-  MeshStandardMaterial,
-  SRGBColorSpace,
-  Sprite,
-  SpriteMaterial,
-  type Object3D,
-} from "three";
+import type { Material, Object3D } from "three";
+import { CanvasTexture, Mesh, MeshStandardMaterial, Sprite, SpriteMaterial, SRGBColorSpace } from "three";
 
 // How a visitor looks to others: robe colour (decision 0010) and a name
 // label above the head.
@@ -19,22 +11,27 @@ const TINTED_FLAG = "robeTinted";
 // Recolours the robe on this avatar only: the material is cloned the first
 // time, since clones of the model share their materials.
 export function tintRobe(avatar: Object3D, color: string): void {
+  const robes: { mesh: Mesh; material: MeshStandardMaterial }[] = [];
   avatar.traverse((node) => {
     if (!(node instanceof Mesh)) return;
     const material = node.material as Material;
-    if (!(material instanceof MeshStandardMaterial) || material.name !== ROBE_MATERIAL_NAME) return;
+    if (material instanceof MeshStandardMaterial && material.name === ROBE_MATERIAL_NAME) {
+      robes.push({ mesh: node as Mesh, material });
+    }
+  });
+  for (const { mesh, material } of robes) {
     let own = material;
-    if (!material.userData[TINTED_FLAG]) {
+    if (material.userData[TINTED_FLAG] !== true) {
       own = material.clone();
       own.userData[TINTED_FLAG] = true;
-      node.material = own;
+      mesh.material = own;
     }
     own.color.set(color);
-  });
+  }
 }
 
-export function labelText(name: string, beadsVisible: boolean, beadTotal: number): string {
-  return beadsVisible ? `${name} · ${beadTotal.toLocaleString("vi-VN")} hạt` : name;
+export function labelText(name: string, areBeadsVisible: boolean, beadTotal: number): string {
+  return areBeadsVisible ? `${name} · ${beadTotal.toLocaleString("vi-VN")} hạt` : name;
 }
 
 export interface NameLabel {
