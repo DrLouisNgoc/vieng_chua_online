@@ -235,7 +235,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   // faces +x by default, not -z toward the congregation like the rest of
   // this scene's models — rotate it to match.
   const [, avatar, pine, grounds] = await Promise.all([
-    addStatue("buddha.glb", STATUES.buddha, Math.PI / 2),
+    addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
     addModel("monk.glb", new Vector3(AVATAR_START.x, 0, AVATAR_START.z), 1.7),
     addModel("pine.glb", new Vector3(firstPine.x, 0, firstPine.z), 4),
     buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
