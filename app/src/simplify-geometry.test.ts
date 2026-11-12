@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { BufferAttribute, BufferGeometry, SphereGeometry } from "three";
+import { describe, expect, it } from "vitest";
+
 import { simplifyGeometry, triangleCount } from "./simplify-geometry";
 
 // Many separate small triangles, like the leaf cards of a foliage mesh.
@@ -12,7 +13,7 @@ function leafCards(count: number): BufferGeometry {
   }
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(positions, 3));
-  geometry.setIndex([...Array(count * 3).keys()]);
+  geometry.setIndex(Array.from({ length: count * 3 }, (_, index) => index));
   return geometry;
 }
 

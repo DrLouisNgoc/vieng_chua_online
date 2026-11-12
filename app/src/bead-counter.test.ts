@@ -1,9 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
-import { BEADS_PER_ROUND, createBeadCounter, createStorageBeadStore, type BeadStore } from "./bead-counter";
+import { describe, expect, it, vi } from "vitest";
+
+import type { BeadStore } from "./bead-counter";
+import { BEADS_PER_ROUND, createBeadCounter, createStorageBeadStore } from "./bead-counter";
 
 function memoryStore(initial: number | null = null): BeadStore & { saved: number[] } {
   const saved: number[] = [];
-  return { saved, load: () => initial, save: (total) => saved.push(total) };
+  return {
+    saved,
+    load: () => initial,
+    save: (total) => {
+      saved.push(total);
+    },
+  };
 }
 
 describe("createBeadCounter", () => {
@@ -31,7 +39,9 @@ describe("createStorageBeadStore", () => {
     const backing = new Map<string, string>();
     const storage = {
       getItem: (key: string) => backing.get(key) ?? null,
-      setItem: (key: string, value: string) => void backing.set(key, value),
+      setItem: (key: string, value: string) => {
+        backing.set(key, value);
+      },
     };
     const store = createStorageBeadStore(storage, "k");
     expect(store.load()).toBeNull();

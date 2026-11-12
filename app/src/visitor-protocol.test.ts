@@ -1,20 +1,21 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { SEAT_COUNT, WORLD_LIMIT as SERVER_WORLD_LIMIT } from "../../server/src/protocol";
+import { MEDITATION_SEATS, WORLD_LIMIT } from "./temple-layout";
+import type { OutgoingState } from "./visitor-protocol";
 import {
-  STATE_INTERVAL_MS,
   encodeChat,
   encodeJoin,
   encodeState,
   parseServerMessage,
   shouldSendState,
-  type OutgoingState,
+  STATE_INTERVAL_MS,
 } from "./visitor-protocol";
-import { MEDITATION_SEATS, WORLD_LIMIT } from "./temple-layout";
-import { SEAT_COUNT, WORLD_LIMIT as SERVER_WORLD_LIMIT } from "../../server/src/protocol";
 
 const state: OutgoingState = {
   x: 1.23456,
   z: -5,
-  heading: 3.14159,
+  heading: 0.98765,
   activity: "seated",
   seatIndex: 4,
   holdingBroom: false,
@@ -26,7 +27,7 @@ const view = { id: "v1", name: "An", colorIndex: 1, ...state };
 
 describe("layout agrees with the server", () => {
   it("has the same cushion count and world limit", () => {
-    expect(MEDITATION_SEATS.length).toBe(SEAT_COUNT);
+    expect(MEDITATION_SEATS).toHaveLength(SEAT_COUNT);
     expect(WORLD_LIMIT).toBe(SERVER_WORLD_LIMIT);
   });
 });
@@ -41,7 +42,7 @@ describe("encode", () => {
       type: "state",
       ...state,
       x: 1.23,
-      heading: 3.14,
+      heading: 0.99,
     });
   });
 

@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { nearestBoardId } from "./board-proximity";
 import { COC_SPOTS, HALL_PROJECTOR, SUTRA_SPOT } from "./temple-layout";
 
@@ -8,9 +9,9 @@ describe("nearestBoardId", () => {
   });
 
   it("finds a cốc when standing right on it", () => {
-    const spot = COC_SPOTS[0];
+    const spot = COC_SPOTS.at(0);
     expect(spot).toBeDefined();
-    if (!spot) return;
+    if (spot === undefined) return;
     expect(nearestBoardId({ x: spot.x, z: spot.z })).toBe(spot.id);
   });
 
@@ -23,9 +24,9 @@ describe("nearestBoardId", () => {
   });
 
   it("is null just outside the reach of every board", () => {
-    const spot = COC_SPOTS[0];
+    const spot = COC_SPOTS.at(0);
     expect(spot).toBeDefined();
-    if (!spot) return;
+    if (spot === undefined) return;
     expect(nearestBoardId({ x: spot.x + 50, z: spot.z + 50 })).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
+import { WORLD_LIMIT } from "../../shared/protocol";
 import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
-import { WORLD_LIMIT } from "../../shared/protocol";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
 // Pure data: temple-grounds.ts builds the meshes, scene.ts uses the
@@ -261,7 +261,7 @@ export const LEAF_SOURCES: Point[] = [
 
 // The edge of the world is a protocol rule too: the server rejects
 // coordinates beyond it (shared/protocol.ts).
-export { WORLD_LIMIT };
+export { WORLD_LIMIT } from "../../shared/protocol";
 
 function around(center: Point, half: number): Box {
   return {
@@ -357,8 +357,8 @@ export const COLLIDERS: Box[] = [
 ];
 
 function stairHeightAt(point: Point): number | null {
-  if (point.x <= STAIRS.minX || point.x >= STAIRS.maxX) return null;
-  if (point.z < STAIRS.frontZ || point.z >= STAIRS_FOOT_Z) return null;
+  if (point.x <= STAIRS.minX || point.x >= STAIRS.maxX || point.z < STAIRS.frontZ || point.z >= STAIRS_FOOT_Z)
+    return null;
   const fromTop = Math.floor((point.z - STAIRS.frontZ) / STAIRS.tread);
   return (STAIRS.count - fromTop) * STAIRS.rise;
 }
