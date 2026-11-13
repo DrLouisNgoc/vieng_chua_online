@@ -62,6 +62,7 @@ import {
 import {
   AVATAR_START,
   PAGODA_HALL_BUDDHA,
+  PAGODA_STUPA_BUDDHA,
   BANYAN,
   BROADLEAF_TREES,
   COLLIDERS,
@@ -307,6 +308,8 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     scene.add(pagoda);
     // The same statue again, on the altar of the pagoda complex's hall.
     scene.add(placeStatueCopy(buddha, PAGODA_HALL_BUDDHA));
+    // and in the chamber of the great stupa
+    scene.add(placeStatueCopy(buddha, PAGODA_STUPA_BUDDHA));
   }
   // Other visitors are cloned from this unposed copy (posing changes bones).
   const visitorTemplate = cloneSkinned(avatar);

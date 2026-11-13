@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { isInside } from "./collision";
-import { PAGODA_HALL_LAMPS } from "./pagoda-layout";
+import { PAGODA_LAMPS } from "./pagoda-layout";
 import { loadPagoda, placePagoda } from "./pagoda-model";
 import { BOUNDARY, BROADLEAF_TREES, PAGODA, PINE_POSITIONS } from "./temple-layout";
 
@@ -115,7 +115,7 @@ describe("placePagoda", () => {
     root.traverse((node) => {
       if (node instanceof PointLight) lamps.push(node);
     });
-    expect(lamps).toHaveLength(PAGODA_HALL_LAMPS.length);
+    expect(lamps).toHaveLength(PAGODA_LAMPS.length);
     for (const lamp of lamps) {
       expect(lamp.castShadow).toBe(false);
       expect(lamp.distance).toBeGreaterThan(0);

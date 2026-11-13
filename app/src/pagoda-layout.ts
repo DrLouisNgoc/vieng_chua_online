@@ -79,13 +79,16 @@ export const PAGODA_HALL_FLOOR: Box = boxAround(
 );
 export const PAGODA_HALL_FLOOR_HEIGHT = PAGODA.groundY + HALL.platformHeight * PAGODA_SCALE;
 
-// Lamps inside the hall, as [bx, by] with the height in HALL_LAMP_HEIGHT (model metres).
-export const PAGODA_HALL_LAMPS: readonly (readonly [number, number])[] = [
-  [HALL.bx - 14, HALL.by - 2],
-  [HALL.bx + 14, HALL.by - 2],
-  [HALL.bx, HALL.by + 8],
+// Lamps inside the hall and the stupa's chamber (model metres: bx, by on the ground plan, height above the plaza).
+// strength: 1 for the hall; the chamber's pale dome throws the light back, so its lamps are fainter.
+export const PAGODA_LAMPS: readonly { bx: number; by: number; height: number; strength: number }[] = [
+  { bx: HALL.bx - 14, by: HALL.by - 2, height: 7, strength: 1 },
+  { bx: HALL.bx + 14, by: HALL.by - 2, height: 7, strength: 1 },
+  { bx: HALL.bx, by: HALL.by + 8, height: 7, strength: 1 },
+  { bx: 0, by: 0, height: 20, strength: 0.15 },
+  { bx: 0, by: -10, height: 14, strength: 0.15 },
+  { bx: 0, by: 12, height: 12, strength: 0.15 },
 ];
-export const HALL_LAMP_HEIGHT = 7;
 
 // The temple's own Buddha statue, copied onto the altar (owner: "tạo tượng đẹp như
 // tôi tạo vào"): the altar's top is 1.3 model metres above the floor, and the statue
@@ -129,6 +132,84 @@ function hallColliders(): Box[] {
   ];
 }
 
+// The way into the great stupa (scripts/blender/pagoda.py: STEP_*, stupa_entrance()): 20 steps from
+// STAIR_START_Y up the terraces to a door in the dome, then a domed chamber, round, on the terraces'
+// top (CHAMBER_FLOOR above the plaza), with an altar at the back that holds the temple's Buddha.
+const STAIR_START_Y = -48;
+const DOOR_Y = -21;
+const CHAMBER_FLOOR = 8;
+const CHAMBER_RADIUS = 19.6;
+const CORRIDOR_HALF = 3.2; // the door is 7 wide, between its red posts
+const ALTAR_AT = { halfX: 5, minY: 6.5, maxY: 14.5 } as const;
+const STUPA_FLOOR_HEIGHT = PAGODA.groundY + CHAMBER_FLOOR * PAGODA_SCALE;
+
+interface Rect {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+function modelRectToBox(rect: Rect): Box {
+  const a = pagodaToWorld(rect.minX, rect.minY);
+  const b = pagodaToWorld(rect.maxX, rect.maxY);
+  return { minX: Math.min(a.x, b.x), maxX: Math.max(a.x, b.x), minZ: Math.min(a.z, b.z), maxZ: Math.max(a.z, b.z) };
+}
+
+// `rect` without `hole`: up to four rectangles that together cover what is left.
+function subtractRect(rect: Rect, hole: Rect): Rect[] {
+  const isOverlapping =
+    hole.minX < rect.maxX && hole.maxX > rect.minX && hole.minY < rect.maxY && hole.maxY > rect.minY;
+  if (!isOverlapping) return [rect];
+  const middleMinX = Math.max(rect.minX, hole.minX);
+  const middleMaxX = Math.min(rect.maxX, hole.maxX);
+  return [
+    { ...rect, maxY: hole.minY }, // below the hole
+    { ...rect, minY: hole.maxY }, // above it
+    { minX: rect.minX, maxX: hole.minX, minY: Math.max(rect.minY, hole.minY), maxY: Math.min(rect.maxY, hole.maxY) },
+    { minX: hole.maxX, maxX: rect.maxX, minY: Math.max(rect.minY, hole.minY), maxY: Math.min(rect.maxY, hole.maxY) },
+  ].filter(
+    (part) => part.maxX > part.minX && part.maxY > part.minY && !(part.maxX === middleMinX && part.minX === middleMaxX),
+  );
+}
+
+// The terraces and dome are solid but for the way in: the corridor up the stairs and the chamber.
+const STUPA_FREE: Rect[] = [
+  { minX: -CORRIDOR_HALF, maxX: CORRIDOR_HALF, minY: -TERRACE_HALF, maxY: DOOR_Y + 3 },
+  { minX: -14, maxX: 14, minY: -CHAMBER_RADIUS + 0.6, maxY: CHAMBER_RADIUS - 0.6 },
+  { minX: -CHAMBER_RADIUS + 0.6, maxX: CHAMBER_RADIUS - 0.6, minY: -14, maxY: 14 },
+];
+
+function stupaColliders(): Box[] {
+  let solid: Rect[] = [{ minX: -TERRACE_HALF, maxX: TERRACE_HALF, minY: -TERRACE_HALF, maxY: TERRACE_HALF }];
+  for (const hole of STUPA_FREE) solid = solid.flatMap((rect) => subtractRect(rect, hole));
+  const altar: Rect = { minX: -ALTAR_AT.halfX, maxX: ALTAR_AT.halfX, minY: ALTAR_AT.minY, maxY: ALTAR_AT.maxY };
+  return [...solid, altar].map((rect) => modelRectToBox(rect));
+}
+
+// The floor under the visitor's feet on the stairs and inside the chamber, or null elsewhere.
+export function pagodaStupaHeightAt(point: { x: number; z: number }): number | null {
+  const by = (point.x - PAGODA.x) / PAGODA_SCALE;
+  const bx = (point.z - PAGODA.z) / PAGODA_SCALE;
+  if (Math.abs(bx) <= CORRIDOR_HALF + 1 && by >= STAIR_START_Y && by <= DOOR_Y + 2) {
+    const along = Math.min(1, (by - STAIR_START_Y) / (DOOR_Y - STAIR_START_Y));
+    return PAGODA.groundY + CHAMBER_FLOOR * PAGODA_SCALE * along;
+  }
+  const isInsideChamber = Math.hypot(bx, by) <= CHAMBER_RADIUS && by >= DOOR_Y - 1;
+  return isInsideChamber ? STUPA_FLOOR_HEIGHT : null;
+}
+
+// Bowing place: the floor between the door and the altar, in front of the Buddha.
+export const PAGODA_STUPA_ZONE: Box = modelRectToBox({ minX: -9, maxX: 9, minY: 1.5, maxY: ALTAR_AT.minY });
+const stupaBuddhaSpot = pagodaToWorld(0, 10.5);
+export const PAGODA_STUPA_BUDDHA = {
+  x: stupaBuddhaSpot.x,
+  z: stupaBuddhaSpot.z,
+  baseY: STUPA_FLOOR_HEIGHT + 1.9 * PAGODA_SCALE,
+  height: 7.5,
+  rotationY: Math.PI,
+} as const;
+
 export function pagodaColliders(): Box[] {
   const wall = (bx: number, by: number, halfX: number, halfY: number): Box => boxAround(bx, by, halfX, halfY);
   const gateEdge = (WALL_HALF + GATE_HALF) / 2;
@@ -145,7 +226,7 @@ export function pagodaColliders(): Box[] {
     wall(-GATE_HALF, -WALL_HALF, 1.4, 1.4),
     wall(GATE_HALF, -WALL_HALF, 1.4, 1.4),
     // the stupa on its terraces, with the ring of small stupas and shrines on them
-    wall(0, 0, TERRACE_HALF, TERRACE_HALF),
+    ...stupaColliders(),
     // the four corner towers
     ...[-TOWER_AT, TOWER_AT].flatMap((bx) => [-TOWER_AT, TOWER_AT].map((by) => wall(bx, by, TOWER_HALF, TOWER_HALF))),
     // the shrines along the four edges

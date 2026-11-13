@@ -24,6 +24,7 @@ import {
   LEAF_SOURCES,
   MEDITATION_SEATS,
   PAGODA_HALL_STATUE_ZONE,
+  PAGODA_STUPA_ZONE,
   STATUE_ZONE,
 } from "./temple-layout";
 
@@ -86,7 +87,7 @@ const TARGET_LAYOUT = {
   seats: MEDITATION_SEATS,
   broomSpot: BROOM_SPOT,
   statueZone: STATUE_ZONE,
-  extraStatueZones: [PAGODA_HALL_STATUE_ZONE],
+  extraStatueZones: [PAGODA_HALL_STATUE_ZONE, PAGODA_STUPA_ZONE],
   incense: INCENSE_URNS,
   bell: BELL_TOWER,
 };

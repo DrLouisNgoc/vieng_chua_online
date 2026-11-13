@@ -148,13 +148,16 @@ def lathe(name, profile, segs, mat="gold"):
     return o
 
 
-def stupa(with_base, segs, ribs):
+def stupa(with_base, segs, ribs, door=False):
     """Gold stupa, local z = 0 at the lotus base: lotus, bell, ribbed spire, bud, hti crown."""
     parts = []
     base = [(23.0, 0.0), (23.8, 0.9), (22.4, 1.8), (20.8, 2.2)]
     bell = [(20.8 * math.cos(math.radians(a)), 2.2 + 17.0 * math.sin(math.radians(a))) for a in range(0, 80, 5 if segs > 24 else 10)]
     neck = [(5.2, 18.6), (4.7, 19.6), (5.3, 20.3), (4.9, 21.0)]
-    parts.append(lathe("body", base + bell[1:] + neck, segs))
+    body = lathe("body", base + bell[1:] + neck, segs)
+    parts.append(body)
+    if door:
+        parts += stupa_entrance(body, segs)
     rib, step = [], 17.6 / ribs
     for i in range(ribs):
         r, z = 5.0 - 3.0 * i / (ribs - 1), 21.0 + i * step
@@ -174,6 +177,46 @@ def stupa(with_base, segs, ribs):
         parts.append(cyl(27.0, 5.0, (0, 0, -2.5), "cream", 8, (0, 0, math.radians(22.5))))
         parts.append(cyl(27.6, 0.6, (0, 0, -0.3), "gold", 8, (0, 0, math.radians(22.5))))
     return join(parts, "stupa")
+
+
+def stupa_entrance(body, segs):
+    """Cut a doorway in the front (-Y) of the dome and hollow it: a domed chamber with a gold lotus
+    ceiling, a marble floor, an altar for the Buddha (the app puts the temple's own statue on it) and a
+    red-and-gold door frame. Returns the new parts. Local z = 0 is the chamber floor."""
+    cutter = box((7.0, 14.0, 8.5), (0, -21.5, 4.25), "stone")
+    mod = body.modifiers.new("door", "BOOLEAN")
+    mod.operation, mod.solver, mod.object = "DIFFERENCE", "EXACT", cutter
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(cutter)
+    # the inside of the dome: a thin shell just inside the skin, closed so the door can be cut in it too
+    inner = [(19.6, 0.0), (19.6, 2.2)] + [(19.6 * math.cos(math.radians(a)), 2.2 + 14.4 * math.sin(math.radians(a))) for a in range(5, 90, 5)] + [(0.01, 16.7)]
+    shell = lathe("inner", inner, segs, "ochre")
+    bm = bmesh.new()
+    bm.from_mesh(shell.data)
+    bmesh.ops.reverse_faces(bm, faces=bm.faces)  # faces look inward
+    bm.to_mesh(shell.data)
+    bm.free()
+    solid = shell.modifiers.new("thick", "SOLIDIFY")
+    solid.thickness, solid.offset = 0.5, 1
+    bpy.context.view_layer.objects.active = shell
+    bpy.ops.object.modifier_apply(modifier=solid.name)
+    cutter2 = box((6.4, 16.0, 8.5), (0, -21.0, 4.25), "stone")
+    cut = shell.modifiers.new("door", "BOOLEAN")
+    cut.operation, cut.solver, cut.object = "DIFFERENCE", "EXACT", cutter2
+    bpy.ops.object.modifier_apply(modifier=cut.name)
+    bpy.data.objects.remove(cutter2)
+    parts = [shell]
+    parts.append(cyl(19.6, 0.3, (0, 0, -0.1), "stone", 48))  # the floor
+    for r, z in ((19.4, 2.4), (15.5, 9.0), (10.5, 13.5), (5.0, 15.9)):  # gold bands round the dome
+        parts.append(cyl(r, 0.35, (0, 0, z), "gold", 48))
+    parts.append(cone(3.0, 0.4, 0.8, (0, 0, 16.3), "gold", 16))  # a lotus at the apex
+    parts.append(box((10.0, 8.0, 1.2), (0, 10.5, 0.6), "gold"))  # the altar at the back
+    parts.append(box((8.0, 6.0, 0.7), (0, 10.5, 1.55), "ochre"))
+    for sx in (-1, 1):  # door frame
+        parts.append(box((0.8, 1.2, 8.8), (sx * 3.9, -23.2, 4.4), "red"))
+    parts.append(box((9.4, 1.4, 1.0), (0, -23.2, 9.0), "gold"))
+    return parts
 
 
 def hip_roof(cx, cy, hx, hy, z0, rise, inset, trim=True):
@@ -340,8 +383,19 @@ for radius, height, z, mat in ((46, 1.6, 0.8, "cream"), (40, 1.6, 2.4, "stone"),
 cyl(29.0, 1.5, (0, 0, 5.75), "ochre", 32)
 cyl(25.5, 1.5, (0, 0, 7.25), "gold", 32)
 
-main = stupa(False, 48, 14)
+main = stupa(False, 48, 14, door=True)
 main.location = (0, 0, 8.0)
+
+# The way in (owner, 2026-11-13: "xây lại đường vào bảo tháp"): 20 steps from the plaza, over the
+# terraces, to the door; 0.4 up and 1.35 along each. pagoda-layout.ts mirrors these numbers.
+STEP_RISE, STEP_RUN, STAIR_Y0 = 0.4, 1.35, -48.0
+for k in range(20):
+    top = STEP_RISE * (k + 1)
+    y = STAIR_Y0 + STEP_RUN * (k + 0.5)
+    box((8.0, STEP_RUN, top), (0, y, top / 2), "cream" if k % 2 else "stone")
+    for sx in (-1, 1):  # low walls either side
+        box((0.9, STEP_RUN, top + 0.7), (sx * 4.45, y, (top + 0.7) / 2), "cream")
+        box((1.1, STEP_RUN, 0.12), (sx * 4.45, y, top + 0.76), "gold")
 
 small = stupa(True, 16, 8)
 ring_r, terrace_top = 37.6, 3.3
@@ -350,6 +404,8 @@ for k in range(24):
     ang = k * math.tau / 24
     s = 0.26 if k % 3 == 0 else 0.17
     loc = (ring_r * math.cos(ang), ring_r * math.sin(ang), terrace_top + 5.0 * s)
+    if abs(loc[0]) < 8 and loc[1] < 0:  # keep the way in to the stupa clear
+        continue
     if first:
         small.location, small.scale = loc, (s, s, s)
         first = False
@@ -361,6 +417,8 @@ first = True
 for k in range(32):  # gold shrines round the lowest terrace, doors facing out
     ang = k * math.tau / 32
     loc = (41.5 * math.cos(ang), 41.5 * math.sin(ang), 1.65)
+    if abs(loc[0]) < 8 and loc[1] < 0:  # keep the way in to the stupa clear
+        continue
     if first:
         sh.location, sh.rotation_euler = loc, (0, 0, ang - math.pi / 2)
         first = False
