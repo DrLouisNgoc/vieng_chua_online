@@ -181,7 +181,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   const skyTexture = createSkyTexture();
   scene.background = skyTexture;
   // far enough that the hall still shows from the gate, 210 units away
-  const fog = new Fog(0xe8dcc4, 90, 340);
+  const fog = new Fog(0xc8e2fa, 140, 620);
   scene.fog = fog;
 
   const camera = new PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 800);
@@ -197,7 +197,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
 
   const hemi = new HemisphereLight(0xdfeaf5, 0x6b5a3e, 0.9);
   scene.add(hemi);
-  const sun = new DirectionalLight(0xffe8c4, 2.2);
+  const sun = new DirectionalLight(0xfff2d6, 3);
   sun.position.set(8, 14, 6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
