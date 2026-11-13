@@ -759,6 +759,29 @@ body {
   gap: 0.5rem;
 }
 
+.boards__finder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.boards__finder input {
+  min-height: 2.2rem;
+  padding: 0.2rem 0.6rem;
+  font: inherit;
+  border-radius: 0.5rem;
+  border: 1px solid oklch(72% 0.1 80deg / 45%);
+}
+
+.boards__finder input[type="number"] {
+  width: 6.5rem;
+}
+
+.boards__finder input[type="search"] {
+  flex: 1 1 10rem;
+}
+
 .boards__page-turn {
   padding: 0.35rem 0.8rem;
   font: inherit;

@@ -5,6 +5,7 @@
 // it can sit in a plain <img>, the same way the rest of this app's
 // canvas-generated images work (no live <canvas> to keep alive across
 // boards-panel.ts's full re-renders).
+import type { PDFDocumentProxy } from "pdfjs-dist";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 
 // The standard bundler-agnostic way to point at a worker file (Vite and
@@ -18,13 +19,35 @@ GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", i
 // in style.css), so pages render at a higher resolution to stay crisp.
 const PAGE_SCALE = 2.2;
 
+// Owner, 2026-11-13: "cho thêm phần tìm kiếm và đánh số trang muốn đi tới".
+export function clampPdfPage(page: number, numPages: number): number {
+  return Number.isNaN(page) ? 1 : Math.max(1, Math.min(Math.trunc(page), numPages));
+}
+
+// Every page once, starting right after `fromPage` and wrapping round, so
+// "find next" moves forward from where the reader is.
+export function searchPageOrder(numPages: number, fromPage: number): number[] {
+  return Array.from({ length: numPages }, (_, index) => ((fromPage + index) % numPages) + 1);
+}
+
+function squashSpaces(text: string): string {
+  return text.replaceAll(/\s+/g, " ").trim().toLowerCase();
+}
+
+export function hasText(pageText: string, query: string): boolean {
+  const needle = squashSpaces(query);
+  return needle !== "" && squashSpaces(pageText).includes(needle);
+}
+
 export interface PdfBook {
   numPages: number;
   pageImageUrl: (pageNumber: number) => Promise<string>;
+  // The first page after `fromPage` (wrapping) whose text has `query`, or null.
+  findPage: (query: string, fromPage: number) => Promise<number | null>;
 }
 
 export async function loadPdfBook(url: string): Promise<PdfBook | null> {
-  let doc;
+  let doc: PDFDocumentProxy;
   try {
     doc = await getDocument({ url }).promise;
   } catch {
@@ -32,6 +55,16 @@ export async function loadPdfBook(url: string): Promise<PdfBook | null> {
   }
 
   const cache = new Map<number, string>();
+  const textCache = new Map<number, string>();
+  async function textOf(pageNumber: number): Promise<string> {
+    const cached = textCache.get(pageNumber);
+    if (cached !== undefined) return cached;
+    const page = await doc.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const text = content.items.map((item) => ("str" in item ? item.str : "")).join(" ");
+    textCache.set(pageNumber, text);
+    return text;
+  }
   return {
     numPages: doc.numPages,
     async pageImageUrl(pageNumber) {
@@ -48,6 +81,13 @@ export async function loadPdfBook(url: string): Promise<PdfBook | null> {
       const dataUrl = canvas.toDataURL("image/png");
       cache.set(pageNumber, dataUrl);
       return dataUrl;
+    },
+    async findPage(query, fromPage) {
+      for (const pageNumber of searchPageOrder(doc.numPages, fromPage)) {
+        // eslint-disable-next-line no-await-in-loop -- pages are searched in order, stopping at the first hit
+        if (hasText(await textOf(pageNumber), query)) return pageNumber;
+      }
+      return null;
     },
   };
 }
