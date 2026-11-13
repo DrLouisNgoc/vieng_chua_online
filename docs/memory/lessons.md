@@ -67,3 +67,11 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
 - Lint autofix rewrites `socket.onopen = ...` to `addEventListener("open", ...)`; a test fake that only calls
   `this.onopen?.()` then silently never fires. Make such fakes extend `EventTarget` and `dispatchEvent`
   (`app/src/presence.test.ts`).
+- In `boards-panel.ts`, new code that calls `render()` (defined at the bottom of the factory) from a function
+  defined above it adds a `no-use-before-define` hit per call site; define the new function *after* `render()`
+  instead (even though its own caller is above `render()` — that one forward reference is cheaper than several
+  for `render()`). A fire-and-forget promise there must still avoid `no-void` (budget is just as fixed): use an
+  `async` helper awaited inside a `void (async () => { try {...} catch {...} })()` IIFE, never `promise.then()`/
+  `.catch()` bare (flags `unicorn/prefer-await`/`prefer-then-catch` instead). `check-suppressions.mjs` is a hard
+  ratchet with no per-PR override — manually raising a count in `eslint-suppressions.json` (even with a `Ruling:`
+  in the PR body) still fails CI; only restructuring actually works.
