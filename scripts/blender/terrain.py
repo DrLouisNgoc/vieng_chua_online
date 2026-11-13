@@ -193,14 +193,110 @@ while placed < 6500 and tries < 120000:
 trees = build_mesh("forest", forest["verts"], forest["colours"], forest["faces"], None)
 trees.data.shade_flat() if hasattr(trees.data, "shade_flat") else None
 
+# ------------------------------------------------------------------ waterfalls and streams
+def height_at(x, z):
+    theta = math.atan2(z - CZ, x - CX)
+    d = max(abs(x - CX) - HX, abs(z - CZ) - HZ)
+    return mountain_height(x, z, max(d, 0.0), theta)
+
+
+def outside_distance(x, z):
+    return max(abs(x - CX) - HX, abs(z - CZ) - HZ)
+
+
+def highest_crest(theta_lo, theta_hi, d_lo, d_hi):
+    """The highest point of the terrain in an angle and distance window: where a stream is born."""
+    best = (-1.0, 0.0, 0.0)
+    for it in range(40):
+        theta = theta_lo + (theta_hi - theta_lo) * it / 39
+        for idist in range(40):
+            d = d_lo + (d_hi - d_lo) * idist / 39
+            x, z = ring_point(theta, d)
+            h = height_at(x, z)
+            if h > best[0]:
+                best = (h, x, z)
+    return best[1], best[2]
+
+
+def descend(x, z):
+    """Follow the steepest way down from (x, z) to the foot of the mountains."""
+    path = [(x, z)]
+    for _ in range(600):
+        gx = (height_at(x + 9, z) - height_at(x - 9, z)) / 18
+        gz = (height_at(x, z + 9) - height_at(x, z - 9)) / 18
+        g = math.hypot(gx, gz)
+        if g < 1e-3:
+            break
+        x, z = x - gx / g * 4.0, z - gz / g * 4.0
+        path.append((x, z))
+        if outside_distance(x, z) < 6 or height_at(x, z) < 1.5:
+            break
+    return path
+
+
+wf = {"verts": [], "colours": [], "faces": [], "uvs": []}
+spray = {"verts": [], "colours": [], "faces": []}
+
+
+def add_stream(path, width_from, width_to, spray_points):
+    """A ribbon laid on the terrain along the path, wider toward the foot; spray_points are fractions along it."""
+    n = len(path)
+    cols = 7
+    base = len(wf["verts"])
+    length = 0.0
+    for i, (x, z) in enumerate(path):
+        px, pz = path[max(i - 1, 0)]
+        qx, qz = path[min(i + 1, n - 1)]
+        tx, tz = qx - px, qz - pz
+        norm = math.hypot(tx, tz) or 1.0
+        ax, az = -tz / norm, tx / norm
+        if i:
+            length += math.hypot(x - path[i - 1][0], z - path[i - 1][1])
+        width = width_from + (width_to - width_from) * (i / max(n - 1, 1)) ** 1.6
+        for k in range(cols):
+            u = -1 + 2 * k / (cols - 1)
+            wx, wz = x + ax * u * width / 2, z + az * u * width / 2
+            wf["verts"].append(B(wx, height_at(wx, wz) + 1.6 + 0.8 * (1 - u * u), wz))
+            wf["colours"].append((1.0, 1.0, 1.0))
+            wf["uvs"].append(((u + 1) / 2, length / 30.0))
+    for i in range(n - 1):
+        for k in range(cols - 1):
+            a0, a1 = base + i * cols + k, base + (i + 1) * cols + k
+            wf["faces"].append((a0, a0 + 1, a1 + 1, a1))
+    for frac, size in spray_points:  # one little triangle per spray puff; its red channel is the size / 100
+        x, z = path[min(n - 1, int(frac * (n - 1)))]
+        y = height_at(x, z) + 3
+        v0 = len(spray["verts"])
+        spray["verts"] += [B(x, y, z), B(x + 0.1, y, z), B(x, y, z + 0.1)]
+        spray["colours"] += [(size / 100.0, 0.0, 0.0)] * 3
+        spray["faces"].append((v0, v0 + 1, v0 + 2))
+
+
+# the big one: on the north range, behind the pond, as the owner marked it
+# two huge falls (owner, 2026-11-13: "thác to đùng vào"), one each side of the north axis
+for lo, hi, w0, w1 in ((-1.76, -1.62, 55.0, 150.0), (-1.52, -1.38, 50.0, 135.0)):
+    x0, z0 = highest_crest(lo, hi, 170.0, 330.0)
+    add_stream(descend(x0, z0), w0, w1, [(1.0, 130), (0.85, 90), (0.6, 80), (0.35, 70)])
+# a few smaller streams elsewhere round the ring
+for lo, hi, w0, w1 in ((-2.4, -2.1, 6, 15), (-0.9, -0.6, 7, 16), (0.2, 0.5, 6, 14), (1.3, 1.6, 7, 17), (2.4, 2.7, 6, 14)):
+    xs, zs = highest_crest(lo, hi, 150.0, 300.0)
+    add_stream(descend(xs, zs), w0 * 1.8, w1 * 1.8, [(1.0, 48)])
+
+waterfall = build_mesh("waterfall", wf["verts"], wf["colours"], wf["faces"], None)
+uv_layer = waterfall.data.uv_layers.new(name="UVMap")
+for poly in waterfall.data.polygons:
+    for loop in poly.loop_indices:
+        uv_layer.data[loop].uv = wf["uvs"][waterfall.data.loops[loop].vertex_index]
+spray_mesh = build_mesh("spray", spray["verts"], spray["colours"], spray["faces"], None)
+
 bpy.ops.object.select_all(action="DESELECT")
-for o in (mountains, river, trees):
+for o in (mountains, river, trees, waterfall, spray_mesh):
     o.select_set(True)
 bpy.context.view_layer.objects.active = mountains
 bpy.ops.export_scene.gltf(
     filepath=out_glb, export_format="GLB", use_selection=True, export_meshopt_compression_enable=True
 )
-tris = sum(len(p.vertices) - 2 for o in (mountains, river, trees) for p in o.data.polygons)
+tris = sum(len(p.vertices) - 2 for o in (mountains, river, trees, waterfall, spray_mesh) for p in o.data.polygons)
 print("TERRAIN_OK triangles:", tris)
 
 if preview:  # a panorama from the walkable edge, and a view from the temple's gate

@@ -68,6 +68,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/pagoda-model.ts` | Loads `app/public/models/pagoda.glb` (Shwedagon-style gold pagoda with its own wall, gate and chánh điện, far scenery east of the wall; spot in `PAGODA`), fog off; no file → no pagoda |
 | `app/src/coc-model.ts` | The 8 cốc and the meditation hut (no title → no nameplate, 3.2 m) in the pagoda's Myanmar style: shape from `app/public/models/coc.glb`, plus the renamable nameplate and the small lamp; old wooden hut if the file is missing |
 | `app/src/terrain-layout.ts` | `WALK_AREA`, the rectangle of walkable land, and four slabs beyond it that end the walk (mountains and river lie outside) |
+| `app/src/waterfall.ts` | Animates the terrain's waterfalls: flowing water texture on the `waterfall` ribbon, drifting mist sprites at the `spray` spots; returns the per-frame update |
 | `app/src/terrain-model.ts` | Loads `app/public/models/terrain.glb`: foothills, a river ring and snow-capped mountains all round the walkable land, fog off; no file → no mountains |
 | `app/src/temple-structure-model.ts` | Loads `gate.glb` (tam quan: red pillars, three-tier teal roof; the SƠN TỰ plaque stays code), `bell-tower.glb` (pavilion with a Burmese bell), `hall-body.glb` (the hall's three walls, all pillars and front beam) and `perimeter-wall.glb` (pilasters, tiled cap) built in world coordinates by `scripts/blender/temple.py`; a missing file → the old procedural walls |
 | `app/src/hall-roof-model.ts` | The main hall's Myanmar-style roof (3 teal tiers, gold spire) from `app/public/models/hall-roof.glb`, placed on the hall's roof line; old curved roof if the file is missing |
@@ -142,7 +143,7 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `scripts/blender/coc.py` — same for `coc.glb` (the Myanmar-style cốc, ~1k triangles, 6 materials).
   `scripts/blender/hall.py` — same for `hall-roof.glb` (the main hall's roof, ~1.2k triangles, 3 materials).
   `scripts/blender/gate_bell.py` — same for `gate.glb` and `bell-tower.glb` (~1.5k and ~1k triangles, local coordinates).
-  `scripts/blender/terrain.py` — same for `terrain.glb` (mountains + river + ~6.5k pines, ~180k triangles, vertex colours; its CX/CZ/HX/HZ repeat `WALK_AREA`).
+  `scripts/blender/terrain.py` — same for `terrain.glb` (mountains + river + ~6.5k pines + two huge waterfalls and five streams, ~205k triangles, vertex colours; its CX/CZ/HX/HZ repeat `WALK_AREA`).
   `scripts/blender/temple.py` — same for `hall-body.glb` (~17k triangles) and `perimeter-wall.glb` (~7k), in app world coordinates.
   `scripts/blender/nam_tong.py` — same for `monk-nam-tong.glb` (the avatar: own rig, head, saffron robe; ~15k triangles, 4 meshes; nothing taken from sansatemple).
 - `docs/memory/` — handoff, decisions, lessons, open questions. `docs/specs/` — milestone 1–10 history
