@@ -59,10 +59,10 @@ describe("the shipped terrain.glb", () => {
     expect(box.min.z).toBeLessThan(WALK_AREA.minZ - 300);
   });
 
-  it("is a modest static mesh: a few meshes, about 100k triangles", async () => {
+  it("is a static mesh of a few meshes and under 220k triangles, so it stays light enough to draw every frame", async () => {
     const meshes = meshesOf(await parseShipped());
     expect(meshes.length).toBeLessThanOrEqual(3);
-    expect(meshes.reduce((sum, mesh) => sum + triangles(mesh.geometry), 0)).toBeLessThan(130_000);
+    expect(meshes.reduce((sum, mesh) => sum + triangles(mesh.geometry), 0)).toBeLessThan(220_000);
   });
 });
 

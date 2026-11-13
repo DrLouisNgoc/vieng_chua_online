@@ -141,7 +141,7 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~70k triangles, 10 materials; plaza, wall + gate, hollow chánh điện; the statue in it is the temple's own, copied at runtime).
   `scripts/blender/coc.py` — same for `coc.glb` (the Myanmar-style cốc, ~1k triangles, 6 materials).
   `scripts/blender/hall.py` — same for `hall-roof.glb` (the main hall's roof, ~1.2k triangles, 3 materials).
-  `scripts/blender/terrain.py` — same for `terrain.glb` (mountains + river, ~103k triangles, vertex colours; its CX/CZ/HX/HZ repeat `WALK_AREA`).
+  `scripts/blender/terrain.py` — same for `terrain.glb` (mountains + river + ~6.5k pines, ~180k triangles, vertex colours; its CX/CZ/HX/HZ repeat `WALK_AREA`).
   `scripts/blender/temple.py` — same for `hall-body.glb` (~17k triangles) and `perimeter-wall.glb` (~7k), in app world coordinates.
   `scripts/blender/nam_tong.py` — same for `monk-nam-tong.glb` (the avatar: own rig, head, saffron robe; ~15k triangles, 4 meshes; nothing taken from sansatemple).
 - `docs/memory/` — handoff, decisions, lessons, open questions. `docs/specs/` — milestone 1–10 history

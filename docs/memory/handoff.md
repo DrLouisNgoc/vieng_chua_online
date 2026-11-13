@@ -22,7 +22,7 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   copy of the temple's own Buddha on its altar via `statue-copy.ts`); the 8 cốc and the meditation hut (#89, #92); the
   main hall's roof (#94), walls and pillars, and the perimeter wall (#108); every visitor's avatar, our own Nam tông
   novice with its own rig (#98, `monk.glb` is the fallback, robe colour index 0 saffron).
-- Land (#114): the walkable land is `WALK_AREA` (terrain-layout.ts, x -160..300, z -160..200; the walk ends at its edge) with a green ground; beyond it `terrain.glb` (scripts/blender/terrain.py) fills the rest: foothills, a river ring, snow-capped mountains to the horizon.
+- Land (#114): the walkable land is `WALK_AREA` (terrain-layout.ts, x -160..300, z -160..200; the walk ends at its edge) with a green ground; beyond it `terrain.glb` (scripts/blender/terrain.py) fills the rest: foothills with a pine forest, a river ring, sharp snow-capped mountains to the horizon (~180k triangles, 2.9 MB).
 - East gate (#102): a gate in the east wall (`EAST_GATE`) and a stone way lead to the pagoda complex, which is
   walkable (`pagoda-layout.ts`: colliders, plaza and hall floor heights, lamps). The camera does not collide with it.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
