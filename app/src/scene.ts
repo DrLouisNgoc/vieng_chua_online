@@ -33,7 +33,7 @@ import { ROBE_COLORS } from "./onboarding";
 import { createRemoteVisitors } from "./remote-visitors";
 import type { OutgoingState, VisitorView } from "./visitor-protocol";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { resolveMove } from "./collision";
+import { resolveMoveInSteps } from "./collision";
 import { createKeyState } from "./key-state";
 import { loadCocTemplate } from "./coc-model";
 import { loadHallRoof } from "./hall-roof-model";
@@ -75,7 +75,8 @@ const KEYBOARD_LOOK_AHEAD = 5;
 const GROUND_SIZE = 800;
 const GROUND_TEXTURE_REPEAT = 160;
 const SHADOW_HALF_EXTENT = 45;
-const RUN_MULTIPLIER = 2.2;
+// Shift runs at three times the walking speed (owner, 2026-11-13).
+const RUN_MULTIPLIER = 3;
 const RUN_KEYS = ["ShiftLeft", "ShiftRight"];
 const ALTAR_TOP = HALL.platformHeight + HALL.altarHeight;
 const TURN_SPEED = 10; // radians per second the avatar turns to face its walk direction
@@ -316,7 +317,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   const avatarGroundY = avatar.position.y;
   const movement = createMovementController({
     start: AVATAR_START,
-    constrain: (from, to) => resolveMove(from, to, COLLIDERS),
+    constrain: (from, to) => resolveMoveInSteps(from, to, COLLIDERS),
   });
   const avatarRig = createAvatarRig(avatar);
   const remoteVisitors = createRemoteVisitors({
