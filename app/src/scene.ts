@@ -35,6 +35,7 @@ import type { OutgoingState, VisitorView } from "./visitor-protocol";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { resolveMoveInSteps } from "./collision";
 import { createKeyState } from "./key-state";
+import { createClouds } from "./clouds";
 import { loadCocTemplate } from "./coc-model";
 import { loadHallRoof } from "./hall-roof-model";
 import { loadLanternGeometries } from "./lantern-model";
@@ -297,6 +298,8 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   ]);
   if (terrain) scene.add(terrain);
   const waterfallUpdate = terrain ? animateWaterfall(terrain) : null;
+  const clouds = createClouds();
+  scene.add(clouds.group);
   scene.add(grounds.group);
   if (pagoda) {
     scene.add(pagoda);
@@ -531,6 +534,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     renderer.toneMappingExposure = sky.exposure;
     paintSky(skyTexture, sky.skyTop, sky.skyHorizon);
     grounds.setNight(sky.night);
+    clouds.setNight(sky.night);
   }
 
   let frameHandle = 0;
@@ -581,6 +585,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     );
     grounds.update(deltaSeconds);
     waterfallUpdate?.(nowMs / 1000);
+    clouds.update(nowMs / 1000);
     updateCamera(deltaSeconds);
     remoteVisitors.update(deltaSeconds, camera.position);
     options.onFrame?.(deltaSeconds);
