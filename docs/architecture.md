@@ -76,6 +76,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 |---|---|
 | `app/src/onboarding.ts` | Onboarding form state: name rules, locked pháp danh, gender, robe colour |
 | `app/src/avatar-svg.ts` | Parametric SVG avatar for the onboarding preview |
+| `app/src/monk-model.ts` | The avatar file: `app/public/models/monk-nam-tong.glb` (our own Nam tông novice, same 17 bones), falling back to the original `monk.glb` when it is missing |
 | `app/src/avatar-look.ts` | Robe tint and name label as seen by others |
 | `app/src/avatar-rig.ts` | Poses one monk.glb instance from a pose |
 | `app/src/body-pose.ts` | monk.glb bone names and pose maths (offsets from rest) |
@@ -135,5 +136,6 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~66k triangles, 10 materials; plaza, wall + gate, chánh điện).
   `scripts/blender/coc.py` — same for `coc.glb` (the Myanmar-style cốc, ~1k triangles, 6 materials).
   `scripts/blender/hall.py` — same for `hall-roof.glb` (the main hall's roof, ~1.2k triangles, 3 materials).
+  `scripts/blender/nam_tong.py` — same for `monk-nam-tong.glb` (the avatar: own rig, head, saffron robe; ~15k triangles, 4 meshes; nothing taken from sansatemple).
 - `docs/memory/` — handoff, decisions, lessons, open questions. `docs/specs/` — milestone 1–10 history
   (read only when the task touches that milestone). `docs/for-owner/` — Vietnamese guides for the owners.
