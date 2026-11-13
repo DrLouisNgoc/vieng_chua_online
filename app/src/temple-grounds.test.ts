@@ -84,4 +84,28 @@ describe("buildTempleGrounds", () => {
     const without = await buildTempleGrounds(stubLoader, 4);
     expect(without.group.getObjectByName("hall-roof")).toBeUndefined();
   });
+
+  it("uses the Blender-made hall walls and pillars, and perimeter wall, when given (old ones otherwise)", async () => {
+    const hallBody = new Group();
+    hallBody.name = "hall-body";
+    hallBody.add(new Mesh(new BoxGeometry(76, 15, 1)));
+    const perimeterWall = new Group();
+    perimeterWall.name = "perimeter-wall";
+    perimeterWall.add(new Mesh(new BoxGeometry(180, 3, 1)));
+    const withModels = await buildTempleGrounds(stubLoader, 4, { hallBody, perimeterWall });
+    expect(withModels.group.getObjectByName("chinh-dien")?.getObjectByName("hall-body")).toBe(hallBody);
+    expect(withModels.group.getObjectByName("tuong-bao")?.getObjectByName("perimeter-wall")).toBe(perimeterWall);
+    const without = await buildTempleGrounds(stubLoader, 4);
+    expect(without.group.getObjectByName("hall-body")).toBeUndefined();
+    expect(without.group.getObjectByName("perimeter-wall")).toBeUndefined();
+    let meshesOld = 0;
+    let meshesNew = 0;
+    without.group.traverse(() => {
+      meshesOld += 1;
+    });
+    withModels.group.traverse(() => {
+      meshesNew += 1;
+    });
+    expect(meshesNew).toBeLessThan(meshesOld); // the 26 pillars + their bases and the wall boxes are gone
+  });
 });
