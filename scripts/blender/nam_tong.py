@@ -173,27 +173,37 @@ HEAD_CENTER, HEAD_RADII = Vector((0, 0, 1.2)), Vector((0.26, 0.245, 0.25))
 
 
 def paint_face(size=512):
-    """A calm closed-eyed smile with brows and blush, drawn on a skin-coloured texture."""
+    """A calm closed-eyed smile with brows and blush on a skin-coloured texture.
+
+    The texture wraps round the head: u = 0.5 is straight ahead, u = 0 and 1 the
+    back, v is height. Features are drawn on the front half only (cos > 0), so
+    the back of the head stays plain skin.
+    """
     skin, ink, blush = (0.78, 0.5, 0.33), (0.18, 0.08, 0.05), (0.9, 0.45, 0.4)
     pixels = [0.0] * (size * size * 4)
     for py in range(size):
         z = HEAD_CENTER.z + (py / size - 0.5) * 2 * HEAD_RADII.z
+        ring = math.sqrt(max(0.0, 1 - ((z - HEAD_CENTER.z) / HEAD_RADII.z) ** 2))
         for px in range(size):
-            x = (px / size - 0.5) * 2 * HEAD_RADII.x
+            theta = (px / size - 0.5) * math.tau
             color = skin
-            for sx in (-1, 1):
-                if ((x - sx * 0.145) / 0.05) ** 2 + ((z - 1.135) / 0.032) ** 2 < 1:  # blush
-                    color = tuple(0.65 * s + 0.35 * b for s, b in zip(skin, blush))
-                dx = x - sx * 0.092
-                if abs(dx) < 0.042 and abs(z - (1.215 + 0.018 * (1 - (dx / 0.042) ** 2))) < 0.0045:  # closed eye
+            if math.cos(theta) > 0.05:
+                x = HEAD_RADII.x * math.sin(theta) * ring  # where this texel sits across the face
+                for sx in (-1, 1):
+                    if ((x - sx * 0.145) / 0.05) ** 2 + ((z - 1.135) / 0.032) ** 2 < 1:  # blush
+                        color = tuple(0.65 * s + 0.35 * b for s, b in zip(skin, blush))
+                    dx = x - sx * 0.092
+                    if abs(dx) < 0.042 and abs(z - (1.215 + 0.018 * (1 - (dx / 0.042) ** 2))) < 0.0045:  # closed eye
+                        color = ink
+                    dxb = x - sx * 0.095
+                    if abs(dxb) < 0.05 and abs(z - (1.285 + 0.012 * (1 - (dxb / 0.05) ** 2))) < 0.0035:  # brow
+                        color = tuple(0.5 * s + 0.5 * i for s, i in zip(skin, ink))
+                if abs(x) < 0.035 and abs(z - (1.105 - 0.012 * (1 - (x / 0.035) ** 2))) < 0.004:  # smile
                     color = ink
-                dxb = x - sx * 0.095
-                if abs(dxb) < 0.05 and abs(z - (1.285 + 0.012 * (1 - (dxb / 0.05) ** 2))) < 0.0035:  # brow
-                    color = tuple(0.5 * s + 0.5 * i for s, i in zip(skin, ink))
-            if abs(x) < 0.035 and abs(z - (1.105 - 0.012 * (1 - (x / 0.035) ** 2))) < 0.004:  # smile
-                color = ink
             i = (py * size + px) * 4
             pixels[i : i + 4] = (*color, 1.0)
+    for py in range(size):  # one face only: the back-of-head column is plain skin
+        assert tuple(pixels[py * size * 4 : py * size * 4 + 3]) == skin, "a feature leaked onto the back of the head"
     image = bpy.data.images.new("nam_tong_face", size, size)
     image.pixels.foreach_set(pixels)
     image.pack()
@@ -216,9 +226,23 @@ bpy.ops.object.transform_apply(scale=True)
 for p in head.data.polygons:
     p.use_smooth = True
 uv = head.data.uv_layers[0] if head.data.uv_layers else head.data.uv_layers.new(name="UVMap")
-for loop in head.data.loops:  # seen from the front, x and z map straight onto the texture
-    v = head.data.vertices[loop.vertex_index].co
-    uv.data[loop.index].uv = (0.5 + (v.x - HEAD_CENTER.x) / (2 * HEAD_RADII.x), 0.5 + (v.z - HEAD_CENTER.z) / (2 * HEAD_RADII.z))
+
+
+def head_u(v):
+    return 0.5 + math.atan2(v.x - HEAD_CENTER.x, (v.y - HEAD_CENTER.y) * HEAD_RADII.x / HEAD_RADII.y) / math.tau
+
+
+for poly in head.data.polygons:  # wrap round the head; the seam is at the back
+    loops = [(loop, head.data.vertices[head.data.loops[loop].vertex_index].co) for loop in poly.loop_indices]
+    # a vertex on the axis (a pole) has no angle of its own: take the others' average
+    angles = [None if math.hypot(v.x - HEAD_CENTER.x, v.y - HEAD_CENTER.y) < 1e-4 else head_u(v) for _, v in loops]
+    known = [u for u in angles if u is not None]
+    mean = sum(known) / len(known) if known else 0.5
+    angles = [mean if u is None else u for u in angles]
+    if max(angles) - min(angles) > 0.5:  # the face crosses the seam: lift the low side by one turn
+        angles = [u + 1 if u < 0.5 else u for u in angles]
+    for (loop, v), u in zip(loops, angles):
+        uv.data[loop].uv = (u, 0.5 + (v.z - HEAD_CENTER.z) / (2 * HEAD_RADII.z))
 head.data.materials.append(face_mat)
 for sx in (-1, 1):  # ears
     sphere((sx * 0.252, -0.005, 1.19), (0.022, 0.03, 0.05), "skin", skin_mat, 12, 8)
@@ -308,7 +332,7 @@ if out_png:  # preview: front and three-quarter view in soft light
     scene.render.engine = "BLENDER_EEVEE"
     scene.view_settings.view_transform = "Standard"
     scene.render.resolution_x, scene.render.resolution_y = 1400, 1000
-    for loc, name in (((1.5, 3.2, 1.0), "a"), ((-3.0, 1.6, 0.9), "b")):
+    for loc, name in (((1.5, 3.2, 1.0), "a"), ((-3.0, 1.6, 0.9), "b"), ((-1.5, -3.2, 1.0), "c")):
         cam_data = bpy.data.cameras.new("cam" + name)
         cam_data.lens = 50
         cam = bpy.data.objects.new("cam" + name, cam_data)
