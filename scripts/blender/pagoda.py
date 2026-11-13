@@ -195,17 +195,16 @@ def stupa_entrance(body, segs):
     bm = bmesh.new()
     bm.from_mesh(shell.data)
     bmesh.ops.reverse_faces(bm, faces=bm.faces)  # faces look inward
+    # open the doorway in the shell itself (a Boolean on a thin shell can miss it): drop the faces
+    # in front of the door, which leaves a gap the solidify below turns into a clean frame
+    doorway = [f for f in bm.faces if abs(f.calc_center_median().x) < 4.2 and f.calc_center_median().y < -8 and f.calc_center_median().z < 10]
+    bmesh.ops.delete(bm, geom=doorway, context="FACES")
     bm.to_mesh(shell.data)
     bm.free()
     solid = shell.modifiers.new("thick", "SOLIDIFY")
     solid.thickness, solid.offset = 0.5, 1
     bpy.context.view_layer.objects.active = shell
     bpy.ops.object.modifier_apply(modifier=solid.name)
-    cutter2 = box((6.4, 16.0, 8.5), (0, -21.0, 4.25), "stone")
-    cut = shell.modifiers.new("door", "BOOLEAN")
-    cut.operation, cut.solver, cut.object = "DIFFERENCE", "EXACT", cutter2
-    bpy.ops.object.modifier_apply(modifier=cut.name)
-    bpy.data.objects.remove(cutter2)
     parts = [shell]
     parts.append(cyl(19.6, 0.3, (0, 0, -0.1), "stone", 48))  # the floor
     for r, z in ((19.4, 2.4), (15.5, 9.0), (10.5, 13.5), (5.0, 15.9)):  # gold bands round the dome
