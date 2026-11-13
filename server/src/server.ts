@@ -35,11 +35,12 @@ const MAX_PAYLOAD_BYTES = 2048;
 const TICK_MS = 100;
 const MAX_MESSAGES_PER_SECOND = 30;
 const MAX_CONNECTIONS_PER_IP = 8;
-// The temple bell also tolls on its own, once an hour, independent of
-// anyone joining (owner, 2026-11-10: "âm thanh chuông tự động đánh...
-// cứ 1 tiếng đánh 1 lần"), aligned to the wall clock (owner, 2026-11-11:
-// "theo giờ đồng hồ") — see bell-schedule.ts.
-const DEFAULT_BELL_INTERVAL_MS = 60 * 60 * 1000;
+// The temple bell also tolls on its own, independent of anyone joining
+// (owner, 2026-11-10: "âm thanh chuông tự động đánh... cứ 1 tiếng đánh 1
+// lần"), aligned to the wall clock (owner, 2026-11-11: "theo giờ đồng
+// hồ") — see bell-schedule.ts. Every 30 minutes (owner, 2026-11-13: "phần
+// chuông đổi lại thành 30p 1 lần").
+const DEFAULT_BELL_INTERVAL_MS = 30 * 60 * 1000;
 // WebSocket close code 1001 "going away" (RFC 6455 §7.4.1).
 const GOING_AWAY = 1001;
 const SHUTDOWN_GRACE_MS = 3000;

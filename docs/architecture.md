@@ -31,7 +31,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 ## server/src
 | File | Owns |
 |---|---|
-| `server/src/server.ts` | Entry point: HTTP server + WebSocketServer on one port, connection cap, rate limit, Origin check, join/chat/state routing, hourly bell, graceful SIGTERM shutdown |
+| `server/src/server.ts` | Entry point: HTTP server + WebSocketServer on one port, connection cap, rate limit, Origin check, join/chat/state routing, bell every 30 min, graceful SIGTERM shutdown |
 | `server/src/protocol.ts` | Client→server message types and strict parsing (everything a client sends is untrusted) |
 | `server/src/presence-room.ts` | Connected-visitor count and ids |
 | `server/src/visitor-room.ts` | Joined visitors' latest state, seat ownership, dirty flag for the 10 Hz broadcast |
@@ -41,7 +41,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `server/src/boards-persisted.ts` | Reading `boards.json`: validates the persisted (possibly older) shape and `mergeWithSeed()` with the current seeds |
 | `server/src/boards-http.ts` | HTTP routes for boards and the admin panel (no framework); per-ip write cap and wrong-password lockout (429) |
 | `server/src/client-ip.ts` | The real visitor ip behind Caddy (first `X-Forwarded-For` entry) — used for every per-ip rule |
-| `server/src/bell-schedule.ts` | `msUntilNextBoundary()` — aligns the hourly bell to the wall clock instead of server start time |
+| `server/src/bell-schedule.ts` | `msUntilNextBoundary()` — aligns the bell (every 30 min) to the wall clock instead of server start time |
 | `server/src/rate-limit.ts` | Fixed-window hit counter per key, prunes expired keys |
 | `server/src/boards-file.ts` | JSON read/write for `data/*.json`: atomic writes (temp + rename); missing file → null, corrupt file → throws |
 | `server/src/admin-auth.ts` | One admin password, set on first login |
