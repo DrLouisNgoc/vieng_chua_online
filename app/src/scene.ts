@@ -35,6 +35,7 @@ import type { OutgoingState, VisitorView } from "./visitor-protocol";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
+import { loadCocTemplate } from "./coc-model";
 import { loadLanternGeometries } from "./lantern-model";
 import { loadPagoda } from "./pagoda-model";
 import { buildTempleGrounds } from "./temple-grounds";
@@ -250,8 +251,8 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   // faces +x by default, not -z toward the congregation like the rest of
   // this scene's models — rotate it to match.
   async function buildGroundsWithLanterns(): Promise<TempleGrounds> {
-    const lanterns = await loadLanternGeometries(gltfLoader);
-    return buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy(), lanterns);
+    const [lanterns, cocTemplate] = await Promise.all([loadLanternGeometries(gltfLoader), loadCocTemplate(gltfLoader)]);
+    return buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy(), lanterns, cocTemplate);
   }
   const [, avatar, bodhi, grounds, pagoda] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
