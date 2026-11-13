@@ -100,6 +100,20 @@ export const PAGODA_HALL_BUDDHA = {
   rotationY: Math.PI,
 } as const;
 
+// Where the visitor worships (owner, 2026-11-13: "nơi để thắp hương, cầu nguyện, quỳ lạy"): the
+// strip of floor in front of the altar, which the altar's collider makes the end of the walk, with
+// an incense urn in the middle of it (solid) and kneeling cushions (flat, walkable) round it.
+const ALTAR_FRONT_Y = HALL.by + HALL.halfY - HALL.wall - 2 * HALL_ALTAR.halfY;
+const zoneBack = pagodaToWorld(HALL.bx - 13, ALTAR_FRONT_Y - 4.6);
+const zoneFront = pagodaToWorld(HALL.bx + 13, ALTAR_FRONT_Y + 0.4);
+export const PAGODA_HALL_STATUE_ZONE: Box = {
+  minX: Math.min(zoneBack.x, zoneFront.x),
+  maxX: Math.max(zoneBack.x, zoneFront.x),
+  minZ: Math.min(zoneBack.z, zoneFront.z),
+  maxZ: Math.max(zoneBack.z, zoneFront.z),
+};
+export const PAGODA_HALL_URN = pagodaToWorld(HALL.bx, ALTAR_FRONT_Y - 2.2);
+
 function hallColliders(): Box[] {
   const { bx, by, halfX, halfY, wall, door } = HALL;
   const side = (halfX - door) / 2;
@@ -111,6 +125,7 @@ function hallColliders(): Box[] {
     boxAround(bx + door + side, by - halfY + wall / 2, side, wall / 2),
     ...HALL_COLUMN_XS.flatMap((x) => HALL_COLUMN_YS.map((y) => boxAround(bx + x, by + y, 0.7, 0.7))),
     boxAround(bx, by + halfY - wall - HALL_ALTAR.halfY, HALL_ALTAR.halfX, HALL_ALTAR.halfY), // altar and Buddha
+    boxAround(bx, ALTAR_FRONT_Y - 2.2, 1.3, 1.3), // the incense urn
   ];
 }
 

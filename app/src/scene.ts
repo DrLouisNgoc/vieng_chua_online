@@ -37,6 +37,7 @@ import { resolveMoveInSteps } from "./collision";
 import { createKeyState } from "./key-state";
 import { createClouds } from "./clouds";
 import { loadCocTemplate } from "./coc-model";
+import { createIncenseSmoke } from "./incense-smoke";
 import { loadHallRoof } from "./hall-roof-model";
 import { loadLanternGeometries } from "./lantern-model";
 import { loadMonkOrFallback, NAM_TONG_MONK_URL } from "./monk-model";
@@ -65,6 +66,7 @@ import {
   BROADLEAF_TREES,
   COLLIDERS,
   HALL,
+  INCENSE_URNS,
   PINE_POSITIONS,
   STATUES,
   WALK_AREA,
@@ -443,6 +445,10 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   // Camera-relative WASD: the camera keeps whatever angle the player dragged
   // it to; the avatar turns to face the direction it walks.
   let heading = START_HEADING;
+  const incenseSmoke = createIncenseSmoke(
+    INCENSE_URNS.map((urn) => ({ x: urn.x, y: groundHeightAt(urn) + 1.2, z: urn.z })),
+  );
+  scene.add(incenseSmoke.group);
   const interactions = createInteractionRuntime({
     scene,
     avatar,
@@ -455,6 +461,9 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     storage: browserStorage(),
     onView: options.onInteractionView,
     onRingBell: options.onRingBell,
+    onLightIncense: (urnIndex) => {
+      incenseSmoke.light(urnIndex);
+    },
   });
   const cameraYaw = (): number => START_HEADING + rig.yawOffset;
   function applyKeyboardMovement(deltaSeconds: number): void {
@@ -584,6 +593,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
       pos.z + skyDirection.z * SUN_DISTANCE,
     );
     grounds.update(deltaSeconds);
+    incenseSmoke.update(nowMs / 1000);
     waterfallUpdate?.(nowMs / 1000);
     clouds.update(nowMs / 1000);
     updateCamera(deltaSeconds);

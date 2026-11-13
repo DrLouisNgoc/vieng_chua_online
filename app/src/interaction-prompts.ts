@@ -2,9 +2,9 @@ import { BEADS_PER_ROUND } from "./bead-counter";
 import type { InteractionSnapshot } from "./interaction-state";
 import type { Targets } from "./interaction-targets";
 
-export type InteractionAction = "sit" | "bow" | "takeBroom" | "leaveBroom" | "greet" | "bead" | "ringBell";
+export type InteractionAction = "sit" | "bow" | "takeBroom" | "leaveBroom" | "greet" | "bead" | "ringBell" | "incense";
 
-export type InteractionKey = "E" | "Q" | "B";
+export type InteractionKey = "E" | "Q" | "B" | "H";
 
 export interface Prompt {
   action: InteractionAction;
@@ -22,6 +22,7 @@ export const INTERACTION_TEXT: Record<InteractionAction, string> = {
   greet: "Chắp tay",
   bead: "Lần hạt",
   ringBell: "Thỉnh chuông",
+  incense: "Thắp hương",
 };
 
 export const ACTION_KEYS: Record<InteractionAction, InteractionKey> = {
@@ -32,6 +33,7 @@ export const ACTION_KEYS: Record<InteractionAction, InteractionKey> = {
   greet: "Q",
   bead: "B",
   ringBell: "E",
+  incense: "H",
 };
 
 export function beadCounterText(round: number, total: number): string {
@@ -56,6 +58,8 @@ export function promptsFor(snapshot: InteractionSnapshot, targets: Targets): Pro
   const offered: InteractionAction[] = [];
   const context = contextAction(snapshot, targets);
   if (context !== null) offered.push(context);
+  // Incense needs both hands, like the greeting and the beads.
+  if (!snapshot.holdingBroom && targets.incenseIndex !== null) offered.push("incense");
   // Both hands are on the broom while holding it.
   if (!snapshot.holdingBroom) offered.push("greet", "bead");
 

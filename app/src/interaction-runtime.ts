@@ -16,7 +16,16 @@ import { findTargets, seatHeading } from "./interaction-targets";
 import { createLeafField } from "./leaf-field";
 import type { MovementController, Point } from "./movement";
 import { poseForActivity } from "./pose-for-activity";
-import { BELL_TOWER, BROOM_SPOT, groundHeightAt, LEAF_SOURCES, MEDITATION_SEATS, STATUE_ZONE } from "./temple-layout";
+import {
+  BELL_TOWER,
+  BROOM_SPOT,
+  groundHeightAt,
+  INCENSE_URNS,
+  LEAF_SOURCES,
+  MEDITATION_SEATS,
+  PAGODA_HALL_STATUE_ZONE,
+  STATUE_ZONE,
+} from "./temple-layout";
 
 // Ties the pure interaction modules to the 3D scene: input -> state,
 // state -> pose and props, state -> HUD view. scene.ts calls it once per
@@ -38,6 +47,8 @@ export interface InteractionRuntimeDeps {
   storage: Pick<Storage, "getItem" | "setItem"> | null;
   onView?: (view: InteractionView) => void;
   onRingBell?: () => void;
+  // The visitor lit incense at INCENSE_URNS[urnIndex] (picture only: smoke).
+  onLightIncense?: (urnIndex: number) => void;
 }
 
 export interface InteractionRuntime {
@@ -62,6 +73,7 @@ const KEY_CODES = new Map<string, InteractionKey>([
   ["KeyE", "E"],
   ["KeyQ", "Q"],
   ["KeyB", "B"],
+  ["KeyH", "H"],
 ]);
 const POSE_BLEND_SECONDS = 0.25;
 const SWEEP_RADIUS = 1;
@@ -74,6 +86,8 @@ const TARGET_LAYOUT = {
   seats: MEDITATION_SEATS,
   broomSpot: BROOM_SPOT,
   statueZone: STATUE_ZONE,
+  extraStatueZones: [PAGODA_HALL_STATUE_ZONE],
+  incense: INCENSE_URNS,
   bell: BELL_TOWER,
 };
 
@@ -145,6 +159,11 @@ function didSit({ state, targets, deps }: ActionContext): boolean {
   return true;
 }
 
+// Joined palms while the incense is lit; the smoke is the scene's business.
+function lightIncense({ state, targets, deps }: ActionContext): void {
+  if (state.greet() && targets.incenseIndex !== null) deps.onLightIncense?.(targets.incenseIndex);
+}
+
 // Returns false when nothing happened and the view need not be refreshed.
 function didRunAction(action: InteractionAction, context: ActionContext): boolean {
   const { state } = context;
@@ -167,6 +186,10 @@ function didRunAction(action: InteractionAction, context: ActionContext): boolea
     }
     case "ringBell": {
       context.deps.onRingBell?.();
+      return true;
+    }
+    case "incense": {
+      lightIncense(context);
       return true;
     }
     case "bead": {

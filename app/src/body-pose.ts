@@ -87,15 +87,26 @@ export const GREET: BodyPose = {
   hipsDrop: 0,
 };
 
-// Standing bow with joined palms: bend at the waist.
-export const BOW_STANDING: BodyPose = {
+// Kneeling bow (owner, 2026-11-13: "làm nhân vật quỳ xuống để lạy đức phật"): down on the knees,
+// shins folded back under the body, the body folded forward over them, forearms flat on the
+// floor ahead with the palms up, forehead low. Blended with GREET it goes down and comes back up.
+export const BOW_KNEEL: BodyPose = {
   bones: {
-    ...GREET.bones,
-    spine: { x: -0.5 },
-    chest: { x: -0.3 },
-    head: { x: -0.2 },
+    thighL: { x: 0.25, z: -0.05 },
+    thighR: { x: 0.25, z: 0.05 },
+    shinL: { x: -2.6 },
+    shinR: { x: -2.6 },
+    spine: { x: -1.15 },
+    chest: { x: -0.5 },
+    head: { x: -0.35 },
+    upper_armL: { x: 2.2, z: -0.1 },
+    upper_armR: { x: 2.2, z: 0.1 },
+    forearmL: { x: 0.2 },
+    forearmR: { x: 0.2 },
+    handL: { x: 0.3 },
+    handR: { x: 0.3 },
   },
-  hipsDrop: 0.05,
+  hipsDrop: 0.4,
 };
 
 // Seated bow: from the seated pose, fold forward with hands to the floor.

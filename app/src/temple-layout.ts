@@ -2,10 +2,25 @@ import { WORLD_LIMIT } from "../../shared/protocol";
 import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
-import { PAGODA, PAGODA_HALL_FLOOR, PAGODA_HALL_FLOOR_HEIGHT, PAGODA_PLAZA, pagodaColliders } from "./pagoda-layout";
+import {
+  PAGODA,
+  PAGODA_HALL_FLOOR,
+  PAGODA_HALL_FLOOR_HEIGHT,
+  PAGODA_HALL_URN,
+  PAGODA_PLAZA,
+  pagodaColliders,
+} from "./pagoda-layout";
 import { walkAreaColliders } from "./terrain-layout";
 
-export { PAGODA, PAGODA_HALL_BUDDHA, PAGODA_HALL_FLOOR, PAGODA_PLAZA, pagodaToWorld } from "./pagoda-layout";
+export {
+  PAGODA,
+  PAGODA_HALL_BUDDHA,
+  PAGODA_HALL_FLOOR,
+  PAGODA_HALL_STATUE_ZONE,
+  PAGODA_HALL_URN,
+  PAGODA_PLAZA,
+  pagodaToWorld,
+} from "./pagoda-layout";
 export { WALK_AREA } from "./terrain-layout";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
@@ -95,6 +110,9 @@ export const PATH = { fromZ: GATE.z + 4, toZ: COURTYARD.maxZ, width: 1.6 } as co
 
 // Bronze incense urn on the hall's axis.
 export const URN = { x: 0, z: 13.5, radius: 0.9 } as const;
+
+// Every incense urn the visitor can light incense at: the temple's, then the pagoda hall's.
+export const INCENSE_URNS: Point[] = [URN, PAGODA_HALL_URN];
 
 export const BELL_TOWER = { x: 30, z: 30, half: 2.6, platformHeight: 0.4, pillarOffset: 1.9 } as const;
 // Close enough to the bell tower to ring the bell (Milestone 7).

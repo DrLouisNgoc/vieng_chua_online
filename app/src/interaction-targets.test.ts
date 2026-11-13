@@ -9,6 +9,14 @@ const seats = [
   { x: 5, z: 5 },
 ];
 const layout = { seats, broomSpot: { x: 20, z: 20 }, statueZone: STATUE_ZONE };
+const incenseLayout = {
+  ...layout,
+  extraStatueZones: [{ minX: 100, maxX: 110, minZ: 100, maxZ: 104 }],
+  incense: [
+    { x: 0, z: 13.5 },
+    { x: 105, z: 98 },
+  ],
+};
 
 describe("findTargets", () => {
   it("picks the nearest free seat in reach", () => {
@@ -68,5 +76,20 @@ describe("bell tower", () => {
     const far = { x: BELL_TOWER.x, z: BELL_TOWER.z + BELL_REACH + 0.1 };
     expect(findTargets(near, { ...layout, bell: BELL_TOWER }).nearBell).toBe(true);
     expect(findTargets(far, { ...layout, bell: BELL_TOWER }).nearBell).toBe(false);
+  });
+});
+
+describe("worship places (owner, 2026-11-13: incense, prayer and kneeling in the pagoda hall)", () => {
+  it("counts every extra statue zone as a place to bow, as well as the temple's own", () => {
+    expect(findTargets({ x: 105, z: 102 }, incenseLayout).inStatueZone).toBe(true);
+    expect(findTargets({ x: 105, z: 106 }, incenseLayout).inStatueZone).toBe(false);
+    expect(findTargets({ x: 0, z: STATUE_ZONE.minZ + 1 }, incenseLayout).inStatueZone).toBe(true);
+  });
+
+  it("finds the incense urn within reach, and says which one", () => {
+    expect(findTargets({ x: 1.5, z: 13.5 }, incenseLayout).incenseIndex).toBe(0);
+    expect(findTargets({ x: 105, z: 100 }, incenseLayout).incenseIndex).toBe(1);
+    expect(findTargets({ x: 50, z: 50 }, incenseLayout).incenseIndex).toBeNull();
+    expect(findTargets({ x: 1.5, z: 13.5 }, layout).incenseIndex).toBeNull();
   });
 });

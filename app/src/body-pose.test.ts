@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BodyPose } from "./body-pose";
-import { blendPose, BONE_NAMES, BOW_SEATED, BOW_STANDING, GREET, IDLE, SEATED, walkPose } from "./body-pose";
+import { blendPose, BONE_NAMES, BOW_KNEEL, BOW_SEATED, GREET, IDLE, SEATED, walkPose } from "./body-pose";
 import { computeWalkPose } from "./walk-cycle";
 
 function order(name: string): number {
@@ -54,7 +54,7 @@ describe("blendPose", () => {
 });
 
 describe("named poses", () => {
-  const poses = { IDLE, SEATED, GREET, BOW_STANDING, BOW_SEATED };
+  const poses = { IDLE, SEATED, GREET, BOW_KNEEL, BOW_SEATED };
 
   it.each(Object.entries(poses))("%s only names bones of the rig", (_name, pose) => {
     for (const bone of Object.keys(pose.bones)) {
