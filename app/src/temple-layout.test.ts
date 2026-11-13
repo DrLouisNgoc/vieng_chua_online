@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isInside } from "./collision";
+import { isInside, resolveMove } from "./collision";
 import {
   AVATAR_START,
   BAMBOO_CLUMPS,
@@ -9,10 +9,13 @@ import {
   BROADLEAF_TREES,
   COLLIDERS,
   COURTYARD,
+  EAST_GATE,
   GATE,
   groundHeightAt,
   HALL,
   MEDITATION_SEATS,
+  PAGODA,
+  PAGODA_PLAZA,
   PATH,
   PAVING_HEIGHT,
   PINE_POSITIONS,
@@ -26,6 +29,18 @@ const stairsFoot = STAIRS.frontZ + STAIRS.count * STAIRS.tread;
 
 function isBlocked(x: number, z: number): boolean {
   return COLLIDERS.some((box) => isInside({ x, z }, box));
+}
+
+// Walks in 0.2 steps in a straight line, each step from where the avatar actually is
+// (like a frame of walking), so a wall or collider stops it as it does in the game.
+function walk(from: { x: number; z: number }, to: { x: number; z: number }) {
+  const distance = Math.hypot(to.x - from.x, to.z - from.z);
+  const step = { x: ((to.x - from.x) / distance) * 0.2, z: ((to.z - from.z) / distance) * 0.2 };
+  let at = from;
+  for (let i = 0; i < Math.ceil(distance / 0.2); i += 1) {
+    at = resolveMove(at, { x: at.x + step.x, z: at.z + step.z }, COLLIDERS);
+  }
+  return at;
 }
 
 function yardArea(front: number, side: number, back: number): number {
@@ -159,5 +174,29 @@ describe("layout sanity", () => {
     for (const seat of MEDITATION_SEATS) {
       expect(COLLIDERS.some((box) => isInside(seat, box))).toBe(false);
     }
+  });
+});
+
+describe('the east gate to the pagoda complex (owner, 2026-11-13: "mở cái cổng sang chùa này cho nhanh")', () => {
+  it("lets the avatar walk from the temple yard through both gates into the pagoda plaza", () => {
+    const end = walk({ x: BOUNDARY.maxX - 12, z: EAST_GATE.z }, { x: PAGODA_PLAZA.minX + 8, z: EAST_GATE.z });
+    expect(end.x).toBeCloseTo(PAGODA_PLAZA.minX + 8, 0);
+  });
+
+  it("keeps the rest of the east wall shut", () => {
+    const end = walk({ x: BOUNDARY.maxX - 12, z: EAST_GATE.z - 25 }, { x: BOUNDARY.maxX + 12, z: EAST_GATE.z - 25 });
+    expect(end.x).toBeLessThan(BOUNDARY.maxX);
+  });
+
+  it("does not let the avatar walk through the great stupa, nor over the plaza's far wall", () => {
+    const toStupa = walk({ x: PAGODA_PLAZA.minX + 8, z: PAGODA.z }, { x: PAGODA.x, z: PAGODA.z });
+    expect(toStupa.x).toBeLessThan(PAGODA.x - 25);
+    const toBackWall = walk({ x: PAGODA.x, z: PAGODA_PLAZA.maxZ - 8 }, { x: PAGODA.x, z: PAGODA_PLAZA.maxZ + 30 });
+    expect(toBackWall.z).toBeLessThan(PAGODA_PLAZA.maxZ + 6);
+  });
+
+  it("puts the feet on the plaza's own level inside the pagoda, and on the ground outside it", () => {
+    expect(groundHeightAt({ x: PAGODA.x - 50, z: PAGODA.z })).toBe(PAGODA.groundY);
+    expect(groundHeightAt({ x: BOUNDARY.maxX + 10, z: EAST_GATE.z })).toBe(0);
   });
 });

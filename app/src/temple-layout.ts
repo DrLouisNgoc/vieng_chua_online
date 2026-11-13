@@ -2,6 +2,9 @@ import { WORLD_LIMIT } from "../../shared/protocol";
 import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
+import { PAGODA, PAGODA_PLAZA, pagodaColliders } from "./pagoda-layout";
+
+export { PAGODA, PAGODA_PLAZA } from "./pagoda-layout";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
 // Pure data: temple-grounds.ts builds the meshes, scene.ts uses the
@@ -179,22 +182,6 @@ export const POND = { minX: 48, maxX: 74, minZ: -44, maxZ: -10 } as const;
 
 export const BANYAN = { x: -48, z: -10, seatRadius: 2.8 } as const;
 
-// Far scenery (owner, 2026-11-13: a Shwedagon photo, "làm hoành tráng vào"):
-// a gold pagoda complex east of the wall, facing the temple. Not walkable
-// (the wall keeps visitors in). pagoda.glb's marble plaza is 210 m across
-// (scripts/blender/pagoda.py), so its half-size is 105 model metres.
-const PAGODA_SCALE = 0.7;
-export const PAGODA = {
-  x: 190,
-  z: 30,
-  scale: PAGODA_SCALE,
-  halfSize: 105 * PAGODA_SCALE,
-  // The model's front faces +z; turned to face west, toward the temple.
-  rotationY: -Math.PI / 2,
-  // Just above the ground plane so the plaza does not flicker against it.
-  groundY: 0.1,
-} as const;
-
 // Small pines are planted outside the wall, in rows around it.
 const PINE_SPACING = 30;
 const PINE_OFFSET = 12;
@@ -290,12 +277,23 @@ const EDGE = 0.4; // thickness of the invisible platform-edge colliders
 
 const GATE_OUTER_X = Math.max(...GATE.pillarXs) + 0.5;
 
+// A gate in the east wall (owner, 2026-11-13: "mở cái cổng sang chùa này cho
+// nhanh"), level with the pagoda complex's own gate, and a path between them.
+export const EAST_GATE = { x: BOUNDARY.maxX, z: PAGODA.z, halfWidth: 3.5 } as const;
+export const PAGODA_PATH = {
+  minX: EAST_GATE.x,
+  maxX: PAGODA_PLAZA.minX,
+  minZ: EAST_GATE.z - EAST_GATE.halfWidth,
+  maxZ: EAST_GATE.z + EAST_GATE.halfWidth,
+} as const;
+
 // Wall runs as [x0, z0, x1, z1] centre lines; the front side leaves the
 // gate's span open.
 export const WALL_SEGMENTS: [number, number, number, number][] = [
   [BOUNDARY.minX, BOUNDARY.minZ, BOUNDARY.maxX, BOUNDARY.minZ],
   [BOUNDARY.minX, BOUNDARY.minZ, BOUNDARY.minX, BOUNDARY.maxZ],
-  [BOUNDARY.maxX, BOUNDARY.minZ, BOUNDARY.maxX, BOUNDARY.maxZ],
+  [BOUNDARY.maxX, BOUNDARY.minZ, BOUNDARY.maxX, EAST_GATE.z - EAST_GATE.halfWidth],
+  [BOUNDARY.maxX, EAST_GATE.z + EAST_GATE.halfWidth, BOUNDARY.maxX, BOUNDARY.maxZ],
   [BOUNDARY.minX, BOUNDARY.maxZ, -GATE_OUTER_X, BOUNDARY.maxZ],
   [GATE_OUTER_X, BOUNDARY.maxZ, BOUNDARY.maxX, BOUNDARY.maxZ],
 ];
@@ -360,8 +358,10 @@ export const COLLIDERS: Box[] = [
       ),
     ),
   ),
-  // perimeter wall, front side split around the gate
+  // perimeter wall, front side split around the gate, east side around its own
   ...wallColliders(),
+  // the pagoda complex: its wall, stupa, towers, shrines and hall
+  ...pagodaColliders(),
   // world edge
   { minX: -WORLD_LIMIT - 1, maxX: -WORLD_LIMIT, minZ: -WORLD_LIMIT, maxZ: WORLD_LIMIT },
   { minX: WORLD_LIMIT, maxX: WORLD_LIMIT + 1, minZ: -WORLD_LIMIT, maxZ: WORLD_LIMIT },
@@ -384,5 +384,6 @@ export function groundHeightAt(point: Point): number {
     return BELL_TOWER.platformHeight;
   }
   if (isInside(point, BOUNDARY)) return PAVING_HEIGHT;
+  if (isInside(point, PAGODA_PLAZA)) return PAGODA.groundY;
   return 0;
 }
