@@ -13,7 +13,10 @@ import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 // oxlint's static import resolution (it isn't bundler-aware).
 GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).href;
 
-const PAGE_SCALE = 1.5;
+// Owner, 2026-11-12: "chữ bé quá! làm lại đi kéo vào cả màn hình luôn khi
+// tôi ấn E" — the reader now fills most of the screen (boards__panel--full
+// in style.css), so pages render at a higher resolution to stay crisp.
+const PAGE_SCALE = 2.2;
 
 export interface PdfBook {
   numPages: number;

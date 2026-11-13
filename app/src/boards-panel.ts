@@ -1,4 +1,5 @@
 import {
+  isPdfTalk,
   parseQuoteImages,
   parseTalks,
   youtubeVideoId,
@@ -416,6 +417,10 @@ export function createBoardsPanel(
     return wrap;
   }
 
+  // A video talk (YouTube) or, for a board whose owner dropped in a PDF
+  // instead (e.g. the teacher's cốc library, owner 2026-11-12: "sửa lại
+  // cốc của sư như 1 thư viện sách"), a book — same "Tên | link" list,
+  // told apart by isPdfTalk.
   function renderVideos(talksText: string): HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "boards__videos";
@@ -429,12 +434,20 @@ export function createBoardsPanel(
     if (selectedTalkIndex >= talks.length) selectedTalkIndex = 0;
     const current = talks[selectedTalkIndex];
     if (current) {
-      const iframe = document.createElement("iframe");
-      iframe.className = "boards__video";
-      iframe.src = toEmbedUrl(current.url);
-      iframe.allow = "encrypted-media; picture-in-picture";
-      iframe.allowFullscreen = true;
-      wrap.append(iframe);
+      if (isPdfTalk(current)) {
+        // buildPdfViewer is defined after render() (it needs render() to
+        // re-draw once its async page/book loads) — renderVideos stays up
+        // here with the other board-detail renderers instead.
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- see above
+        wrap.append(buildPdfViewer(current.url));
+      } else {
+        const iframe = document.createElement("iframe");
+        iframe.className = "boards__video";
+        iframe.src = toEmbedUrl(current.url);
+        iframe.allow = "encrypted-media; picture-in-picture";
+        iframe.allowFullscreen = true;
+        wrap.append(iframe);
+      }
     }
     if (talks.length > 1) {
       const list = document.createElement("ul");
@@ -448,6 +461,11 @@ export function createBoardsPanel(
         if (index === selectedTalkIndex) pick.setAttribute("aria-current", "true");
         pick.addEventListener("click", () => {
           selectedTalkIndex = index;
+          // Switching to a different book shouldn't keep the previous
+          // one's page number.
+          pdfPage = 1;
+          pdfPageImage = null;
+          pdfPageImageFor = null;
           render();
         });
         li.append(pick);
@@ -566,6 +584,10 @@ export function createBoardsPanel(
 
   function render(): void {
     const current = view;
+    // Owner, 2026-11-12: "chữ bé quá! làm lại đi kéo vào cả màn hình luôn
+    // khi tôi ấn E" — a single board (talks, the PDF reader) gets the
+    // whole screen; the board list stays the small corner panel.
+    panel.classList.toggle("boards__panel--full", current.kind === "board");
     if (current.kind === "list") {
       renderList();
       return;
