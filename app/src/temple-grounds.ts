@@ -40,6 +40,7 @@ import {
   BELL_TOWER,
   BOUNDARY,
   COC_SPOTS,
+  EAST_GATE,
   GATE,
   HALL,
   HALL_LANTERNS,
@@ -49,6 +50,7 @@ import {
   LANTERN_POSTS,
   LANTERN_POST_HEIGHT,
   MEDITATION_SEATS,
+  PAGODA_PATH,
   PATH,
   PAVING_HEIGHT,
   POND,
@@ -911,6 +913,39 @@ export async function buildTempleGrounds(
   }
 
   // Ochre perimeter wall with a tiled coping.
+  // The gate in the east wall and the stone way to the pagoda complex (owner,
+  // 2026-11-13: "mở cái cổng sang chùa này cho nhanh"): two lacquer pillars
+  // with a gold lintel under a short curved roof, across the wall's opening.
+  function buildEastGate(): Group {
+    const gate = new Group();
+    gate.name = "cong-dong";
+    const lacquer = pbr("wood", 1, 3, PALETTE.lacquer);
+    const pillarHeight = 6.4;
+    for (const sz of [-1, 1]) {
+      const pillarZ = EAST_GATE.z + sz * (EAST_GATE.halfWidth + 0.6);
+      add(gate, new CylinderGeometry(0.5, 0.58, pillarHeight, 14), lacquer, EAST_GATE.x, pillarHeight / 2, pillarZ);
+      add(gate, new CylinderGeometry(0.75, 0.8, 0.4, 14), pbr("stone", 1, 1), EAST_GATE.x, 0.2, pillarZ);
+    }
+    const span = 2 * (EAST_GATE.halfWidth + 0.6);
+    add(gate, new BoxGeometry(0.9, 0.7, span + 1), gold, EAST_GATE.x, pillarHeight + 0.1, EAST_GATE.z);
+    const roof = curvedRoof({ halfWidth: 2.2, halfDepth: span / 2 + 1.6, height: 2.2, upturn: 0.9, segments: 12 });
+    roof.position.set(EAST_GATE.x, pillarHeight + 0.45, EAST_GATE.z);
+    roof.castShadow = false;
+    gate.add(roof);
+    const length = PAGODA_PATH.maxX - PAGODA_PATH.minX;
+    const width = PAGODA_PATH.maxZ - PAGODA_PATH.minZ;
+    const way = add(
+      gate,
+      new BoxGeometry(length, 0.06, width),
+      pbr("stone", tiles(length), tiles(width)),
+      (PAGODA_PATH.minX + PAGODA_PATH.maxX) / 2,
+      PAVING_HEIGHT + 0.02,
+      EAST_GATE.z,
+    );
+    way.castShadow = false;
+    return gate;
+  }
+
   function buildWall(): Group {
     const wall = new Group();
     wall.name = "tuong-bao";
@@ -940,6 +975,7 @@ export async function buildTempleGrounds(
         cap.rotation.y = Math.PI / 2;
       }
     }
+    wall.add(buildEastGate());
     return wall;
   }
 
