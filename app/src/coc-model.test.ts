@@ -75,6 +75,17 @@ describe("buildMyanmarCoc", () => {
     expect(plaque.position.y).toBeLessThan(2.35);
   });
 
+  it("builds no nameplate when the hut has no title (the meditation hut)", () => {
+    const { group, setPlaqueText } = buildMyanmarCoc({
+      template: templateHut(),
+      size: 3.2,
+      makePlaqueTexture: texturesFor([]),
+      lampColor: 0xff_c4_69,
+    });
+    expect(group.getObjectByName(PLAQUE_SIZE_KEY)).toBeUndefined();
+    expect(() => setPlaqueText("x")).not.toThrow();
+  });
+
   it("renames the nameplate on demand", () => {
     const texts: string[] = [];
     const { group, setPlaqueText } = build(COC_MODEL_SIZE, texts);

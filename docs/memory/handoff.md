@@ -24,9 +24,9 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   `app/public/models/pagoda.glb`, spot and scale in `PAGODA` (temple-layout.ts), fog off, not walkable. The cốc
   use the same Myanmar style (#89).
 - Cốc (#89): the 8 cốc now use a Myanmar-style hut, `app/public/models/coc.glb` (gold-ochre walls, red columns, two
-  teal roofs, gold spire), the same look as the pagoda; the original meditation hut (HUT) is still the wooden one.
+  teal roofs, gold spire), the same look as the pagoda; the meditation hut (HUT, 3.2 m, no nameplate) uses it too (#92).
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 159, app 325; `npm run check` green.
+- Tests: server 159, app 327; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

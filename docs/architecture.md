@@ -64,7 +64,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/temple-grounds.ts` | All procedural meshes, interior lights, koi animation, camera blockers (1491 lines, to be split) |
 | `app/src/curved-roof.ts` | Vietnamese curved hip roof as raw vertex data |
 | `app/src/pagoda-model.ts` | Loads `app/public/models/pagoda.glb` (Shwedagon-style gold pagoda, far scenery east of the wall; spot in `PAGODA`), fog off; no file → no pagoda |
-| `app/src/coc-model.ts` | The 8 cốc in the pagoda's Myanmar style: hut shape from `app/public/models/coc.glb`, plus the renamable nameplate and the small lamp; old wooden hut if the file is missing |
+| `app/src/coc-model.ts` | The 8 cốc and the meditation hut (no title → no nameplate, 3.2 m) in the pagoda's Myanmar style: shape from `app/public/models/coc.glb`, plus the renamable nameplate and the small lamp; old wooden hut if the file is missing |
 | `app/src/lantern-model.ts` | Red paper lanterns: shape from `app/public/models/lantern.glb` (3 named parts), 3 instanced draw calls; plain-ball fallback if the file is missing |
 | `app/src/simplify-geometry.ts` | meshoptimizer simplification (used on pine.glb) |
 | `app/src/sky-cycle.ts` | Sky, sun and fog for the local hour (`?gio=HH` previews an hour) |

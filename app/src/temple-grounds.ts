@@ -1082,7 +1082,15 @@ export async function buildTempleGrounds(
   }
 
   function buildHut(): Group {
-    const hut = hutGroup(HUT.x, HUT.z, HUT.size).group;
+    const hut = cocTemplate
+      ? buildMyanmarCoc({
+          template: cocTemplate,
+          size: HUT.size,
+          makePlaqueTexture: nameplateTexture,
+          lampColor: PALETTE.lamp,
+        }).group
+      : hutGroup(HUT.x, HUT.z, HUT.size).group;
+    hut.position.set(HUT.x, 0, HUT.z);
     hut.name = "coc-thien";
     return hut;
   }
