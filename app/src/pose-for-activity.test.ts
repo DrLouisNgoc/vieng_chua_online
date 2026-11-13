@@ -4,8 +4,8 @@ import {
   BEADS,
   BEADS_SEATED,
   BONE_NAMES,
+  BOW_KNEEL,
   BOW_SEATED,
-  BOW_STANDING,
   BROOM_IDLE,
   GREET,
   IDLE,
@@ -50,10 +50,18 @@ describe("poseForActivity", () => {
     expect(seated.hipsDrop).toBe(SEATED.hipsDrop);
   });
 
+  it("kneels to bow when standing (owner: làm nhân vật quỳ xuống để lạy): knees down, shins folded back, body folded forward", () => {
+    const deepest = poseForActivity({ ...base, activity: "bowing" as const }, BOW_SECONDS / 2, 0);
+    expect(deepest.hipsDrop).toBeGreaterThan(0.3);
+    expect(deepest.bones.shinL?.x ?? 0).toBeLessThan(-2);
+    expect(deepest.bones.shinR?.x ?? 0).toBeLessThan(-2);
+    expect(deepest.bones.spine?.x ?? 0).toBeLessThan(-0.8);
+  });
+
   it("bows down and comes back up over BOW_SECONDS", () => {
     const bowing = { ...base, activity: "bowing" as const };
     const deepest = poseForActivity(bowing, BOW_SECONDS / 2, 0);
-    expect(deepest.bones.spine?.x).toBeCloseTo(BOW_STANDING.bones.spine?.x ?? 0);
+    expect(deepest.bones.spine?.x).toBeCloseTo(BOW_KNEEL.bones.spine?.x ?? 0);
     const start = poseForActivity(bowing, 0, 0);
     expect(start.bones.spine?.x ?? 0).toBeCloseTo(0);
     const seatedDeepest = poseForActivity({ ...bowing, seatIndex: 0 }, BOW_SECONDS / 2, 0);

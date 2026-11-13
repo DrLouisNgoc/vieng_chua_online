@@ -69,6 +69,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/coc-model.ts` | The 8 cốc and the meditation hut (no title → no nameplate, 3.2 m) in the pagoda's Myanmar style: shape from `app/public/models/coc.glb`, plus the renamable nameplate and the small lamp; old wooden hut if the file is missing |
 | `app/src/terrain-layout.ts` | `WALK_AREA`, the rectangle of walkable land, and four slabs beyond it that end the walk (mountains and river lie outside) |
 | `app/src/waterfall.ts` | Animates the terrain's waterfalls: flowing water texture on the `waterfall` ribbon, drifting mist sprites at the `spray` spots; returns the per-frame update |
+| `app/src/incense-smoke.ts` | Smoke rising from an incense urn for 40 s after the visitor lights incense (key H); a picture only |
 | `app/src/clouds.ts` | Soft cloud puffs on a ring round the mountains, turning slowly, dimmed at night (sprites, fog off) |
 | `app/src/terrain-model.ts` | Loads `app/public/models/terrain.glb`: foothills, a river ring and snow-capped mountains all round the walkable land, fog off; no file → no mountains |
 | `app/src/temple-structure-model.ts` | Loads `gate.glb` (tam quan: red pillars, three-tier teal roof; the SƠN TỰ plaque stays code), `bell-tower.glb` (pavilion with a Burmese bell), `hall-body.glb` (the hall's three walls, all pillars and front beam) and `perimeter-wall.glb` (pilasters, tiled cap) built in world coordinates by `scripts/blender/temple.py`; a missing file → the old procedural walls |

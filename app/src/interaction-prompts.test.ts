@@ -10,7 +10,13 @@ const idle: InteractionSnapshot = {
   holdingBroom: false,
   beadsVisible: false,
 };
-const nowhere: Targets = { seatIndex: null, nearBroom: false, nearBell: false, inStatueZone: false };
+const nowhere: Targets = {
+  seatIndex: null,
+  nearBroom: false,
+  nearBell: false,
+  inStatueZone: false,
+  incenseIndex: null,
+};
 
 function actions(snapshot: InteractionSnapshot, targets: Targets): string[] {
   return promptsFor(snapshot, targets).map((prompt) => prompt.action);
@@ -77,5 +83,21 @@ describe("bell and chanting prompts", () => {
 describe("beadCounterText", () => {
   it("shows the bead within the round and the total", () => {
     expect(beadCounterText(12, 1093)).toBe("Hạt 12/108 · tổng 1093");
+  });
+});
+
+describe("incense (key H)", () => {
+  it("is offered near an incense urn, between the context action and the greeting and beads", () => {
+    const list = promptsFor(idle, { ...nowhere, incenseIndex: 1, inStatueZone: true });
+    expect(list.map((prompt) => prompt.action)).toEqual(["bow", "incense", "greet", "bead"]);
+    const incense = list.find((prompt) => prompt.action === "incense");
+    expect(incense?.key).toBe("H");
+    expect(incense?.label).toBe("Thắp hương");
+  });
+
+  it("is not offered away from an urn, while holding the broom, or mid-action", () => {
+    expect(actions(idle, nowhere)).not.toContain("incense");
+    expect(actions({ ...idle, holdingBroom: true }, { ...nowhere, incenseIndex: 0 })).not.toContain("incense");
+    expect(promptsFor({ ...idle, activity: "bowing" }, { ...nowhere, incenseIndex: 0 })).toEqual([]);
   });
 });

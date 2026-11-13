@@ -46,6 +46,7 @@ M = {
     "dark": make_mat("pagoda_dark", (0.05, 0.04, 0.04, 1), rough=0.8),
     "stone": make_mat("pagoda_stone", (0.62, 0.56, 0.48, 1), rough=0.8),
     "red": make_mat("pagoda_red", (0.5, 0.05, 0.04, 1), rough=0.5),
+    "bronze": make_mat("pagoda_bronze", (0.42, 0.27, 0.1, 1), (0.5, 0.3, 0.08, 1), 0.3, 0.1, 0.4),
 }
 
 
@@ -274,6 +275,22 @@ def main_hall(hx, hy):
             parts.append(cyl(0.7, 0.4, (bx, by, floor + 0.2), "gold", 10))
     parts.append(box((18, 9, 0.7), (0, hy - t - 4.5, floor + 0.35), "gold"))  # the altar at the back
     parts.append(box((15, 7, 0.6), (0, hy - t - 4.2, floor + 1.0), "ochre"))
+    # worship in front of the altar: an incense urn and kneeling cushions (pagoda-layout.ts holds
+    # the statue zone and the urn's collider; keep the numbers in step)
+    urn_y = hy - t - 9 - 2.2
+    for k in range(3):  # three legs
+        ang = math.tau * k / 3 + 0.5
+        parts.append(cone(0.2, 0.12, 0.7, (0.75 * math.cos(ang), urn_y + 0.75 * math.sin(ang), floor + 0.35), "bronze", 8))
+    parts.append(cone(1.2, 0.8, 0.9, (0, urn_y, floor + 1.15), "bronze", 20))  # the bowl, wider at the rim
+    parts.append(cyl(1.25, 0.14, (0, urn_y, floor + 1.62), "gold", 20))  # a gold rim
+    parts.append(cyl(1.05, 0.1, (0, urn_y, floor + 1.62), "stone", 20))  # the sand
+    for k in range(15):  # incense sticks, fanned a little
+        ang = math.tau * k / 15
+        r = 0.2 + 0.55 * ((k * 7) % 5) / 5
+        parts.append(cyl(0.03, 1.3, (r * math.cos(ang), urn_y + r * math.sin(ang), floor + 2.25), "red", 6))
+    for bx, by in ((-9, 1.6), (-4.5, 1.6), (4.5, 1.6), (9, 1.6), (-3.4, 3.4), (3.4, 3.4)):  # kneeling cushions
+        parts.append(cyl(0.8, 0.22, (bx, by, floor + 0.11), "red", 16))
+        parts.append(cyl(0.86, 0.06, (bx, by, floor + 0.23), "gold", 16))
     parts += [hip_roof(0, 0, hx + 3, hy + 3, top, 3.6, 8)]
     parts.append(box((2 * (hx - 5.5), 2 * (hy - 5.5), 3.0), (0, 0, top + 3.2), "ochre"))
     parts.append(box((2 * (hx - 5.5) + 0.6, 2 * (hy - 5.5) + 0.6, 0.5), (0, 0, top + 4.6), "gold"))

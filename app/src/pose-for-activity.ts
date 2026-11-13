@@ -3,8 +3,8 @@ import {
   BEADS,
   BEADS_SEATED,
   blendPose,
+  BOW_KNEEL,
   BOW_SEATED,
-  BOW_STANDING,
   BROOM_IDLE,
   GREET,
   IDLE,
@@ -42,7 +42,7 @@ export function poseForActivity(snapshot: InteractionSnapshot, activitySeconds: 
     case "bowing": {
       // down and back up once over the bow's duration
       const depth = Math.sin((Math.PI * Math.min(activitySeconds, BOW_SECONDS)) / BOW_SECONDS);
-      return isSeated ? blendPose(SEATED, BOW_SEATED, depth) : blendPose(GREET, BOW_STANDING, depth);
+      return isSeated ? blendPose(SEATED, BOW_SEATED, depth) : blendPose(GREET, BOW_KNEEL, depth);
     }
     case "idle": {
       return snapshot.holdingBroom ? BROOM_IDLE : IDLE;

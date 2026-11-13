@@ -17,6 +17,8 @@ import {
   PAGODA,
   PAGODA_HALL_BUDDHA,
   PAGODA_HALL_FLOOR,
+  PAGODA_HALL_STATUE_ZONE,
+  PAGODA_HALL_URN,
   PAGODA_PLAZA,
   pagodaToWorld,
   PATH,
@@ -226,6 +228,16 @@ describe('the pagoda complex\'s chánh điện (owner, 2026-11-13: "bên trong k
     expect(isInside(PAGODA_HALL_BUDDHA, PAGODA_HALL_FLOOR)).toBe(true);
     expect(PAGODA_HALL_BUDDHA.baseY).toBeGreaterThan(groundHeightAt(PAGODA_HALL_BUDDHA));
     expect(PAGODA_HALL_BUDDHA.rotationY).toBeCloseTo(Math.PI); // buddha.glb faces +x; the door is to the west (-x)
+  });
+
+  it("has a place to worship in front of the altar: a statue zone with an incense urn and room to kneel beside it", () => {
+    expect(isInside(PAGODA_HALL_URN, PAGODA_HALL_STATUE_ZONE)).toBe(true);
+    // the zone is reached by walking up to the altar, which stops the avatar at its edge
+    const atAltar = walk(pagodaToWorld(centreX - 7, frontY + 5), pagodaToWorld(centreX - 7, frontY + 30));
+    expect(isInside(atAltar, PAGODA_HALL_STATUE_ZONE)).toBe(true);
+    // the urn is solid, but there is free floor in the zone to its side
+    const toUrn = walk(pagodaToWorld(centreX, frontY + 5), pagodaToWorld(centreX, frontY + 30));
+    expect(Math.hypot(toUrn.x - PAGODA_HALL_URN.x, toUrn.z - PAGODA_HALL_URN.z)).toBeGreaterThan(0.5);
   });
 
   it("stands on a low platform inside, and on the plain ground outside it", () => {
