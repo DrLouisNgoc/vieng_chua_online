@@ -1,7 +1,8 @@
 import type { TextureLoader } from "three";
-import { Mesh, Texture } from "three";
+import { BoxGeometry, Group, Mesh, Texture } from "three";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { fallbackLanternGeometries } from "./lantern-model";
 import { buildTempleGrounds } from "./temple-grounds";
 
 // Smoke test: builds the whole grounds with stubbed textures and canvas, so
@@ -52,5 +53,15 @@ describe("buildTempleGrounds", () => {
     expect(() => grounds.setCocOccupant("coc-mo-1", null)).not.toThrow();
     // An id that doesn't match any cốc is silently ignored, not an error.
     expect(() => grounds.setCocOccupant("khong-ton-tai", "Ai Đó")).not.toThrow();
+  });
+
+  it("builds each cốc from the Myanmar model when one is given, and its nameplate still renames", async () => {
+    const template = new Group();
+    template.add(new Mesh(new BoxGeometry(2.4, 2, 2.4)));
+    const grounds = await buildTempleGrounds(stubLoader, 4, fallbackLanternGeometries(), template);
+    const coc = grounds.group.getObjectByName("coc-mo-1");
+    expect(coc?.getObjectByName("plaque")).toBeDefined();
+    expect(() => grounds.setCocOccupant("coc-mo-1", "Mạnh Dung")).not.toThrow();
+    expect(() => grounds.setCocOccupant("coc-mo-1", null)).not.toThrow();
   });
 });

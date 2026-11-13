@@ -30,6 +30,7 @@ import {
   Vector2,
   Vector3,
 } from "three";
+import { buildMyanmarCoc } from "./coc-model";
 import { buildCurvedHipRoof, innerEdge, type CurvedRoofOptions } from "./curved-roof";
 import { buildLanternMeshes, fallbackLanternGeometries } from "./lantern-model";
 import type { LanternGeometries } from "./lantern-model";
@@ -145,6 +146,7 @@ export async function buildTempleGrounds(
   textureLoader: TextureLoader,
   maxAnisotropy: number,
   lanternGeometries: LanternGeometries = fallbackLanternGeometries(),
+  cocTemplate: Object3D | null = null,
 ): Promise<TempleGrounds> {
   const root = "/sansatemple/materials";
   const names: MaterialName[] = ["wood", "roof", "stone", "rock", "plaster", "cloth"];
@@ -1124,7 +1126,17 @@ export async function buildTempleGrounds(
     const plaqueSetters = new Map<string, (text: string) => void>();
     const defaultTitles = new Map<string, string>();
     const groups = (COC_SPOTS as readonly CocSpot[]).map((spot) => {
-      const { group, setPlaqueText } = hutGroup(spot.x, spot.z, spot.size, spot.title, false);
+      // The Myanmar-style hut from coc.glb; the wooden one only if that file is missing.
+      const { group, setPlaqueText } = cocTemplate
+        ? buildMyanmarCoc({
+            template: cocTemplate,
+            size: spot.size,
+            title: spot.title,
+            makePlaqueTexture: nameplateTexture,
+            lampColor: PALETTE.lamp,
+          })
+        : hutGroup(spot.x, spot.z, spot.size, spot.title, false);
+      group.position.set(spot.x, 0, spot.z);
       group.name = spot.id;
       plaqueSetters.set(spot.id, setPlaqueText);
       defaultTitles.set(spot.id, spot.title);
