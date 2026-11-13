@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Box } from "./collision";
-import { isInside, resolveMove } from "./collision";
+import { isInside, resolveMove, resolveMoveInSteps } from "./collision";
 
 const wall: Box = { minX: 0, maxX: 2, minZ: 0, maxZ: 2 };
 
@@ -37,5 +37,24 @@ describe("resolveMove", () => {
       x: -0.5,
       z: 1.9,
     });
+  });
+});
+
+describe("resolveMoveInSteps", () => {
+  const thin: Box = { minX: 5, maxX: 5.2, minZ: -10, maxZ: 10 };
+
+  it("does not jump a thin wall when one slow frame at running speed covers more than its thickness", () => {
+    // a single resolveMove would land on the far side, 1.2 units on
+    expect(resolveMove({ x: 4.8, z: 0 }, { x: 6, z: 0 }, [thin]).x).toBe(6);
+    expect(resolveMoveInSteps({ x: 4.8, z: 0 }, { x: 6, z: 0 }, [thin]).x).toBeLessThan(5);
+  });
+
+  it("goes the whole way through free space, and slides along a wall like resolveMove", () => {
+    const free = resolveMoveInSteps({ x: -5, z: 0 }, { x: -2, z: 0.5 }, [wall]);
+    expect(free.x).toBeCloseTo(-2);
+    expect(free.z).toBeCloseTo(0.5);
+    const slid = resolveMoveInSteps({ x: -0.5, z: 1 }, { x: 0.5, z: 1.5 }, [wall]);
+    expect(slid.x).toBeLessThanOrEqual(0);
+    expect(slid.z).toBeCloseTo(1.5);
   });
 });

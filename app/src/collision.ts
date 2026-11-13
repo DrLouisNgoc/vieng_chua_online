@@ -22,3 +22,19 @@ export function resolveMove(from: Point, to: Point, boxes: readonly Box[]): Poin
   const slideX = { x: to.x, z: from.z };
   return isFree(slideX, boxes) ? slideX : from;
 }
+
+// The most the avatar may move in one resolveMove call. Thinner than every wall (the
+// thinnest is 0.6 thick), so a slow frame at running speed cannot jump over one.
+const MAX_STEP = 0.25;
+
+export function resolveMoveInSteps(from: Point, to: Point, boxes: readonly Box[]): Point {
+  const steps = Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.z - from.z) / MAX_STEP));
+  const stepX = (to.x - from.x) / steps;
+  const stepZ = (to.z - from.z) / steps;
+  let at = from;
+  // each step starts from where the avatar really is, so a blocked axis stays blocked
+  for (let i = 0; i < steps; i += 1) {
+    at = resolveMove(at, { x: at.x + stepX, z: at.z + stepZ }, boxes);
+  }
+  return at;
+}
