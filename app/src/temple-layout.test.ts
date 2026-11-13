@@ -26,6 +26,7 @@ import {
   STAIRS,
   STONE_PILLARS,
   URN,
+  WALK_AREA,
 } from "./temple-layout";
 
 const stairsFoot = STAIRS.frontZ + STAIRS.count * STAIRS.tread;
@@ -231,5 +232,42 @@ describe('the pagoda complex\'s chánh điện (owner, 2026-11-13: "bên trong k
     expect(isInside(pagodaToWorld(centreX, -62), PAGODA_HALL_FLOOR)).toBe(true);
     expect(groundHeightAt(pagodaToWorld(centreX, -62))).toBeGreaterThan(PAGODA.groundY);
     expect(groundHeightAt(pagodaToWorld(centreX, frontY - 20))).toBe(0);
+  });
+});
+
+function isOnWalkableLand(p: { x: number; z: number }): boolean {
+  return p.x >= WALK_AREA.minX && p.x <= WALK_AREA.maxX && p.z >= WALK_AREA.minZ && p.z <= WALK_AREA.maxZ;
+}
+
+describe("the walkable land (owner, 2026-11-13: mountains and a river all round, no bare ground)", () => {
+  it("holds everything the visitor can see built on the flat: the temple, its tree rows, the pagoda complex", () => {
+    for (const corner of [
+      { x: BOUNDARY.minX, z: BOUNDARY.minZ },
+      { x: BOUNDARY.maxX, z: BOUNDARY.maxZ },
+      { x: PAGODA_PLAZA.minX, z: PAGODA_PLAZA.minZ },
+      { x: PAGODA_PLAZA.maxX, z: PAGODA_PLAZA.maxZ },
+      { x: PAGODA_HALL_FLOOR.minX, z: PAGODA_HALL_FLOOR.minZ },
+      { x: PAGODA_HALL_FLOOR.maxX, z: PAGODA_HALL_FLOOR.maxZ },
+      AVATAR_START,
+    ]) {
+      expect(isOnWalkableLand(corner)).toBe(true);
+    }
+    for (const tree of [...PINE_POSITIONS, ...BROADLEAF_TREES]) expect(isOnWalkableLand(tree)).toBe(true);
+  });
+
+  it("is where the walk stops: the mountains and the river beyond it cannot be entered", () => {
+    const mid = { x: (WALK_AREA.minX + WALK_AREA.maxX) / 2, z: (WALK_AREA.minZ + WALK_AREA.maxZ) / 2 };
+    expect(walk({ x: WALK_AREA.minX + 6, z: mid.z }, { x: WALK_AREA.minX - 30, z: mid.z }).x).toBeGreaterThanOrEqual(
+      WALK_AREA.minX,
+    );
+    expect(walk({ x: WALK_AREA.maxX - 6, z: mid.z }, { x: WALK_AREA.maxX + 30, z: mid.z }).x).toBeLessThanOrEqual(
+      WALK_AREA.maxX,
+    );
+    expect(walk({ x: mid.x, z: WALK_AREA.minZ + 6 }, { x: mid.x, z: WALK_AREA.minZ - 30 }).z).toBeGreaterThanOrEqual(
+      WALK_AREA.minZ,
+    );
+    expect(walk({ x: mid.x, z: WALK_AREA.maxZ - 6 }, { x: mid.x, z: WALK_AREA.maxZ + 30 }).z).toBeLessThanOrEqual(
+      WALK_AREA.maxZ,
+    );
   });
 });

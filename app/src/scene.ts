@@ -42,6 +42,7 @@ import { loadMonkOrFallback, NAM_TONG_MONK_URL } from "./monk-model";
 import { loadPagoda } from "./pagoda-model";
 import { placeStatueCopy } from "./statue-copy";
 import { loadHallBody, loadPerimeterWall } from "./temple-structure-model";
+import { loadTerrain } from "./terrain-model";
 import { buildTempleGrounds } from "./temple-grounds";
 import type { TempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
@@ -64,6 +65,7 @@ import {
   HALL,
   PINE_POSITIONS,
   STATUES,
+  WALK_AREA,
   groundHeightAt,
 } from "./temple-layout";
 
@@ -72,7 +74,6 @@ const MOKTAK_BASE_SCALE = 0.8;
 const MOKTAK_PULSE_SCALE = 1.15;
 const MOKTAK_PULSE_MS = 150;
 const KEYBOARD_LOOK_AHEAD = 5;
-const GROUND_SIZE = 800;
 const GROUND_TEXTURE_REPEAT = 160;
 const SHADOW_HALF_EXTENT = 45;
 // Shift runs at three times the walking speed (owner, 2026-11-13).
@@ -214,13 +215,18 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   groundColor.colorSpace = SRGBColorSpace;
   groundColor.wrapS = RepeatWrapping;
   groundColor.wrapT = RepeatWrapping;
-  groundColor.repeat.set(GROUND_TEXTURE_REPEAT, GROUND_TEXTURE_REPEAT);
+  // The ground is just the walkable land; the mountains and the river start at its edge.
+  const groundWidth = WALK_AREA.maxX - WALK_AREA.minX;
+  const groundDepth = WALK_AREA.maxZ - WALK_AREA.minZ;
+  groundColor.repeat.set((GROUND_TEXTURE_REPEAT * groundWidth) / 800, (GROUND_TEXTURE_REPEAT * groundDepth) / 800);
   groundColor.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const ground = new Mesh(
-    new PlaneGeometry(GROUND_SIZE, GROUND_SIZE),
-    new MeshStandardMaterial({ map: groundColor, roughness: 0.95 }),
+    new PlaneGeometry(groundWidth, groundDepth),
+    // tinted green: no bare earth left (owner, 2026-11-13)
+    new MeshStandardMaterial({ map: groundColor, roughness: 0.95, color: 0xa6_d6_7e }),
   );
   ground.rotation.x = -Math.PI / 2;
+  ground.position.set((WALK_AREA.minX + WALK_AREA.maxX) / 2, 0, (WALK_AREA.minZ + WALK_AREA.maxZ) / 2);
   ground.receiveShadow = true;
   scene.add(ground);
 
@@ -273,7 +279,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     });
   }
   const avatarStart = new Vector3(AVATAR_START.x, 0, AVATAR_START.z);
-  const [buddha, avatar, bodhi, grounds, pagoda] = await Promise.all([
+  const [buddha, avatar, bodhi, grounds, pagoda, terrain] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
     loadMonkOrFallback(
       async () => addModel(NAM_TONG_MONK_URL, avatarStart, 1.7),
@@ -282,7 +288,9 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     addModel("bodhi.glb", new Vector3(firstPine.x, 0, firstPine.z), 5),
     buildGroundsWithLanterns(),
     loadPagoda(gltfLoader),
+    loadTerrain(gltfLoader),
   ]);
+  if (terrain) scene.add(terrain);
   scene.add(grounds.group);
   if (pagoda) {
     scene.add(pagoda);

@@ -3,8 +3,10 @@ import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
 import { PAGODA, PAGODA_HALL_FLOOR, PAGODA_HALL_FLOOR_HEIGHT, PAGODA_PLAZA, pagodaColliders } from "./pagoda-layout";
+import { walkAreaColliders } from "./terrain-layout";
 
 export { PAGODA, PAGODA_HALL_BUDDHA, PAGODA_HALL_FLOOR, PAGODA_PLAZA, pagodaToWorld } from "./pagoda-layout";
+export { WALK_AREA } from "./terrain-layout";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
 // Pure data: temple-grounds.ts builds the meshes, scene.ts uses the
@@ -362,6 +364,8 @@ export const COLLIDERS: Box[] = [
   ...wallColliders(),
   // the pagoda complex: its wall, stupa, towers, shrines and hall
   ...pagodaColliders(),
+  // the edge of the walkable land: mountains and river beyond
+  ...walkAreaColliders(),
   // world edge
   { minX: -WORLD_LIMIT - 1, maxX: -WORLD_LIMIT, minZ: -WORLD_LIMIT, maxZ: WORLD_LIMIT },
   { minX: WORLD_LIMIT, maxX: WORLD_LIMIT + 1, minZ: -WORLD_LIMIT, maxZ: WORLD_LIMIT },
