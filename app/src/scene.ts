@@ -41,6 +41,7 @@ import { loadLanternGeometries } from "./lantern-model";
 import { loadMonkOrFallback, NAM_TONG_MONK_URL } from "./monk-model";
 import { loadPagoda } from "./pagoda-model";
 import { placeStatueCopy } from "./statue-copy";
+import { loadHallBody, loadPerimeterWall } from "./temple-structure-model";
 import { buildTempleGrounds } from "./temple-grounds";
 import type { TempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
@@ -255,15 +256,19 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   // faces +x by default, not -z toward the congregation like the rest of
   // this scene's models — rotate it to match.
   async function buildGroundsWithLanterns(): Promise<TempleGrounds> {
-    const [lanterns, cocTemplate, hallRoof] = await Promise.all([
+    const [lanterns, cocTemplate, hallRoof, hallBody, perimeterWall] = await Promise.all([
       loadLanternGeometries(gltfLoader),
       loadCocTemplate(gltfLoader),
       loadHallRoof(gltfLoader),
+      loadHallBody(gltfLoader),
+      loadPerimeterWall(gltfLoader),
     ]);
     return buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy(), {
       lanternGeometries: lanterns,
       cocTemplate,
       hallRoof,
+      hallBody,
+      perimeterWall,
     });
   }
   const avatarStart = new Vector3(AVATAR_START.x, 0, AVATAR_START.z);

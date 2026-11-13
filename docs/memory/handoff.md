@@ -29,8 +29,9 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - Avatar (#98): every visitor is now our own Nam tông novice, `app/public/models/monk-nam-tong.glb` (`scripts/blender/nam_tong.py`; saffron robe over the left shoulder, right shoulder bare, bare feet; same 17 bones as `monk.glb`, which stays as the fallback). Robe colours (onboarding) are saffron/orange/brown/white/maroon/yellow; index 0 is saffron.
 - East gate (#102): a gate in the temple's east wall (`EAST_GATE`, level with the pagoda's z) and a stone way lead to the pagoda complex, which is now walkable: colliders in `pagoda-layout.ts`, plaza height `PAGODA.groundY`. The camera does not collide with the pagoda (it is not a camera blocker).
 - Pagoda hall (#104): the complex's chánh điện is hollow (door in front, columns, altar) with a copy of the temple's own Buddha on the altar (`statue-copy.ts`, spot `PAGODA_HALL_BUDDHA`; our first Blender statue was dropped as ugly), walkable; three warm lamps are added in `pagoda-model.ts`.
+- Hall walls, pillars and perimeter wall (#108): Blender-made `hall-body.glb` and `perimeter-wall.glb` (`scripts/blender/temple.py`, saffron with gold bands and framed panels, lacquer pillars with lotus feet and gold capitals, a wall with pilasters and a teal cap); the old procedural meshes stay as fallback. Floor, stairs, altar, Buddha, seats are unchanged.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 159, app 350; `npm run check` green.
+- Tests: server 159, app 357; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

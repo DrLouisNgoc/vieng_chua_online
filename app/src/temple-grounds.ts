@@ -151,6 +151,9 @@ export interface GroundsModels {
   lanternGeometries?: LanternGeometries;
   cocTemplate?: Object3D | null;
   hallRoof?: Object3D | null;
+  // Blender-made walls and pillars of the hall, and the perimeter wall.
+  hallBody?: Object3D | null;
+  perimeterWall?: Object3D | null;
 }
 
 export async function buildTempleGrounds(
@@ -158,7 +161,13 @@ export async function buildTempleGrounds(
   maxAnisotropy: number,
   models: GroundsModels = {},
 ): Promise<TempleGrounds> {
-  const { lanternGeometries = fallbackLanternGeometries(), cocTemplate = null, hallRoof = null } = models;
+  const {
+    lanternGeometries = fallbackLanternGeometries(),
+    cocTemplate = null,
+    hallRoof = null,
+    hallBody = null,
+    perimeterWall = null,
+  } = models;
   const root = "/sansatemple/materials";
   const names: MaterialName[] = ["wood", "roof", "stone", "rock", "plaster", "cloth"];
   const sets = new Map<MaterialName, PbrSet>();
@@ -430,12 +439,14 @@ export async function buildTempleGrounds(
       centerZ,
     );
 
-    const t = HALL.wallThickness;
-    add(hall, new BoxGeometry(width, wallHeight, t), plaster, 0, top + wallHeight / 2, HALL.minZ + t / 2);
-    const sideDepth = HALL.sideWallFrontZ - HALL.minZ;
-    const sideZ = (HALL.minZ + HALL.sideWallFrontZ) / 2;
-    add(hall, new BoxGeometry(t, wallHeight, sideDepth), plaster, HALL.minX + t / 2, top + wallHeight / 2, sideZ);
-    add(hall, new BoxGeometry(t, wallHeight, sideDepth), plaster, HALL.maxX - t / 2, top + wallHeight / 2, sideZ);
+    if (!hallBody) {
+      const t = HALL.wallThickness;
+      add(hall, new BoxGeometry(width, wallHeight, t), plaster, 0, top + wallHeight / 2, HALL.minZ + t / 2);
+      const sideDepth = HALL.sideWallFrontZ - HALL.minZ;
+      const sideZ = (HALL.minZ + HALL.sideWallFrontZ) / 2;
+      add(hall, new BoxGeometry(t, wallHeight, sideDepth), plaster, HALL.minX + t / 2, top + wallHeight / 2, sideZ);
+      add(hall, new BoxGeometry(t, wallHeight, sideDepth), plaster, HALL.maxX - t / 2, top + wallHeight / 2, sideZ);
+    }
 
     const altar = HALL.altar;
     add(
@@ -449,24 +460,29 @@ export async function buildTempleGrounds(
     buildShrine(hall, top + HALL.altarHeight);
     buildHallSideLights(hall, top, wallHeight);
 
-    const pillarGeometry = new CylinderGeometry(0.55, 0.62, wallHeight, 20);
-    const baseGeometry = new CylinderGeometry(0.85, 0.85, 0.35, 16);
-    const baseStone = pbr("stone", 2, 1);
-    const pillarSpots = [
-      ...HALL.frontPillarXs.map((x) => ({ x, z: HALL.frontPillarZ })),
-      ...HALL.innerPillars,
-      { x: HALL.minX + 1.4, z: HALL.minZ + 1.4 },
-      { x: HALL.maxX - 1.4, z: HALL.minZ + 1.4 },
-    ];
-    hall.add(
-      instancedCopies(pillarGeometry, lacquer, pillarSpots, (dummy, spot) => {
-        dummy.position.set(spot.x, top + wallHeight / 2, spot.z);
-      }),
-      instancedCopies(baseGeometry, baseStone, pillarSpots, (dummy, spot) => {
-        dummy.position.set(spot.x, top + 0.175, spot.z);
-      }),
-    );
-    add(hall, new BoxGeometry(width, 0.9, 0.9), lacquer, 0, HALL.roofBaseY - 0.45, HALL.frontPillarZ);
+    if (hallBody) {
+      // the Blender-made walls, pillars and front beam (scripts/blender/temple.py)
+      hall.add(hallBody);
+    } else {
+      const pillarGeometry = new CylinderGeometry(0.55, 0.62, wallHeight, 20);
+      const baseGeometry = new CylinderGeometry(0.85, 0.85, 0.35, 16);
+      const baseStone = pbr("stone", 2, 1);
+      const pillarSpots = [
+        ...HALL.frontPillarXs.map((x) => ({ x, z: HALL.frontPillarZ })),
+        ...HALL.innerPillars,
+        { x: HALL.minX + 1.4, z: HALL.minZ + 1.4 },
+        { x: HALL.maxX - 1.4, z: HALL.minZ + 1.4 },
+      ];
+      hall.add(
+        instancedCopies(pillarGeometry, lacquer, pillarSpots, (dummy, spot) => {
+          dummy.position.set(spot.x, top + wallHeight / 2, spot.z);
+        }),
+        instancedCopies(baseGeometry, baseStone, pillarSpots, (dummy, spot) => {
+          dummy.position.set(spot.x, top + 0.175, spot.z);
+        }),
+      );
+      add(hall, new BoxGeometry(width, 0.9, 0.9), lacquer, 0, HALL.roofBaseY - 0.45, HALL.frontPillarZ);
+    }
     const ceiling = add(
       hall,
       new BoxGeometry(width, 0.15, depth),
@@ -949,7 +965,9 @@ export async function buildTempleGrounds(
   function buildWall(): Group {
     const wall = new Group();
     wall.name = "tuong-bao";
-    for (const [x0, z0, x1, z1] of WALL_SEGMENTS) {
+    if (perimeterWall) wall.add(perimeterWall);
+    const oldSegments = perimeterWall ? [] : WALL_SEGMENTS;
+    for (const [x0, z0, x1, z1] of oldSegments) {
       const length = Math.hypot(x1 - x0, z1 - z0);
       const alongX = Math.abs(x1 - x0) > Math.abs(z1 - z0);
       const cx = (x0 + x1) / 2;
