@@ -36,6 +36,7 @@ import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
 import { loadLanternGeometries } from "./lantern-model";
+import { loadPagoda } from "./pagoda-model";
 import { buildTempleGrounds } from "./temple-grounds";
 import type { TempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
@@ -252,13 +253,15 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     const lanterns = await loadLanternGeometries(gltfLoader);
     return buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy(), lanterns);
   }
-  const [, avatar, bodhi, grounds] = await Promise.all([
+  const [, avatar, bodhi, grounds, pagoda] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
     addModel("monk.glb", new Vector3(AVATAR_START.x, 0, AVATAR_START.z), 1.7),
     addModel("bodhi.glb", new Vector3(firstPine.x, 0, firstPine.z), 5),
     buildGroundsWithLanterns(),
+    loadPagoda(gltfLoader),
   ]);
   scene.add(grounds.group);
+  if (pagoda) scene.add(pagoda);
   // Other visitors are cloned from this unposed copy (posing changes bones).
   const visitorTemplate = cloneSkinned(avatar);
   // Owner, 2026-11-12: "thay toàn bộ cây trong chùa = cây bồ đề" — one
