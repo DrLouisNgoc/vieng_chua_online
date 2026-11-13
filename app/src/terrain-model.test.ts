@@ -59,9 +59,15 @@ describe("the shipped terrain.glb", () => {
     expect(box.min.z).toBeLessThan(WALK_AREA.minZ - 300);
   });
 
+  it("carries the waterfall ribbon and the spray spots that waterfall.ts animates", async () => {
+    const model = await parseShipped();
+    expect(model.getObjectByName("waterfall")).toBeInstanceOf(Mesh);
+    expect(model.getObjectByName("spray")).toBeInstanceOf(Mesh);
+  });
+
   it("is a static mesh of a few meshes and under 220k triangles, so it stays light enough to draw every frame", async () => {
     const meshes = meshesOf(await parseShipped());
-    expect(meshes.length).toBeLessThanOrEqual(3);
+    expect(meshes.length).toBeLessThanOrEqual(6);
     expect(meshes.reduce((sum, mesh) => sum + triangles(mesh.geometry), 0)).toBeLessThan(220_000);
   });
 });

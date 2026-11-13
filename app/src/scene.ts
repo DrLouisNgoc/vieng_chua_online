@@ -43,6 +43,7 @@ import { loadPagoda } from "./pagoda-model";
 import { placeStatueCopy } from "./statue-copy";
 import { loadBellTower, loadGate, loadHallBody, loadPerimeterWall } from "./temple-structure-model";
 import { loadTerrain } from "./terrain-model";
+import { animateWaterfall } from "./waterfall";
 import { buildTempleGrounds } from "./temple-grounds";
 import type { TempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
@@ -295,6 +296,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     loadTerrain(gltfLoader),
   ]);
   if (terrain) scene.add(terrain);
+  const waterfallUpdate = terrain ? animateWaterfall(terrain) : null;
   scene.add(grounds.group);
   if (pagoda) {
     scene.add(pagoda);
@@ -578,6 +580,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
       pos.z + skyDirection.z * SUN_DISTANCE,
     );
     grounds.update(deltaSeconds);
+    waterfallUpdate?.(nowMs / 1000);
     updateCamera(deltaSeconds);
     remoteVisitors.update(deltaSeconds, camera.position);
     options.onFrame?.(deltaSeconds);
