@@ -16,20 +16,14 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   "Tên | link" field (`isPdfTalk`, told apart by the `.pdf` extension) — a library, not just videos. The
   owner's actual Thiền Sư Nguyên Tuệ files aren't uploaded yet, only the mechanism.
   A single open board now fills most of the screen (`boards__panel--full`) instead of a small corner box.
-- Lanterns (#86): the red paper lanterns (path posts + hall pillars) now use a Blender-made model,
-  `app/public/models/lantern.glb`, committed; rebuild with `scripts/blender/lantern.py`. If the file is missing the
-  old plain ball is drawn. Blender 5.3 runs headless on the owner's machine (`lessons.md`), so other props can be
-  made the same way.
-- Pagoda (#88): a Shwedagon-style gold pagoda complex (owner sent a photo) stands as far scenery east of the wall,
-  `app/public/models/pagoda.glb` (with its own perimeter wall, gate and chánh điện, #96), spot and scale in `PAGODA` (temple-layout.ts), fog off, not walkable. The cốc
-  use the same Myanmar style (#89).
-- Cốc (#89): the 8 cốc now use a Myanmar-style hut, `app/public/models/coc.glb` (gold-ochre walls, red columns, two
-  teal roofs, gold spire), the same look as the pagoda; the meditation hut (HUT, 3.2 m, no nameplate) uses it too (#92).
-- Main hall (#94): its roof is now the Myanmar three-tier roof `app/public/models/hall-roof.glb` (from `scripts/blender/hall.py`) and its walls saffron; floor, pillars, altar and Buddha are unchanged. Missing file → old curved roof.
-- Avatar (#98): every visitor is now our own Nam tông novice, `app/public/models/monk-nam-tong.glb` (`scripts/blender/nam_tong.py`; saffron robe over the left shoulder, right shoulder bare, bare feet; same 17 bones as `monk.glb`, which stays as the fallback). Robe colours (onboarding) are saffron/orange/brown/white/maroon/yellow; index 0 is saffron.
-- East gate (#102): a gate in the temple's east wall (`EAST_GATE`, level with the pagoda's z) and a stone way lead to the pagoda complex, which is now walkable: colliders in `pagoda-layout.ts`, plaza height `PAGODA.groundY`. The camera does not collide with the pagoda (it is not a camera blocker).
-- Pagoda hall (#104): the complex's chánh điện is hollow (door in front, columns, altar) with a copy of the temple's own Buddha on the altar (`statue-copy.ts`, spot `PAGODA_HALL_BUDDHA`; our first Blender statue was dropped as ugly), walkable; three warm lamps are added in `pagoda-model.ts`.
-- Hall walls, pillars and perimeter wall (#108): Blender-made `hall-body.glb` and `perimeter-wall.glb` (`scripts/blender/temple.py`, saffron with gold bands and framed panels, lacquer pillars with lotus feet and gold capitals, a wall with pilasters and a teal cap); the old procedural meshes stay as fallback. Floor, stairs, altar, Buddha, seats are unchanged.
+- Blender-made look (owner, 2026-11-13; scripts in `scripts/blender/`, headless Blender 5.3, see `lessons.md`; each model
+  is committed in `app/public/models/` and the old procedural mesh is the fallback if a file is missing):
+  lanterns (#86); a Shwedagon-style pagoda complex east of the wall (#88, wall + gate + hollow chánh điện #96/#104, a
+  copy of the temple's own Buddha on its altar via `statue-copy.ts`); the 8 cốc and the meditation hut (#89, #92); the
+  main hall's roof (#94), walls and pillars, and the perimeter wall (#108); every visitor's avatar, our own Nam tông
+  novice with its own rig (#98, `monk.glb` is the fallback, robe colour index 0 saffron).
+- East gate (#102): a gate in the east wall (`EAST_GATE`) and a stone way lead to the pagoda complex, which is
+  walkable (`pagoda-layout.ts`: colliders, plaza and hall floor heights, lamps). The camera does not collide with it.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
 - Tests: server 159, app 357; `npm run check` green.
 
