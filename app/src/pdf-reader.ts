@@ -30,13 +30,17 @@ export function searchPageOrder(numPages: number, fromPage: number): number[] {
   return Array.from({ length: numPages }, (_, index) => ((fromPage + index) % numPages) + 1);
 }
 
-function squashSpaces(text: string): string {
-  return text.replaceAll(/\s+/g, " ").trim().toLowerCase();
+// The owner's PDF stores a letter with a diacritic as its own text item, so
+// extracted text reads "đ ạ i" and "Th ượ ng": compare with every space and
+// accent removed (đ → d; the PDF also writes a capital Đ as the look-alike
+// Ð) so "đại kinh" and "dai kinh" both find it.
+function searchKey(text: string): string {
+  return text.normalize("NFD").replaceAll(/\p{M}/gu, "").replaceAll(/[đð]/gi, "d").replaceAll(/\s+/g, "").toLowerCase();
 }
 
 export function hasText(pageText: string, query: string): boolean {
-  const needle = squashSpaces(query);
-  return needle !== "" && squashSpaces(pageText).includes(needle);
+  const needle = searchKey(query);
+  return needle !== "" && searchKey(pageText).includes(needle);
 }
 
 export interface PdfBook {

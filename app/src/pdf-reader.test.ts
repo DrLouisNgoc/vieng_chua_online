@@ -54,6 +54,18 @@ describe("hasText", () => {
     expect(hasText("địa  đại\nlà địa đại", "địa đại là")).toBe(true);
   });
 
+  it('matches text the PDF split into fragments ("đ ạ i", "K inh")', () => {
+    expect(hasText("Vì th ắ ng tri   đị a   đạ i là   Đạ i K inh", "đại kinh")).toBe(true);
+  });
+
+  it('matches without accents, so "dai kinh" finds "Đại Kinh"', () => {
+    expect(hasText("Đạ i Kinh Ví Dụ", "dai kinh")).toBe(true);
+  });
+
+  it("matches the look-alike Ð the PDF uses for a capital Đ", () => {
+    expect(hasText("029. Ð ạ i Kinh Ví d ụ", "đại kinh")).toBe(true);
+  });
+
   it("is false when absent or when the query is blank", () => {
     expect(hasText("Niết-bàn", "địa đại")).toBe(false);
     expect(hasText("Niết-bàn", " ".repeat(3))).toBe(false);
