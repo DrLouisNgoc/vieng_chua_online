@@ -27,15 +27,16 @@ export interface RobeColor {
   trim: string;
 }
 
-// Index 0 (default): plain white, the lay-practitioner "áo tràng" worn for
-// precept days in the Nam Tông (Theravada) tradition — owner's own robe.
+// Nam tông (Theravada) robe colours (owner, 2026-11-13). Index 0 (default) is
+// the saffron "vàng nghệ" of the monks; the plain white "áo tràng" that lay
+// practitioners wear on precept days (the earlier default) is kept as index 3.
 export const ROBE_COLORS: RobeColor[] = [
+  { base: "#e0951b", shade: "#b8760f", trim: "#f2c25b" },
+  { base: "#d9731a", shade: "#b05510", trim: "#f0a560" },
+  { base: "#b06a22", shade: "#864d14", trim: "#d9a066" },
   { base: "#f4f1e6", shade: "#d9d3bf", trim: "#b8b09a" },
-  { base: "#3f6e9c", shade: "#2d5378", trim: "#9cc0e0" },
-  { base: "#28456a", shade: "#1c3350", trim: "#7fa8cc" },
-  { base: "#4f7d5c", shade: "#395c43", trim: "#9fc7a8" },
-  { base: "#6a5a8c", shade: "#4c3f66", trim: "#b7a8d6" },
-  { base: "#8c5a4a", shade: "#663f33", trim: "#d6a28e" },
+  { base: "#8c3a22", shade: "#66291a", trim: "#c9806a" },
+  { base: "#e8c44a", shade: "#c2a02e", trim: "#f5e08f" },
 ];
 
 // The forbidden default pháp danh, so onboarding starts with an empty name.

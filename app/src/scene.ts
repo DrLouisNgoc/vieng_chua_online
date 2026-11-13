@@ -38,6 +38,7 @@ import { createKeyState } from "./key-state";
 import { loadCocTemplate } from "./coc-model";
 import { loadHallRoof } from "./hall-roof-model";
 import { loadLanternGeometries } from "./lantern-model";
+import { loadMonkOrFallback, NAM_TONG_MONK_URL } from "./monk-model";
 import { loadPagoda } from "./pagoda-model";
 import { buildTempleGrounds } from "./temple-grounds";
 import type { TempleGrounds } from "./temple-grounds";
@@ -223,7 +224,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   gltfLoader.setMeshoptDecoder(MeshoptDecoder);
 
   async function addModel(path: string, position: Vector3, targetHeight: number, rotationY = 0): Promise<Object3D> {
-    const gltf = await gltfLoader.loadAsync(`${ASSET_ROOT}/models/${path}`);
+    const gltf = await gltfLoader.loadAsync(path.startsWith("/") ? path : `${ASSET_ROOT}/models/${path}`);
     const model = gltf.scene;
     const originalSize = new Box3().setFromObject(model).getSize(new Vector3());
     const scale = originalSize.y > 0 ? targetHeight / originalSize.y : 1;
@@ -263,9 +264,13 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
       hallRoof,
     });
   }
+  const avatarStart = new Vector3(AVATAR_START.x, 0, AVATAR_START.z);
   const [, avatar, bodhi, grounds, pagoda] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
-    addModel("monk.glb", new Vector3(AVATAR_START.x, 0, AVATAR_START.z), 1.7),
+    loadMonkOrFallback(
+      async () => addModel(NAM_TONG_MONK_URL, avatarStart, 1.7),
+      async () => addModel("monk.glb", avatarStart, 1.7),
+    ),
     addModel("bodhi.glb", new Vector3(firstPine.x, 0, firstPine.z), 5),
     buildGroundsWithLanterns(),
     loadPagoda(gltfLoader),

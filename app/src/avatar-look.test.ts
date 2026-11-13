@@ -1,7 +1,7 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from "three";
 import { describe, expect, it } from "vitest";
 
-import { labelText, ROBE_MATERIAL_NAME, tintRobe } from "./avatar-look";
+import { labelText, LEGACY_ROBE_MATERIAL_NAME, ROBE_MATERIAL_NAME, tintRobe } from "./avatar-look";
 
 describe("labelText", () => {
   it("is the name alone when not counting beads", () => {
@@ -24,6 +24,15 @@ function materialOf(group: Group, index: number): unknown {
 }
 
 describe("tintRobe", () => {
+  it("also recolours the robe of the original monk.glb, used when the Nam tông model is missing", () => {
+    const robe = new MeshStandardMaterial({ name: LEGACY_ROBE_MATERIAL_NAME, color: 0x66_77_66 });
+    const a = avatarWith(robe);
+    tintRobe(a, "#3f6e9c");
+    expect((materialOf(a, 0) as MeshStandardMaterial).color.getHexString()).toBe(
+      new MeshStandardMaterial({ color: "#3f6e9c" }).color.getHexString(),
+    );
+  });
+
   it("recolours only this avatar's robe material", () => {
     const shared = new MeshStandardMaterial({ name: ROBE_MATERIAL_NAME, color: 0x66_77_66 });
     const skin = new MeshStandardMaterial({ name: "Warm peach skin", color: 0xc9_8a_5c });

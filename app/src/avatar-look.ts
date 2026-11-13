@@ -4,8 +4,10 @@ import { CanvasTexture, Mesh, MeshStandardMaterial, Sprite, SpriteMaterial, SRGB
 // How a visitor looks to others: robe colour (decision 0010) and a name
 // label above the head.
 
-// monk.glb's robe body material; the saffron outer wrap stays as it is.
-export const ROBE_MATERIAL_NAME = "Soft sage linen";
+// The robe material of monk-nam-tong.glb (scripts/blender/nam_tong.py), and of
+// the original monk.glb that is used when that file is missing.
+export const ROBE_MATERIAL_NAME = "Nam tong robe";
+export const LEGACY_ROBE_MATERIAL_NAME = "Soft sage linen";
 const TINTED_FLAG = "robeTinted";
 
 // Recolours the robe on this avatar only: the material is cloned the first
@@ -15,7 +17,10 @@ export function tintRobe(avatar: Object3D, color: string): void {
   avatar.traverse((node) => {
     if (!(node instanceof Mesh)) return;
     const material = node.material as Material;
-    if (material instanceof MeshStandardMaterial && material.name === ROBE_MATERIAL_NAME) {
+    if (
+      material instanceof MeshStandardMaterial &&
+      (material.name === ROBE_MATERIAL_NAME || material.name === LEGACY_ROBE_MATERIAL_NAME)
+    ) {
       robes.push({ mesh: node as Mesh, material });
     }
   });
