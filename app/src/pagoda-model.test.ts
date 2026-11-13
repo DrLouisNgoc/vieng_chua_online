@@ -69,12 +69,24 @@ describe("the shipped pagoda.glb", () => {
     expect(statSync(fileURLToPath(MODEL_URL)).size).toBeLessThan(1_500_000);
   });
 
-  it("is the whole complex: a plaza about 210 m across with a spire taller than 50 m", async () => {
+  it("is the whole complex: plaza, wall and the hall beside it, with a spire taller than 50 m", async () => {
     const size = new Box3().setFromObject(await parseShipped()).getSize(new Vector3());
-    expect(size.x).toBeGreaterThan(200);
-    expect(size.x).toBeLessThan(230);
+    expect(size.x).toBeGreaterThan(280);
+    expect(size.x).toBeLessThan(340);
     expect(size.y).toBeGreaterThan(50);
     expect(size.y).toBeLessThan(80);
+  });
+
+  it("once placed, wall, gate and hall all stay outside the temple's wall and clear of its trees", async () => {
+    const model = await parseShipped();
+    placePagoda(model);
+    model.updateMatrixWorld(true);
+    const box = new Box3().setFromObject(model);
+    expect(box.min.x).toBeGreaterThan(BOUNDARY.maxX);
+    const area = { minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z };
+    for (const tree of [...PINE_POSITIONS, ...BROADLEAF_TREES]) {
+      expect(isInside(tree, area)).toBe(false);
+    }
   });
 });
 

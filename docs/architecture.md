@@ -63,7 +63,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/temple-layout.ts` | Pure plan: sizes and positions of hall, stairs, yard, gate, pond, trees, seats; colliders; `groundHeightAt`. Change sizes here |
 | `app/src/temple-grounds.ts` | All procedural meshes, interior lights, koi animation, camera blockers (1491 lines, to be split) |
 | `app/src/curved-roof.ts` | Vietnamese curved hip roof as raw vertex data |
-| `app/src/pagoda-model.ts` | Loads `app/public/models/pagoda.glb` (Shwedagon-style gold pagoda, far scenery east of the wall; spot in `PAGODA`), fog off; no file → no pagoda |
+| `app/src/pagoda-model.ts` | Loads `app/public/models/pagoda.glb` (Shwedagon-style gold pagoda with its own wall, gate and chánh điện, far scenery east of the wall; spot in `PAGODA`), fog off; no file → no pagoda |
 | `app/src/coc-model.ts` | The 8 cốc and the meditation hut (no title → no nameplate, 3.2 m) in the pagoda's Myanmar style: shape from `app/public/models/coc.glb`, plus the renamable nameplate and the small lamp; old wooden hut if the file is missing |
 | `app/src/hall-roof-model.ts` | The main hall's Myanmar-style roof (3 teal tiers, gold spire) from `app/public/models/hall-roof.glb`, placed on the hall's roof line; old curved roof if the file is missing |
 | `app/src/lantern-model.ts` | Red paper lanterns: shape from `app/public/models/lantern.glb` (3 named parts), 3 instanced draw calls; plain-ball fallback if the file is missing |
@@ -132,7 +132,7 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `.prettierrc.json`, `eslint.config.mjs`, `.oxlintrc.json`, `.stylelintrc.json`, `knip.json`, `lefthook.yml`.
 - `scripts/blender/lantern.py` — builds `app/public/models/lantern.glb` (committed, our own model): run
   `blender -b -P scripts/blender/lantern.py -- <out.glb> [<preview.png>]` (Blender 5.x, headless).
-  `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~65k triangles, 9 materials).
+  `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~66k triangles, 10 materials; plaza, wall + gate, chánh điện).
   `scripts/blender/coc.py` — same for `coc.glb` (the Myanmar-style cốc, ~1k triangles, 6 materials).
   `scripts/blender/hall.py` — same for `hall-roof.glb` (the main hall's roof, ~1.2k triangles, 3 materials).
 - `docs/memory/` — handoff, decisions, lessons, open questions. `docs/specs/` — milestone 1–10 history
