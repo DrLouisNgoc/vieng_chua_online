@@ -15,7 +15,9 @@ import {
   HALL,
   MEDITATION_SEATS,
   PAGODA,
+  PAGODA_HALL_FLOOR,
   PAGODA_PLAZA,
+  pagodaToWorld,
   PATH,
   PAVING_HEIGHT,
   PINE_POSITIONS,
@@ -198,5 +200,29 @@ describe('the east gate to the pagoda complex (owner, 2026-11-13: "mở cái c�
   it("puts the feet on the plaza's own level inside the pagoda, and on the ground outside it", () => {
     expect(groundHeightAt({ x: PAGODA.x - 50, z: PAGODA.z })).toBe(PAGODA.groundY);
     expect(groundHeightAt({ x: BOUNDARY.maxX + 10, z: EAST_GATE.z })).toBe(0);
+  });
+});
+
+describe('the pagoda complex\'s chánh điện (owner, 2026-11-13: "bên trong ko có gì ah? làm tượng phật đi")', () => {
+  const centreX = -165; // the hall's middle across (model metres, see scripts/blender/pagoda.py)
+  const frontY = -62 - 16; // its front wall
+  it("can be entered through its door, up to the altar", () => {
+    const end = walk(pagodaToWorld(centreX, frontY - 5), pagodaToWorld(centreX, frontY + 14));
+    const goal = pagodaToWorld(centreX, frontY + 14);
+    expect(Math.abs(end.x - goal.x)).toBeLessThan(0.3);
+    expect(end.z).toBeCloseTo(goal.z, 1);
+  });
+
+  it("is closed everywhere but the door, and the altar with its Buddha is solid", () => {
+    const intoWall = walk(pagodaToWorld(centreX + 15, frontY - 5), pagodaToWorld(centreX + 15, frontY + 10));
+    expect(intoWall.x).toBeLessThan(pagodaToWorld(centreX, frontY).x);
+    const toAltar = walk(pagodaToWorld(centreX + 2, frontY + 14), pagodaToWorld(centreX + 2, frontY + 30));
+    expect(toAltar.x).toBeLessThan(pagodaToWorld(centreX, frontY + 22).x);
+  });
+
+  it("stands on a low platform inside, and on the plain ground outside it", () => {
+    expect(isInside(pagodaToWorld(centreX, -62), PAGODA_HALL_FLOOR)).toBe(true);
+    expect(groundHeightAt(pagodaToWorld(centreX, -62))).toBeGreaterThan(PAGODA.groundY);
+    expect(groundHeightAt(pagodaToWorld(centreX, frontY - 20))).toBe(0);
   });
 });
