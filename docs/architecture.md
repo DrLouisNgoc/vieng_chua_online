@@ -64,6 +64,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/temple-grounds.ts` | All procedural meshes, interior lights, koi animation, camera blockers (1491 lines, to be split) |
 | `app/src/curved-roof.ts` | Vietnamese curved hip roof as raw vertex data |
 | `app/src/pagoda-layout.ts` | Where the pagoda complex stands (`PAGODA`, `PAGODA_PLAZA`) and its solid parts as colliders (wall with its gate gap, stupa, towers, shrines, and the hollow hall: walls, door, columns, altar), the hall's platform height and lamp spots; numbers mirror `scripts/blender/pagoda.py` |
+| `app/src/statue-copy.ts` | A second copy of the temple's Buddha (shared geometry) stood at a given spot, height and heading: the statue in the pagoda complex's hall |
 | `app/src/pagoda-model.ts` | Loads `app/public/models/pagoda.glb` (Shwedagon-style gold pagoda with its own wall, gate and chánh điện, far scenery east of the wall; spot in `PAGODA`), fog off; no file → no pagoda |
 | `app/src/coc-model.ts` | The 8 cốc and the meditation hut (no title → no nameplate, 3.2 m) in the pagoda's Myanmar style: shape from `app/public/models/coc.glb`, plus the renamable nameplate and the small lamp; old wooden hut if the file is missing |
 | `app/src/hall-roof-model.ts` | The main hall's Myanmar-style roof (3 teal tiers, gold spire) from `app/public/models/hall-roof.glb`, placed on the hall's roof line; old curved roof if the file is missing |
@@ -134,7 +135,7 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `.prettierrc.json`, `eslint.config.mjs`, `.oxlintrc.json`, `.stylelintrc.json`, `knip.json`, `lefthook.yml`.
 - `scripts/blender/lantern.py` — builds `app/public/models/lantern.glb` (committed, our own model): run
   `blender -b -P scripts/blender/lantern.py -- <out.glb> [<preview.png>]` (Blender 5.x, headless).
-  `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~70k triangles, 10 materials; plaza, wall + gate, hollow chánh điện with a gold Buddha).
+  `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~70k triangles, 10 materials; plaza, wall + gate, hollow chánh điện; the statue in it is the temple's own, copied at runtime).
   `scripts/blender/coc.py` — same for `coc.glb` (the Myanmar-style cốc, ~1k triangles, 6 materials).
   `scripts/blender/hall.py` — same for `hall-roof.glb` (the main hall's roof, ~1.2k triangles, 3 materials).
   `scripts/blender/nam_tong.py` — same for `monk-nam-tong.glb` (the avatar: own rig, head, saffron robe; ~15k triangles, 4 meshes; nothing taken from sansatemple).

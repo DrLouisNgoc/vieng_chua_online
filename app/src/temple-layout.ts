@@ -4,7 +4,7 @@ import { isInside } from "./collision";
 import type { Point } from "./movement";
 import { PAGODA, PAGODA_HALL_FLOOR, PAGODA_HALL_FLOOR_HEIGHT, PAGODA_PLAZA, pagodaColliders } from "./pagoda-layout";
 
-export { PAGODA, PAGODA_HALL_FLOOR, PAGODA_PLAZA, pagodaToWorld } from "./pagoda-layout";
+export { PAGODA, PAGODA_HALL_BUDDHA, PAGODA_HALL_FLOOR, PAGODA_PLAZA, pagodaToWorld } from "./pagoda-layout";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
 // Pure data: temple-grounds.ts builds the meshes, scene.ts uses the
