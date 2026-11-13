@@ -20,6 +20,8 @@ import {
   PAGODA_HALL_STATUE_ZONE,
   PAGODA_HALL_URN,
   PAGODA_PLAZA,
+  PAGODA_STUPA_BUDDHA,
+  PAGODA_STUPA_ZONE,
   pagodaToWorld,
   PATH,
   PAVING_HEIGHT,
@@ -195,7 +197,8 @@ describe('the east gate to the pagoda complex (owner, 2026-11-13: "mở cái c�
   });
 
   it("does not let the avatar walk through the great stupa, nor over the plaza's far wall", () => {
-    const toStupa = walk({ x: PAGODA_PLAZA.minX + 8, z: PAGODA.z }, { x: PAGODA.x, z: PAGODA.z });
+    // off the stair axis, so the terraces stop it (the way in is tested below)
+    const toStupa = walk({ x: PAGODA_PLAZA.minX + 8, z: PAGODA.z + 20 }, { x: PAGODA.x, z: PAGODA.z + 20 });
     expect(toStupa.x).toBeLessThan(PAGODA.x - 25);
     const toBackWall = walk({ x: PAGODA.x, z: PAGODA_PLAZA.maxZ - 8 }, { x: PAGODA.x, z: PAGODA_PLAZA.maxZ + 30 });
     expect(toBackWall.z).toBeLessThan(PAGODA_PLAZA.maxZ + 6);
@@ -281,5 +284,39 @@ describe("the walkable land (owner, 2026-11-13: mountains and a river all round,
     expect(walk({ x: mid.x, z: WALK_AREA.maxZ - 6 }, { x: mid.x, z: WALK_AREA.maxZ + 30 }).z).toBeLessThanOrEqual(
       WALK_AREA.maxZ,
     );
+  });
+});
+
+describe('the way into the great stupa (owner, 2026-11-13: "xây lại đường vào bảo tháp, bên trong tượng phật và mái vòm")', () => {
+  const floor = groundHeightAt(pagodaToWorld(0, 0));
+
+  it("climbs the stairs from the plaza, through the door, into the domed chamber", () => {
+    const end = walk(pagodaToWorld(0, -52), pagodaToWorld(0, 4));
+    expect(Math.abs(end.x - pagodaToWorld(0, 4).x)).toBeLessThan(0.4);
+    expect(floor).toBeGreaterThan(PAGODA.groundY + 5); // the chamber floor is on top of the terraces
+  });
+
+  it("rises smoothly along the stairs, from the plaza's level to the chamber's", () => {
+    const start = groundHeightAt(pagodaToWorld(0, -48));
+    const middle = groundHeightAt(pagodaToWorld(0, -34));
+    const door = groundHeightAt(pagodaToWorld(0, -21));
+    expect(start).toBeCloseTo(PAGODA.groundY, 1);
+    expect(middle).toBeGreaterThan(start + 1);
+    expect(middle).toBeLessThan(door);
+    expect(door).toBeCloseTo(floor, 1);
+  });
+
+  it("keeps the terraces solid everywhere else, and the altar in the chamber", () => {
+    const off = walk(pagodaToWorld(20, -52), pagodaToWorld(20, 0));
+    expect(pagodaToWorld(0, 0).x - off.x).toBeGreaterThan(25); // stopped well short of the stupa, at the terrace
+    const toAltar = walk(pagodaToWorld(0, -10), pagodaToWorld(0, 20));
+    expect(toAltar.x).toBeLessThan(pagodaToWorld(0, 6.6).x);
+  });
+
+  it("holds the temple's own Buddha on the altar, facing the door, with a place to bow in front of it", () => {
+    expect(PAGODA_STUPA_BUDDHA.baseY).toBeGreaterThan(floor);
+    expect(PAGODA_STUPA_BUDDHA.rotationY).toBeCloseTo(Math.PI);
+    const atAltar = walk(pagodaToWorld(0, -10), pagodaToWorld(0, 20));
+    expect(isInside(atAltar, PAGODA_STUPA_ZONE)).toBe(true);
   });
 });

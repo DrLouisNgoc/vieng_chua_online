@@ -9,6 +9,7 @@ import {
   PAGODA_HALL_URN,
   PAGODA_PLAZA,
   pagodaColliders,
+  pagodaStupaHeightAt,
 } from "./pagoda-layout";
 import { walkAreaColliders } from "./terrain-layout";
 
@@ -19,6 +20,8 @@ export {
   PAGODA_HALL_STATUE_ZONE,
   PAGODA_HALL_URN,
   PAGODA_PLAZA,
+  PAGODA_STUPA_BUDDHA,
+  PAGODA_STUPA_ZONE,
   pagodaToWorld,
 } from "./pagoda-layout";
 export { WALK_AREA } from "./terrain-layout";
@@ -407,6 +410,8 @@ export function groundHeightAt(point: Point): number {
   }
   if (isInside(point, BOUNDARY)) return PAVING_HEIGHT;
   if (isInside(point, PAGODA_HALL_FLOOR)) return PAGODA_HALL_FLOOR_HEIGHT;
+  const stupaFloor = pagodaStupaHeightAt(point);
+  if (stupaFloor !== null) return stupaFloor;
   if (isInside(point, PAGODA_PLAZA)) return PAGODA.groundY;
   return 0;
 }

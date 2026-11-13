@@ -26,10 +26,11 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
 - Land (#114): the walkable land is `WALK_AREA` (terrain-layout.ts, x -160..300, z -160..200; the walk ends at its edge) with a green ground; beyond it `terrain.glb` (scripts/blender/terrain.py) fills the rest: foothills with a pine forest, a river ring, sharp snow-capped mountains to the horizon, two huge waterfalls on the north range and five streams (animated by `waterfall.ts`; ~205k triangles, 3.1 MB).
 - Clouds (#124): `clouds.ts`, ~130 soft sprites drifting round the mountains (fainter at night).
 - Worship (#126): the standing bow (E, Lạy Phật) is now a kneeling prostration; the pagoda hall has its own statue zone (E bows), an incense urn and cushions in front of the altar; H = Thắp hương near any urn in `INCENSE_URNS` (joined palms + smoke, not sent to others).
+- Great stupa (#130): 20 steps from the plaza up the terraces to a door in the dome and a round domed chamber with the temple's Buddha on an altar (`pagoda-layout.ts`: corridor/chamber holes in the terrace collider, `pagodaStupaHeightAt`, `PAGODA_STUPA_*`; the small stupas/shrines on the axis are skipped in `pagoda.py`).
 - East gate (#102): a gate in the east wall (`EAST_GATE`) and a stone way lead to the pagoda complex, which is
   walkable (`pagoda-layout.ts`: colliders, plaza and hall floor heights, lamps). The camera does not collide with it.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 159, app 388; `npm run check` green.
+- Tests: server 159, app 393; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

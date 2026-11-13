@@ -141,7 +141,7 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `.prettierrc.json`, `eslint.config.mjs`, `.oxlintrc.json`, `.stylelintrc.json`, `knip.json`, `lefthook.yml`.
 - `scripts/blender/lantern.py` — builds `app/public/models/lantern.glb` (committed, our own model): run
   `blender -b -P scripts/blender/lantern.py -- <out.glb> [<preview.png>]` (Blender 5.x, headless).
-  `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~70k triangles, 10 materials; plaza, wall + gate, hollow chánh điện; the statue in it is the temple's own, copied at runtime).
+  `scripts/blender/pagoda.py` — same for `pagoda.glb` (one meshopt-compressed mesh, ~70k triangles, 10 materials; plaza, wall + gate, hollow chánh điện, and a door, stairs and domed chamber in the great stupa; the statues in them is the temple's own, copied at runtime).
   `scripts/blender/coc.py` — same for `coc.glb` (the Myanmar-style cốc, ~1k triangles, 6 materials).
   `scripts/blender/hall.py` — same for `hall-roof.glb` (the main hall's roof, ~1.2k triangles, 3 materials).
   `scripts/blender/gate_bell.py` — same for `gate.glb` and `bell-tower.glb` (~1.5k and ~1k triangles, local coordinates).

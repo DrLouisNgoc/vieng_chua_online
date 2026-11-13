@@ -5,7 +5,7 @@ import type { Material, Object3D } from "three";
 import { Mesh, PointLight } from "three";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-import { HALL_LAMP_HEIGHT, PAGODA_HALL_LAMPS } from "./pagoda-layout";
+import { PAGODA_LAMPS } from "./pagoda-layout";
 import { PAGODA } from "./temple-layout";
 
 export const PAGODA_MODEL_URL = "/models/pagoda.glb";
@@ -26,9 +26,9 @@ const HALL_LAMP_REACH = 22;
 const HALL_LAMP_INTENSITY = 0.5 * HALL_LAMP_REACH * HALL_LAMP_REACH;
 
 function addHallLamps(model: Object3D): void {
-  for (const [bx, by] of PAGODA_HALL_LAMPS) {
-    const lamp = new PointLight(HALL_LAMP_COLOR, HALL_LAMP_INTENSITY, HALL_LAMP_REACH, 2);
-    lamp.position.set(bx, HALL_LAMP_HEIGHT, -by); // model metres: glTF is y-up, with z = -by
+  for (const { bx, by, height, strength } of PAGODA_LAMPS) {
+    const lamp = new PointLight(HALL_LAMP_COLOR, HALL_LAMP_INTENSITY * strength, HALL_LAMP_REACH, 2);
+    lamp.position.set(bx, height, -by); // model metres: glTF is y-up, with z = -by
     lamp.castShadow = false;
     model.add(lamp);
   }
