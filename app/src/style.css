@@ -648,6 +648,12 @@ body {
   box-shadow: 0 10px 30px oklch(22% 0.03 70deg / 35%);
 }
 
+.boards__panel--full {
+  width: min(64rem, calc(100vw - 2 * var(--space-hud)));
+  max-height: calc(100vh - 4 * var(--space-hud));
+  font-size: 1.15rem;
+}
+
 .boards__close {
   position: sticky;
   top: 0;

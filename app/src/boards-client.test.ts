@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createBoardsClient, parseQuoteImages, parseTalks, youtubeVideoId } from "./boards-client";
+import { createBoardsClient, isPdfTalk, parseQuoteImages, parseTalks, youtubeVideoId } from "./boards-client";
 
 describe("youtubeVideoId", () => {
   it("extracts the id from a watch URL with extra query params", () => {
@@ -39,6 +39,16 @@ describe("parseTalks", () => {
   it("returns [] for empty input", () => {
     expect(parseTalks("")).toEqual([]);
     expect(parseTalks("   \n  ")).toEqual([]);
+  });
+});
+
+describe("isPdfTalk", () => {
+  it("is true for a url ending in .pdf, case-insensitively", () => {
+    expect(isPdfTalk({ title: "Sách", url: "/thirdparty/sach-nguyen-tue/nhan-biet.PDF" })).toBe(true);
+  });
+
+  it("is false for a YouTube link", () => {
+    expect(isPdfTalk({ title: "Bài giảng", url: "https://youtu.be/abc123def" })).toBe(false);
   });
 });
 

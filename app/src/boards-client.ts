@@ -31,6 +31,13 @@ export function parseTalks(body: string): Talk[] {
     });
 }
 
+// A library entry (owner, 2026-11-12: "sửa lại cốc của sư như 1 thư viện
+// sách") is a PDF book rather than a video talk when its url ends in .pdf;
+// same "Tên | link" line format as a video talk, no server schema change.
+export function isPdfTalk(talk: Talk): boolean {
+  return talk.url.toLowerCase().endsWith(".pdf");
+}
+
 export type BoardType = "text" | "video" | "image";
 
 export interface QuoteImage {
