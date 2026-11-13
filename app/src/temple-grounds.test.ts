@@ -64,4 +64,15 @@ describe("buildTempleGrounds", () => {
     expect(() => grounds.setCocOccupant("coc-mo-1", "Mạnh Dung")).not.toThrow();
     expect(() => grounds.setCocOccupant("coc-mo-1", null)).not.toThrow();
   });
+
+  it("builds the meditation hut from the Myanmar model too, with no nameplate of its own", async () => {
+    const template = new Group();
+    template.add(new Mesh(new BoxGeometry(2.4, 2, 2.4)));
+    const withModel = await buildTempleGrounds(stubLoader, 4, fallbackLanternGeometries(), template);
+    const hut = withModel.group.getObjectByName("coc-thien");
+    expect(hut?.getObjectByName("model")).toBeDefined();
+    expect(hut?.getObjectByName("plaque")).toBeUndefined();
+    const withoutModel = await buildTempleGrounds(stubLoader, 4);
+    expect(withoutModel.group.getObjectByName("coc-thien")?.getObjectByName("model")).toBeUndefined();
+  });
 });

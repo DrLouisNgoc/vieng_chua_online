@@ -27,7 +27,8 @@ const LAMP_Y = 2;
 interface MyanmarCocOptions {
   template: Object3D;
   size: number;
-  title: string;
+  // Omitted for the meditation hut, which has no nameplate of its own.
+  title?: string;
   makePlaqueTexture: (text: string) => Texture;
   lampColor: number;
 }
@@ -53,13 +54,16 @@ export function buildMyanmarCoc(options: MyanmarCocOptions): { group: Group; set
   }
   group.add(body);
 
-  const plaqueMaterial = new MeshStandardMaterial({ map: makePlaqueTexture(title), roughness: 0.6 });
-  const plaque = new Mesh(new BoxGeometry(size * 0.85, PLAQUE_HEIGHT * scale, 0.06), plaqueMaterial);
-  plaque.name = "plaque";
-  plaque.position.set(half + PLAQUE_STAND_OFF * scale, PLAQUE_Y * scale, 0);
-  plaque.rotation.y = Math.PI / 2;
-  plaque.castShadow = false;
-  group.add(plaque);
+  let plaqueMaterial: MeshStandardMaterial | null = null;
+  if (title !== undefined) {
+    plaqueMaterial = new MeshStandardMaterial({ map: makePlaqueTexture(title), roughness: 0.6 });
+    const plaque = new Mesh(new BoxGeometry(size * 0.85, PLAQUE_HEIGHT * scale, 0.06), plaqueMaterial);
+    plaque.name = "plaque";
+    plaque.position.set(half + PLAQUE_STAND_OFF * scale, PLAQUE_Y * scale, 0);
+    plaque.rotation.y = Math.PI / 2;
+    plaque.castShadow = false;
+    group.add(plaque);
+  }
 
   // Short reach and decay 2: it lights this one small room, not the whole yard.
   const lampReach = size * 1.3;
@@ -71,6 +75,7 @@ export function buildMyanmarCoc(options: MyanmarCocOptions): { group: Group; set
   return {
     group,
     setPlaqueText(text) {
+      if (!plaqueMaterial) return;
       plaqueMaterial.map = makePlaqueTexture(text);
       plaqueMaterial.needsUpdate = true;
     },
