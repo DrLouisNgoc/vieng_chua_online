@@ -3,11 +3,12 @@ import { fileURLToPath } from "node:url";
 
 import { MeshoptDecoder } from "meshoptimizer";
 import type { Material, Object3D } from "three";
-import { Box3, BufferGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import { Box3, BufferGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { isInside } from "./collision";
+import { PAGODA_HALL_LAMPS } from "./pagoda-layout";
 import { loadPagoda, placePagoda } from "./pagoda-model";
 import { BOUNDARY, BROADLEAF_TREES, PAGODA, PINE_POSITIONS } from "./temple-layout";
 
@@ -105,6 +106,20 @@ describe("placePagoda", () => {
     expect(root.position.y).toBe(PAGODA.groundY);
     expect(root.scale.x).toBe(PAGODA.scale);
     expect(root.rotation.y).toBe(PAGODA.rotationY);
+  });
+
+  it("lights the inside of the hall with small lamps that cast no shadow, so the Buddha is not in the dark", () => {
+    const root = fakeModel();
+    placePagoda(root);
+    const lamps: PointLight[] = [];
+    root.traverse((node) => {
+      if (node instanceof PointLight) lamps.push(node);
+    });
+    expect(lamps).toHaveLength(PAGODA_HALL_LAMPS.length);
+    for (const lamp of lamps) {
+      expect(lamp.castShadow).toBe(false);
+      expect(lamp.distance).toBeGreaterThan(0);
+    }
   });
 
   it("keeps the fog off every material, so it stands out as a far landmark", () => {

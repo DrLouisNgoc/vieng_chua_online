@@ -2,9 +2,10 @@
 // complex is one meshopt-compressed mesh with a few material slots (built by
 // scripts/blender/pagoda.py), so it costs a handful of draw calls.
 import type { Material, Object3D } from "three";
-import { Mesh } from "three";
+import { Mesh, PointLight } from "three";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+import { HALL_LAMP_HEIGHT, PAGODA_HALL_LAMPS } from "./pagoda-layout";
 import { PAGODA } from "./temple-layout";
 
 export const PAGODA_MODEL_URL = "/models/pagoda.glb";
@@ -18,10 +19,26 @@ function materialsOf(mesh: Mesh): Material[] {
   return Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 }
 
+// A few warm lamps inside the hall, as in the temple's own buildings: short reach and
+// decay 2, so each lights the room round it and not the plaza outside.
+const HALL_LAMP_COLOR = 0xff_c4_69;
+const HALL_LAMP_REACH = 22;
+const HALL_LAMP_INTENSITY = 0.5 * HALL_LAMP_REACH * HALL_LAMP_REACH;
+
+function addHallLamps(model: Object3D): void {
+  for (const [bx, by] of PAGODA_HALL_LAMPS) {
+    const lamp = new PointLight(HALL_LAMP_COLOR, HALL_LAMP_INTENSITY, HALL_LAMP_REACH, 2);
+    lamp.position.set(bx, HALL_LAMP_HEIGHT, -by); // model metres: glTF is y-up, with z = -by
+    lamp.castShadow = false;
+    model.add(lamp);
+  }
+}
+
 export function placePagoda(model: Object3D): void {
   model.position.set(PAGODA.x, PAGODA.groundY, PAGODA.z);
   model.rotation.set(0, PAGODA.rotationY, 0);
   model.scale.setScalar(PAGODA.scale);
+  addHallLamps(model);
   model.traverse((node) => {
     if (!isMesh(node)) return;
     // The scene's fog (90–340 units) would bury a landmark this far away.

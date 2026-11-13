@@ -2,9 +2,9 @@ import { WORLD_LIMIT } from "../../shared/protocol";
 import type { Box } from "./collision";
 import { isInside } from "./collision";
 import type { Point } from "./movement";
-import { PAGODA, PAGODA_PLAZA, pagodaColliders } from "./pagoda-layout";
+import { PAGODA, PAGODA_HALL_FLOOR, PAGODA_HALL_FLOOR_HEIGHT, PAGODA_PLAZA, pagodaColliders } from "./pagoda-layout";
 
-export { PAGODA, PAGODA_PLAZA } from "./pagoda-layout";
+export { PAGODA, PAGODA_HALL_FLOOR, PAGODA_PLAZA, pagodaToWorld } from "./pagoda-layout";
 
 // Plan of the temple grounds (x to the right, -z toward the main hall).
 // Pure data: temple-grounds.ts builds the meshes, scene.ts uses the
@@ -384,6 +384,7 @@ export function groundHeightAt(point: Point): number {
     return BELL_TOWER.platformHeight;
   }
   if (isInside(point, BOUNDARY)) return PAVING_HEIGHT;
+  if (isInside(point, PAGODA_HALL_FLOOR)) return PAGODA_HALL_FLOOR_HEIGHT;
   if (isInside(point, PAGODA_PLAZA)) return PAGODA.groundY;
   return 0;
 }
