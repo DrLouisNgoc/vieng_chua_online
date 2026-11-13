@@ -2,18 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import { skyAt } from "./sky-cycle";
 
+// Colour channels of a 0xRRGGBB number, without bit operators.
+function red(hex: number): number {
+  return Math.floor(hex / 0x1_00_00) % 0x1_00;
+}
+
+function blue(hex: number): number {
+  return hex % 0x1_00;
+}
+
 describe("skyAt", () => {
-  it("keeps today's daylight look at noon", () => {
+  it("is a clear blue sunny sky at noon (owner, 2026-11-13: trời quang, đẹp, nắng chiếu)", () => {
     const noon = skyAt(12);
-    expect(noon.skyTop).toBe(0x9c_bc_d6);
-    expect(noon.skyHorizon).toBe(0xe8_dc_c4);
-    expect(noon.fog).toBe(0xe8_dc_c4);
-    expect(noon.sunColor).toBe(0xff_e8_c4);
-    expect(noon.sunIntensity).toBeCloseTo(2.2);
-    expect(noon.hemiSky).toBe(0xdf_ea_f5);
-    expect(noon.hemiGround).toBe(0x6b_5a_3e);
-    expect(noon.hemiIntensity).toBeCloseTo(0.9);
-    expect(noon.exposure).toBeCloseTo(1.05);
+    expect(blue(noon.skyTop) - red(noon.skyTop)).toBeGreaterThan(0x60); // deep clear blue overhead
+    expect(blue(noon.skyHorizon)).toBeGreaterThan(red(noon.skyHorizon)); // a pale blue horizon, not beige
+    expect(blue(noon.fog)).toBeGreaterThanOrEqual(red(noon.fog)); // the haze is pale blue too
+    expect(noon.sunIntensity).toBeGreaterThanOrEqual(2.8);
+    expect(noon.sunColor).toBeGreaterThan(0xff_e0_b0); // warm white sunlight
     expect(noon.night).toBe(0);
   });
 

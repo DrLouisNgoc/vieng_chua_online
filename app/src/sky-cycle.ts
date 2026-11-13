@@ -31,17 +31,18 @@ const NIGHT: Look = {
   night: 1,
 };
 
-// The look the temple had before Milestone 7.
+// A clear sunny day (owner, 2026-11-13: "trời quang, đẹp, nắng chiếu"): deep blue overhead, a
+// pale blue horizon and haze, strong warm sunlight.
 const DAY: Look = {
-  sunColor: 0xff_e8_c4,
-  sunIntensity: 2.2,
-  hemiSky: 0xdf_ea_f5,
+  sunColor: 0xff_f2_d6,
+  sunIntensity: 3,
+  hemiSky: 0xcf_e4_ff,
   hemiGround: 0x6b_5a_3e,
-  hemiIntensity: 0.9,
-  skyTop: 0x9c_bc_d6,
-  skyHorizon: 0xe8_dc_c4,
-  fog: 0xe8_dc_c4,
-  exposure: 1.05,
+  hemiIntensity: 1,
+  skyTop: 0x2f_7f_d8,
+  skyHorizon: 0xbf_e0_ff,
+  fog: 0xc8_e2_fa,
+  exposure: 1.1,
   night: 0,
 };
 
