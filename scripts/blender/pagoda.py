@@ -308,11 +308,13 @@ def perimeter_wall(half, gate_half):
 PL = 105.0  # half-size of the marble plaza
 mesh_obj("plaza", [(-PL, -PL, 0), (PL, -PL, 0), (PL, PL, 0), (-PL, PL, 0)], [(0, 1, 2, 3)], ["marble"])
 box((2 * PL + 2, 2 * PL + 2, 0.6), (0, 0, -0.4), "stone")
+# Layers on the marble (top at 0): inlay, then border, then carpet, each 0.08 above the last.
+# Closer than that they flicker (z-fighting) from afar: the camera's depth range is 0.1 to 800.
 for rz in (0, math.pi / 2):  # green carpet cross
-    box((7.0, 2 * PL - 4, 0.04), (0, 0, 0.03), "carpet", (0, 0, rz))
-    box((8.4, 2 * PL - 4, 0.03), (0, 0, 0.025), "brown", (0, 0, rz))
+    box((7.0, 2 * PL - 4, 0.24), (0, 0, 0.12), "carpet", (0, 0, rz))
+    box((8.4, 2 * PL - 4, 0.16), (0, 0, 0.08), "brown", (0, 0, rz))
 for ang in (0, math.pi / 2):  # diamond inlay
-    box((2.0, 150.0, 0.03), (0, 0, 0.02), "brown", (0, 0, ang + math.pi / 4))
+    box((2.0, 150.0, 0.08), (0, 0, 0.04), "brown", (0, 0, ang + math.pi / 4))
 
 OCT = math.radians(22.5)
 for radius, height, z, mat in ((46, 1.6, 0.8, "cream"), (40, 1.6, 2.4, "stone"), (34.5, 1.8, 4.1, "cream")):
