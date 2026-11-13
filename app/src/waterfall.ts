@@ -39,17 +39,17 @@ function seededRandom(seed: number): () => number {
 // Vertical white streaks that fade out toward the two banks, tiling along the fall.
 function streakTexture(): Texture {
   const canvas = document.createElement("canvas");
-  canvas.width = 128;
-  canvas.height = 512;
+  canvas.width = 256;
+  canvas.height = 1024;
   const context = canvas.getContext("2d");
   if (!context) return new Texture();
   const random = seededRandom(11);
-  for (let i = 0; i < 150; i += 1) {
+  for (let i = 0; i < 420; i += 1) {
     const x = random() * canvas.width;
-    const width = 1 + random() * 3.5;
-    const height = 60 + random() * 260;
+    const width = 0.8 + random() * 2.2;
+    const height = 120 + random() * 520;
     const y = random() * canvas.height;
-    context.fillStyle = `rgba(235, 248, 255, ${(0.15 + random() * 0.6).toFixed(2)})`;
+    context.fillStyle = `rgba(235, 248, 255, ${(0.25 + random() * 0.7).toFixed(2)})`;
     context.fillRect(x, y, width, height);
     context.fillRect(x, y - canvas.height, width, height); // wrap, so the texture tiles
   }
@@ -140,7 +140,7 @@ export function animateWaterfall(
   }
 
   return (seconds) => {
-    streaks.offset.y = -((seconds * FLOW_PER_SECOND) % 1); // downhill
+    streaks.offset.y = (seconds * FLOW_PER_SECOND) % 1; // downhill: the pattern moves toward lower v, the foot
     for (const [index, entry] of sprites.entries()) {
       const phase = seconds * 0.4 + index * 1.7;
       entry.sprite.position.y = entry.baseY + Math.sin(phase) * entry.size * 0.04;
