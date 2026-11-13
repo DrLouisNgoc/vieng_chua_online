@@ -7,8 +7,8 @@ import { Box3, BoxGeometry, Group, Mesh } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { BOUNDARY, HALL } from "./temple-layout";
-import { loadHallBody, loadPerimeterWall, placeStructure } from "./temple-structure-model";
+import { BELL_TOWER, BOUNDARY, GATE, HALL } from "./temple-layout";
+import { loadBellTower, loadGate, loadHallBody, loadPerimeterWall, placeStructure } from "./temple-structure-model";
 
 async function parseShipped(file: string): Promise<Group> {
   const loader = new GLTFLoader();
@@ -61,6 +61,29 @@ describe("the shipped perimeter-wall.glb", () => {
   });
 });
 
+describe("the shipped gate.glb", () => {
+  it("stands on the gate's four pillars, with the three-tier roof over the middle bay", async () => {
+    const box = new Box3().setFromObject(await parseShipped("gate.glb"));
+    expect(box.min.y).toBeCloseTo(0, 1);
+    expect(box.min.x).toBeLessThan(Math.min(...GATE.pillarXs));
+    expect(box.max.x).toBeGreaterThan(Math.max(...GATE.pillarXs));
+    expect(box.max.y).toBeGreaterThan(GATE.centralHeight + 3);
+    expect(box.max.y).toBeLessThan(GATE.centralHeight + 8);
+  });
+});
+
+describe("the shipped bell-tower.glb", () => {
+  it("covers the bell tower's platform and its four pillars, from the ground to a gold spire", async () => {
+    const box = new Box3().setFromObject(await parseShipped("bell-tower.glb"));
+    expect(box.min.y).toBeCloseTo(0, 1);
+    expect(box.max.x).toBeGreaterThan(BELL_TOWER.half);
+    expect(box.max.x).toBeLessThan(BELL_TOWER.half + 1.5);
+    expect(box.min.x).toBeGreaterThan(-BELL_TOWER.half - 1.5);
+    expect(box.max.y).toBeGreaterThan(7);
+    expect(box.max.y).toBeLessThan(11);
+  });
+});
+
 describe("placeStructure", () => {
   it("lets the model cast and receive shadows", () => {
     const model = new Group();
@@ -84,6 +107,10 @@ describe("the loaders", () => {
     expect(scene.name).toBe("hall-body");
     expect(await loadPerimeterWall(loader)).toBe(scene);
     expect(scene.name).toBe("perimeter-wall");
+    expect(await loadGate(loader)).toBe(scene);
+    expect(scene.name).toBe("gate-model");
+    expect(await loadBellTower(loader)).toBe(scene);
+    expect(scene.name).toBe("bell-tower-model");
   });
 
   it("return null and warn once each when a file is missing, so the old walls are built instead", async () => {
@@ -93,6 +120,8 @@ describe("the loaders", () => {
     const loader = { loadAsync: vi.fn().mockRejectedValue(new Error("404")) } as unknown as GLTFLoader;
     expect(await loadHallBody(loader)).toBeNull();
     expect(await loadPerimeterWall(loader)).toBeNull();
-    expect(warn).toHaveBeenCalledTimes(2);
+    expect(await loadGate(loader)).toBeNull();
+    expect(await loadBellTower(loader)).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(4);
   });
 });
