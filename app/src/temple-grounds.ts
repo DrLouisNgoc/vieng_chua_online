@@ -31,6 +31,7 @@ import {
   Vector3,
 } from "three";
 import { buildMyanmarCoc } from "./coc-model";
+import { placeHallRoof } from "./hall-roof-model";
 import { buildCurvedHipRoof, innerEdge, type CurvedRoofOptions } from "./curved-roof";
 import { buildLanternMeshes, fallbackLanternGeometries } from "./lantern-model";
 import type { LanternGeometries } from "./lantern-model";
@@ -105,6 +106,7 @@ const PALETTE = {
   roofTint: 0x8a7f74,
   ridge: 0x6f6a64,
   wallOchre: 0xd8c39a,
+  saffron: 0xd9_a4_41,
   water: 0x2f5f55,
   pondBed: 0x23332b,
   lotusPad: 0x4f7d3a,
@@ -142,12 +144,19 @@ function tiles(length: number): number {
   return Math.max(1, Math.round(length / 2.5));
 }
 
+// The Blender-made pieces; each is optional, and the old procedural look is built without it.
+export interface GroundsModels {
+  lanternGeometries?: LanternGeometries;
+  cocTemplate?: Object3D | null;
+  hallRoof?: Object3D | null;
+}
+
 export async function buildTempleGrounds(
   textureLoader: TextureLoader,
   maxAnisotropy: number,
-  lanternGeometries: LanternGeometries = fallbackLanternGeometries(),
-  cocTemplate: Object3D | null = null,
+  models: GroundsModels = {},
 ): Promise<TempleGrounds> {
+  const { lanternGeometries = fallbackLanternGeometries(), cocTemplate = null, hallRoof = null } = models;
   const root = "/sansatemple/materials";
   const names: MaterialName[] = ["wood", "roof", "stone", "rock", "plaster", "cloth"];
   const sets = new Map<MaterialName, PbrSet>();
@@ -403,7 +412,8 @@ export async function buildTempleGrounds(
     const top = HALL.platformHeight;
     const wallHeight = HALL.roofBaseY - top;
     const stone = pbr("stone", tiles(width), tiles(depth));
-    const plaster = pbr("plaster", tiles(width), tiles(wallHeight));
+    // Saffron walls under the Myanmar roof, like the pagoda's; plain plaster under the old one.
+    const plaster = pbr("plaster", tiles(width), tiles(wallHeight), hallRoof ? PALETTE.saffron : 0xff_ff_ff);
     const lacquer = pbr("wood", 1, tiles(wallHeight), PALETTE.lacquer);
 
     add(hall, new BoxGeometry(width, top, depth), stone, 0, top / 2, centerZ);
@@ -464,6 +474,11 @@ export async function buildTempleGrounds(
       centerZ,
     );
     ceiling.castShadow = false;
+
+    if (hallRoof) {
+      hall.add(placeHallRoof(hallRoof, { x: 0, y: HALL.roofBaseY + 0.15, z: centerZ }));
+      return hall;
+    }
 
     // Two-tier curved roof: a lower band, a plastered drum, then the top roof.
     const roofs = new Group();
