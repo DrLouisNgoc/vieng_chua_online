@@ -2,7 +2,6 @@ import type { TextureLoader } from "three";
 import { BoxGeometry, Group, Mesh, Texture } from "three";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { fallbackLanternGeometries } from "./lantern-model";
 import { buildTempleGrounds } from "./temple-grounds";
 
 // Smoke test: builds the whole grounds with stubbed textures and canvas, so
@@ -58,7 +57,7 @@ describe("buildTempleGrounds", () => {
   it("builds each cốc from the Myanmar model when one is given, and its nameplate still renames", async () => {
     const template = new Group();
     template.add(new Mesh(new BoxGeometry(2.4, 2, 2.4)));
-    const grounds = await buildTempleGrounds(stubLoader, 4, fallbackLanternGeometries(), template);
+    const grounds = await buildTempleGrounds(stubLoader, 4, { cocTemplate: template });
     const coc = grounds.group.getObjectByName("coc-mo-1");
     expect(coc?.getObjectByName("plaque")).toBeDefined();
     expect(() => grounds.setCocOccupant("coc-mo-1", "Mạnh Dung")).not.toThrow();
@@ -68,11 +67,21 @@ describe("buildTempleGrounds", () => {
   it("builds the meditation hut from the Myanmar model too, with no nameplate of its own", async () => {
     const template = new Group();
     template.add(new Mesh(new BoxGeometry(2.4, 2, 2.4)));
-    const withModel = await buildTempleGrounds(stubLoader, 4, fallbackLanternGeometries(), template);
+    const withModel = await buildTempleGrounds(stubLoader, 4, { cocTemplate: template });
     const hut = withModel.group.getObjectByName("coc-thien");
     expect(hut?.getObjectByName("model")).toBeDefined();
     expect(hut?.getObjectByName("plaque")).toBeUndefined();
     const withoutModel = await buildTempleGrounds(stubLoader, 4);
     expect(withoutModel.group.getObjectByName("coc-thien")?.getObjectByName("model")).toBeUndefined();
+  });
+
+  it("puts the Myanmar roof on the main hall when one is given, the old roof otherwise", async () => {
+    const roof = new Group();
+    roof.name = "hall-roof";
+    roof.add(new Mesh(new BoxGeometry(82, 5, 60)));
+    const withRoof = await buildTempleGrounds(stubLoader, 4, { hallRoof: roof });
+    expect(withRoof.group.getObjectByName("chinh-dien")?.getObjectByName("hall-roof")).toBe(roof);
+    const without = await buildTempleGrounds(stubLoader, 4);
+    expect(without.group.getObjectByName("hall-roof")).toBeUndefined();
   });
 });
