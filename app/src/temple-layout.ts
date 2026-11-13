@@ -179,6 +179,22 @@ export const POND = { minX: 48, maxX: 74, minZ: -44, maxZ: -10 } as const;
 
 export const BANYAN = { x: -48, z: -10, seatRadius: 2.8 } as const;
 
+// Far scenery (owner, 2026-11-13: a Shwedagon photo, "làm hoành tráng vào"):
+// a gold pagoda complex east of the wall, facing the temple. Not walkable
+// (the wall keeps visitors in). pagoda.glb's marble plaza is 210 m across
+// (scripts/blender/pagoda.py), so its half-size is 105 model metres.
+const PAGODA_SCALE = 0.7;
+export const PAGODA = {
+  x: 190,
+  z: 30,
+  scale: PAGODA_SCALE,
+  halfSize: 105 * PAGODA_SCALE,
+  // The model's front faces +z; turned to face west, toward the temple.
+  rotationY: -Math.PI / 2,
+  // Just above the ground plane so the plaza does not flicker against it.
+  groundY: 0.1,
+} as const;
+
 // Small pines are planted outside the wall, in rows around it.
 const PINE_SPACING = 30;
 const PINE_OFFSET = 12;

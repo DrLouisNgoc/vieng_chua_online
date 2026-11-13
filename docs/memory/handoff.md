@@ -20,8 +20,11 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   `app/public/models/lantern.glb`, committed; rebuild with `scripts/blender/lantern.py`. If the file is missing the
   old plain ball is drawn. Blender 5.3 runs headless on the owner's machine (`lessons.md`), so other props can be
   made the same way.
+- Pagoda (#88): a Shwedagon-style gold pagoda complex (owner sent a photo) stands as far scenery east of the wall,
+  `app/public/models/pagoda.glb`, spot and scale in `PAGODA` (temple-layout.ts), fog off, not walkable. The cốc
+  are to be rebuilt in the same Myanmar style (#89, not done yet).
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 159, app 307; `npm run check` green.
+- Tests: server 159, app 315; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's
