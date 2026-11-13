@@ -154,6 +154,9 @@ export interface GroundsModels {
   // Blender-made walls and pillars of the hall, and the perimeter wall.
   hallBody?: Object3D | null;
   perimeterWall?: Object3D | null;
+  // The Nam tông main gate (tam quan) and bell pavilion.
+  gateModel?: Object3D | null;
+  bellTowerModel?: Object3D | null;
 }
 
 export async function buildTempleGrounds(
@@ -167,6 +170,8 @@ export async function buildTempleGrounds(
     hallRoof = null,
     hallBody = null,
     perimeterWall = null,
+    gateModel = null,
+    bellTowerModel = null,
   } = models;
   const root = "/sansatemple/materials";
   const names: MaterialName[] = ["wood", "roof", "stone", "rock", "plaster", "cloth"];
@@ -865,7 +870,27 @@ export async function buildTempleGrounds(
   }
 
   // Three-entrance gate (tam quan): a taller centre bay, two side bays.
+  // The SƠN TỰ plaque, on both faces under the centre lintel (a drawn texture, so it stays code).
+  function addGatePlaque(gate: Group): void {
+    const plaqueMaterial = new MeshStandardMaterial({ map: plaqueTexture("SƠN TỰ"), roughness: 0.6 });
+    for (const sz of [-1, 1]) {
+      const plaque = add(gate, new BoxGeometry(2.6, 0.8, 0.08), plaqueMaterial, 0, GATE.centralHeight - 1.25, sz * 0.4);
+      plaque.rotation.y = sz < 0 ? Math.PI : 0;
+    }
+  }
+
+  // The Blender-made pillars, lintels and roofs (scripts/blender/gate_bell.py) with the plaque.
+  function namTongGate(model: Object3D): Group {
+    const gate = new Group();
+    gate.name = "tam-quan";
+    gate.add(model);
+    addGatePlaque(gate);
+    gate.position.set(0, 0, GATE.z);
+    return gate;
+  }
+
   function buildGate(): Group {
+    if (gateModel) return namTongGate(gateModel);
     const gate = new Group();
     gate.name = "tam-quan";
     const pillarMaterial = pbr("plaster", 1, 2, PALETTE.wallOchre);
@@ -889,11 +914,7 @@ export async function buildTempleGrounds(
         0,
       );
     }
-    const plaqueMaterial = new MeshStandardMaterial({ map: plaqueTexture("SƠN TỰ"), roughness: 0.6 });
-    for (const sz of [-1, 1]) {
-      const plaque = add(gate, new BoxGeometry(2.6, 0.8, 0.08), plaqueMaterial, 0, GATE.centralHeight - 1.25, sz * 0.4);
-      plaque.rotation.y = sz < 0 ? Math.PI : 0;
-    }
+    addGatePlaque(gate);
 
     const centreRoof: CurvedRoofOptions = {
       halfWidth: centreSpan / 2 + 1.5,
@@ -998,7 +1019,17 @@ export async function buildTempleGrounds(
   }
 
   // Bell tower (gác chuông): open pavilion with a bronze bell you can walk under.
+  // The Blender-made Nam tông pavilion with its Burmese bell (scripts/blender/gate_bell.py).
+  function namTongBellTower(model: Object3D): Group {
+    const tower = new Group();
+    tower.name = "gac-chuong";
+    tower.add(model);
+    tower.position.set(BELL_TOWER.x, 0, BELL_TOWER.z);
+    return tower;
+  }
+
   function buildBellTower(): Group {
+    if (bellTowerModel) return namTongBellTower(bellTowerModel);
     const tower = new Group();
     tower.name = "gac-chuong";
     const size = BELL_TOWER.half * 2;

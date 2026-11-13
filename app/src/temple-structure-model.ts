@@ -10,6 +10,8 @@ import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export const HALL_BODY_URL = "/models/hall-body.glb";
 export const PERIMETER_WALL_URL = "/models/perimeter-wall.glb";
+export const GATE_URL = "/models/gate.glb";
+export const BELL_TOWER_URL = "/models/bell-tower.glb";
 
 // `instanceof Mesh` alone narrows to Mesh<any, any>.
 function isMesh(node: Object3D): node is Mesh {
@@ -50,4 +52,15 @@ export async function loadHallBody(loader: GLTFLoader): Promise<Object3D | null>
 
 export async function loadPerimeterWall(loader: GLTFLoader): Promise<Object3D | null> {
   return loadStructure(loader, PERIMETER_WALL_URL, "perimeter-wall", "the wall keeps its old look.");
+}
+
+// The main gate (tam quan) and the bell pavilion, built by scripts/blender/gate_bell.py (owner,
+// 2026-11-13: "chuông này thay theo trường phái nam tông", "cổng cũng đổi theo trường phái nam
+// tông"). Each model's origin is where the old building's group stood.
+export async function loadGate(loader: GLTFLoader): Promise<Object3D | null> {
+  return loadStructure(loader, GATE_URL, "gate-model", "the gate keeps its old look.");
+}
+
+export async function loadBellTower(loader: GLTFLoader): Promise<Object3D | null> {
+  return loadStructure(loader, BELL_TOWER_URL, "bell-tower-model", "the bell tower keeps its old look.");
 }

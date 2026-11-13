@@ -108,4 +108,30 @@ describe("buildTempleGrounds", () => {
     });
     expect(meshesNew).toBeLessThan(meshesOld); // the 26 pillars + their bases and the wall boxes are gone
   });
+
+  it("uses the Nam tông gate (with its SƠN TỰ plaque kept) and bell pavilion when given, the old ones otherwise", async () => {
+    const gateModel = new Group();
+    gateModel.name = "gate-model";
+    gateModel.add(new Mesh(new BoxGeometry(14, 6, 2)));
+    const bellTowerModel = new Group();
+    bellTowerModel.name = "bell-tower-model";
+    bellTowerModel.add(new Mesh(new BoxGeometry(6, 9, 6)));
+    const withModels = await buildTempleGrounds(stubLoader, 4, { gateModel, bellTowerModel });
+    const gate = withModels.group.getObjectByName("tam-quan");
+    expect(gate?.getObjectByName("gate-model")).toBe(gateModel);
+    expect(withModels.group.getObjectByName("gac-chuong")?.getObjectByName("bell-tower-model")).toBe(bellTowerModel);
+    let plaques = 0;
+    gate?.traverse((node) => {
+      if (
+        node instanceof Mesh &&
+        node.geometry instanceof BoxGeometry &&
+        Math.abs(node.geometry.parameters.width - 2.6) < 0.01
+      )
+        plaques += 1;
+    });
+    expect(plaques).toBe(2);
+    const without = await buildTempleGrounds(stubLoader, 4);
+    expect(without.group.getObjectByName("gate-model")).toBeUndefined();
+    expect(without.group.getObjectByName("bell-tower-model")).toBeUndefined();
+  });
 });
