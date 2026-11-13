@@ -149,7 +149,6 @@ function handleMessage(rooms: Rooms, { socket, ip, visitorId }: Connection, data
     rooms.visitors.join(visitorId, lockedName ?? message.name, message.colorIndex);
     send(socket, { type: "welcome", id: visitorId });
     send(socket, { type: "chat-history", messages: rooms.chat.recent() });
-    broadcast(rooms.clients, { type: "bell" });
     return;
   }
   if (message.type === "chat") {

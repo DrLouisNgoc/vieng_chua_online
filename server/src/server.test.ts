@@ -144,14 +144,20 @@ describe("presence server with visitors", () => {
     expect((seen as unknown as Visitors).visitors).toHaveLength(2);
   });
 
-  it("broadcasts a bell toll to everyone already present when a visitor joins", async () => {
+  it("does not toll the bell just because a visitor joins", async () => {
+    // Owner, 2026-11-13: "bạn chỉnh làm sao để tiếng chuông này 30p 1 lần
+    // thôi" — a join-triggered bell also fires on every reconnect (a
+    // flaky connection retries every 2s, presence.ts), so it tolled far
+    // more often than the schedule meant. Only scheduleBell()'s own timer
+    // (next test) tolls the bell now.
     const { connect } = start();
     const a = await connect();
     const b = await connect();
     a.send({ type: "join", name: "An", colorIndex: 1 });
     await a.waitFor((m) => m.type === "welcome");
-    expect(await a.waitFor((m) => m.type === "bell")).toEqual({ type: "bell" });
-    expect(await b.waitFor((m) => m.type === "bell")).toEqual({ type: "bell" });
+    await sleep(20);
+    expect(a.messages.some((m) => m.type === "bell")).toBe(false);
+    expect(b.messages.some((m) => m.type === "bell")).toBe(false);
   });
 
   it("tolls the bell on its own on a timer, even with no one joining", async () => {
