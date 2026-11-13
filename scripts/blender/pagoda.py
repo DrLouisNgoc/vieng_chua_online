@@ -45,6 +45,7 @@ M = {
     "brown": make_mat("pagoda_brown", (0.38, 0.23, 0.1, 1), rough=0.6),
     "dark": make_mat("pagoda_dark", (0.05, 0.04, 0.04, 1), rough=0.8),
     "stone": make_mat("pagoda_stone", (0.62, 0.56, 0.48, 1), rough=0.8),
+    "red": make_mat("pagoda_red", (0.5, 0.05, 0.04, 1), rough=0.5),
 }
 
 
@@ -242,6 +243,47 @@ def shrine():
     return join(parts, "shrine")
 
 
+def main_hall(hx, hy):
+    """The complex's own chánh điện: saffron hall on a platform, red front columns, three teal roofs, front facing -Y."""
+    h0, wall = 1.2, 9.0
+    parts = [box((2 * (hx + 3), 2 * (hy + 3), h0), (0, 0, h0 / 2), "cream")]
+    parts.append(box((2 * hx, 2 * hy, wall), (0, 0, h0 + wall / 2), "ochre"))
+    parts.append(box((2 * hx + 0.8, 2 * hy + 0.8, 0.5), (0, 0, h0 + 0.25), "gold"))
+    parts.append(box((2 * hx + 0.8, 2 * hy + 0.8, 0.6), (0, 0, h0 + wall - 0.3), "gold"))
+    for i in range(9):  # red columns along the front
+        parts.append(cyl(0.45, wall, (-hx + i * hx / 4, -hy - 0.6, h0 + wall / 2), "red", 8))
+    parts.append(box((6.0, 0.3, 6.0), (0, -hy - 0.1, h0 + 3.0), "dark"))
+    top = h0 + wall
+    parts += [hip_roof(0, 0, hx + 3, hy + 3, top, 3.6, 8)]
+    parts.append(box((2 * (hx - 5.5), 2 * (hy - 5.5), 3.0), (0, 0, top + 3.2), "ochre"))
+    parts.append(box((2 * (hx - 5.5) + 0.6, 2 * (hy - 5.5) + 0.6, 0.5), (0, 0, top + 4.6), "gold"))
+    parts += [hip_roof(0, 0, hx - 5, hy - 5, top + 4.8, 3.0, 5)]
+    parts.append(cyl(1.8, 0.6, (0, 0, top + 8.4), "gold", 12))
+    parts.append(cone(1.6, 0.3, 4.0, (0, 0, top + 10.7), "gold", 12))
+    parts.append(cyl(0.12, 3.0, (0, 0, top + 14.2), "gold", 6))
+    parts.append(cone(0.5, 0.04, 1.4, (0, 0, top + 16.4), "gold", 6))
+    return join(parts, "main_hall")
+
+
+def perimeter_wall(half, gate_half):
+    """Ochre wall with a gold cap round the plaza; the gate stands in the -Y side."""
+    height, thick = 3.6, 1.4
+    for sgn in (1, -1):  # the two side walls
+        box((thick, 2 * half + thick, height), (sgn * half, 0, height / 2), "ochre")
+        box((thick + 0.5, 2 * half + thick, 0.4), (sgn * half, 0, height + 0.2), "gold")
+    box((2 * half + thick, thick, height), (0, half, height / 2), "ochre")
+    box((2 * half + thick, thick + 0.5, 0.4), (0, half, height + 0.2), "gold")
+    for sgn in (-1, 1):  # the front wall, with a gap for the gate
+        length = half - gate_half
+        cx = sgn * (gate_half + length / 2)
+        box((length, thick, height), (cx, -half, height / 2), "ochre")
+        box((length, thick + 0.5, 0.4), (cx, -half, height + 0.2), "gold")
+        cyl(1.2, 8.0, (sgn * gate_half, -half, 4.0), "red", 10)
+        cyl(1.6, 0.6, (sgn * gate_half, -half, 8.2), "gold", 10)
+    box((2 * gate_half + 3, 2.2, 0.9), (0, -half, 8.6), "gold")
+    hip_roof(0, -half, gate_half + 3.5, 3.5, 9.0, 2.2, 2.8)
+
+
 # ------------------------------------------------------------------- layout
 PL = 105.0  # half-size of the marble plaza
 mesh_obj("plaza", [(-PL, -PL, 0), (PL, -PL, 0), (PL, PL, 0), (-PL, PL, 0)], [(0, 1, 2, 3)], ["marble"])
@@ -294,6 +336,12 @@ for i in (-3, -2, -1, 1, 2, 3):  # shrine rows along the plaza edge, facing the 
     for sgn in (-1, 1):
         instance(sh, (i * 24.0, sgn * 92.0, 0.0), 0.0 if sgn > 0 else math.pi)
         instance(sh, (sgn * 92.0, i * 24.0, 0.0), math.pi / 2 if sgn > 0 else -math.pi / 2)
+
+# The complex's own wall and chánh điện (owner, 2026-11-13). The hall stands outside the wall
+# on the temple-facing side, to one side of the gate, its front toward the temple.
+perimeter_wall(PL + 5.0, 9.0)
+hall = main_hall(28.0, 16.0)
+hall.location = (-165.0, -62.0, 0)
 
 # --------------------------------------------------- bake into one mesh, export
 for o in [o for o in COL.objects if o.type == "MESH"]:
