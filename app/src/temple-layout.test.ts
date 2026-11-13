@@ -15,6 +15,7 @@ import {
   HALL,
   MEDITATION_SEATS,
   PAGODA,
+  PAGODA_HALL_BUDDHA,
   PAGODA_HALL_FLOOR,
   PAGODA_PLAZA,
   pagodaToWorld,
@@ -218,6 +219,12 @@ describe('the pagoda complex\'s chánh điện (owner, 2026-11-13: "bên trong k
     expect(intoWall.x).toBeLessThan(pagodaToWorld(centreX, frontY).x);
     const toAltar = walk(pagodaToWorld(centreX + 2, frontY + 14), pagodaToWorld(centreX + 2, frontY + 30));
     expect(toAltar.x).toBeLessThan(pagodaToWorld(centreX, frontY + 22).x);
+  });
+
+  it("holds the temple's own Buddha on its altar, facing the door", () => {
+    expect(isInside(PAGODA_HALL_BUDDHA, PAGODA_HALL_FLOOR)).toBe(true);
+    expect(PAGODA_HALL_BUDDHA.baseY).toBeGreaterThan(groundHeightAt(PAGODA_HALL_BUDDHA));
+    expect(PAGODA_HALL_BUDDHA.rotationY).toBeCloseTo(Math.PI); // buddha.glb faces +x; the door is to the west (-x)
   });
 
   it("stands on a low platform inside, and on the plain ground outside it", () => {

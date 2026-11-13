@@ -40,6 +40,7 @@ import { loadHallRoof } from "./hall-roof-model";
 import { loadLanternGeometries } from "./lantern-model";
 import { loadMonkOrFallback, NAM_TONG_MONK_URL } from "./monk-model";
 import { loadPagoda } from "./pagoda-model";
+import { placeStatueCopy } from "./statue-copy";
 import { buildTempleGrounds } from "./temple-grounds";
 import type { TempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
@@ -55,6 +56,7 @@ import {
 } from "./third-person-camera";
 import {
   AVATAR_START,
+  PAGODA_HALL_BUDDHA,
   BANYAN,
   BROADLEAF_TREES,
   COLLIDERS,
@@ -265,7 +267,7 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     });
   }
   const avatarStart = new Vector3(AVATAR_START.x, 0, AVATAR_START.z);
-  const [, avatar, bodhi, grounds, pagoda] = await Promise.all([
+  const [buddha, avatar, bodhi, grounds, pagoda] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
     loadMonkOrFallback(
       async () => addModel(NAM_TONG_MONK_URL, avatarStart, 1.7),
@@ -276,7 +278,11 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
     loadPagoda(gltfLoader),
   ]);
   scene.add(grounds.group);
-  if (pagoda) scene.add(pagoda);
+  if (pagoda) {
+    scene.add(pagoda);
+    // The same statue again, on the altar of the pagoda complex's hall.
+    scene.add(placeStatueCopy(buddha, PAGODA_HALL_BUDDHA));
+  }
   // Other visitors are cloned from this unposed copy (posing changes bones).
   const visitorTemplate = cloneSkinned(avatar);
   // Owner, 2026-11-12: "thay toàn bộ cây trong chùa = cây bồ đề" — one

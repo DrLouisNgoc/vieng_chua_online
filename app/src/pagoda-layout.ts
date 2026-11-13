@@ -87,6 +87,19 @@ export const PAGODA_HALL_LAMPS: readonly (readonly [number, number])[] = [
 ];
 export const HALL_LAMP_HEIGHT = 7;
 
+// The temple's own Buddha statue, copied onto the altar (owner: "tạo tượng đẹp như
+// tôi tạo vào"): the altar's top is 1.3 model metres above the floor, and the statue
+// faces the door. buddha.glb faces +x as it comes, so the door at -x needs a half turn.
+const HALL_ALTAR_TOP = HALL.platformHeight + 1.3;
+const buddhaSpot = pagodaToWorld(HALL.bx, HALL.by + HALL.halfY - HALL.wall - 4.2);
+export const PAGODA_HALL_BUDDHA = {
+  x: buddhaSpot.x,
+  z: buddhaSpot.z,
+  baseY: PAGODA.groundY + HALL_ALTAR_TOP * PAGODA_SCALE,
+  height: 4.8,
+  rotationY: Math.PI,
+} as const;
+
 function hallColliders(): Box[] {
   const { bx, by, halfX, halfY, wall, door } = HALL;
   const side = (halfX - door) / 2;

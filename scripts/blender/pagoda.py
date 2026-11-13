@@ -243,51 +243,9 @@ def shrine():
     return join(parts, "shrine")
 
 
-def buddha(ox, oy, oz):
-    """Our own seated Buddha, gold with a saffron robe, on a lotus seat, with a halo; he faces -Y.
-
-    About 7.5 m tall including the lotus and halo; (ox, oy, oz) is the middle of the seat's foot.
-    """
-    parts = []
-
-    def at(x, y, z):
-        return (ox + x, oy + y, oz + z)
-
-    # lotus seat: two drums and a ring of petals
-    parts.append(cyl(3.6, 0.5, at(0, 0, 0.25), "gold", 24))
-    parts.append(cyl(3.1, 0.45, at(0, 0, 0.72), "ochre", 24))
-    for k in range(16):
-        a = math.tau * k / 16
-        parts.append(cone(0.5, 0.05, 1.3, at(3.3 * math.cos(a), 3.3 * math.sin(a), 0.65), "gold", 8, (math.sin(a) * 0.9 + 0, -math.cos(a) * 0.9, 0)))
-    # crossed legs: one wide flat mass, with a fold of robe over it
-    parts.append(sphere(1.0, at(0, 0, 1.55), "ochre", (2.7, 1.7, 0.8), 20))
-    parts.append(sphere(1.0, at(0, -0.9, 1.9), "gold", (1.7, 0.7, 0.4), 16))
-    # body in a saffron robe, bare right shoulder (the Buddha's right is +X when he faces -Y, as for the novice)
-    parts.append(sphere(1.0, at(0, 0, 3.5), "ochre", (1.55, 1.05, 1.9), 24))
-    parts.append(sphere(1.0, at(1.0, -0.15, 4.2), "gold", (0.8, 0.7, 1.0), 16))  # bare right shoulder and chest
-    parts.append(sphere(1.0, at(0, 0, 5.05), "gold", (0.45, 0.45, 0.4), 12))  # neck
-    for sx in (-1, 1):  # arms resting, hands in the lap
-        parts.append(segment(at(sx * 1.55, 0.0, 4.5), at(sx * 1.75, -0.35, 3.1), 0.42, 0.34, "ochre" if sx < 0 else "gold", 10))
-        parts.append(segment(at(sx * 1.75, -0.35, 3.1), at(sx * 0.7, -1.05, 2.3), 0.34, 0.3, "ochre" if sx < 0 else "gold", 10))
-    parts.append(sphere(1.0, at(0, -1.1, 2.25), "gold", (0.95, 0.5, 0.28), 14))  # hands together
-    # head: round face, a high topknot, long ears, calm closed eyes
-    parts.append(sphere(1.0, at(0, 0, 5.85), "gold", (0.95, 0.9, 1.05), 24))
-    parts.append(sphere(1.0, at(0, 0.05, 6.85), "gold", (0.5, 0.5, 0.4), 14))
-    parts.append(cone(0.28, 0.02, 0.8, at(0, 0.05, 7.45), "gold", 10))
-    for sx in (-1, 1):
-        parts.append(sphere(1.0, at(sx * 0.98, 0.0, 5.7), "gold", (0.14, 0.2, 0.5), 10))
-        parts.append(sphere(1.0, at(sx * 0.34, -0.86, 6.0), "dark", (0.2, 0.05, 0.035), 8))
-    parts.append(sphere(1.0, at(0, -0.9, 5.65), "gold", (0.14, 0.13, 0.2), 8))  # nose
-    parts.append(sphere(1.0, at(0, -0.85, 5.3), "dark", (0.28, 0.05, 0.04), 8))  # a small smile
-    # halo behind the head
-    parts.append(cyl(2.5, 0.12, at(0, 0.8, 6.0), "gold", 32, (math.pi / 2, 0, 0)))
-    parts.append(cyl(2.1, 0.14, at(0, 0.86, 6.0), "ochre", 32, (math.pi / 2, 0, 0)))
-    return join(parts, "buddha")
-
-
 def main_hall(hx, hy):
-    """The complex's own chánh điện: hollow, with a door in front, columns inside, an altar and a Buddha
-    at the back, three teal roofs on top; front facing -Y."""
+    """The complex's own chánh điện: hollow, with a door in front, columns inside and an altar at the back
+    (the app puts a copy of the temple's Buddha on it), three teal roofs on top; front facing -Y."""
     h0, wall, t, door = 0.5, 9.0, 1.4, 4.0
     parts = [box((2 * (hx + 3), 2 * (hy + 3), h0), (0, 0, h0 / 2), "cream")]
     # the floor: a slab thick enough (0.3) not to flicker against the platform under it
@@ -316,7 +274,6 @@ def main_hall(hx, hy):
             parts.append(cyl(0.7, 0.4, (bx, by, floor + 0.2), "gold", 10))
     parts.append(box((18, 9, 0.7), (0, hy - t - 4.5, floor + 0.35), "gold"))  # the altar at the back
     parts.append(box((15, 7, 0.6), (0, hy - t - 4.2, floor + 1.0), "ochre"))
-    parts.append(buddha(0, hy - t - 4.4, floor + 1.3))
     parts += [hip_roof(0, 0, hx + 3, hy + 3, top, 3.6, 8)]
     parts.append(box((2 * (hx - 5.5), 2 * (hy - 5.5), 3.0), (0, 0, top + 3.2), "ochre"))
     parts.append(box((2 * (hx - 5.5) + 0.6, 2 * (hy - 5.5) + 0.6, 0.5), (0, 0, top + 4.6), "gold"))
