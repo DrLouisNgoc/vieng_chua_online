@@ -35,7 +35,9 @@ import type { OutgoingState, VisitorView } from "./visitor-protocol";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { resolveMove } from "./collision";
 import { createKeyState } from "./key-state";
+import { loadLanternGeometries } from "./lantern-model";
 import { buildTempleGrounds } from "./temple-grounds";
+import type { TempleGrounds } from "./temple-grounds";
 import { simplifyGeometry } from "./simplify-geometry";
 import { createInteractionRuntime, type InteractionView } from "./interaction-runtime";
 import type { InteractionAction } from "./interaction-prompts";
@@ -246,11 +248,15 @@ export async function createTempleScene(container: HTMLElement, options: TempleS
   // buddha.glb (owner, 2026-11-12: replaced with a simplified Tripo export)
   // faces +x by default, not -z toward the congregation like the rest of
   // this scene's models — rotate it to match.
+  async function buildGroundsWithLanterns(): Promise<TempleGrounds> {
+    const lanterns = await loadLanternGeometries(gltfLoader);
+    return buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy(), lanterns);
+  }
   const [, avatar, bodhi, grounds] = await Promise.all([
     addStatue("buddha.glb", STATUES.buddha, -Math.PI / 2),
     addModel("monk.glb", new Vector3(AVATAR_START.x, 0, AVATAR_START.z), 1.7),
     addModel("bodhi.glb", new Vector3(firstPine.x, 0, firstPine.z), 5),
-    buildTempleGrounds(textureLoader, renderer.capabilities.getMaxAnisotropy()),
+    buildGroundsWithLanterns(),
   ]);
   scene.add(grounds.group);
   // Other visitors are cloned from this unposed copy (posing changes bones).

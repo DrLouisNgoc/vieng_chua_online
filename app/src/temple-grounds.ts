@@ -31,6 +31,8 @@ import {
   Vector3,
 } from "three";
 import { buildCurvedHipRoof, innerEdge, type CurvedRoofOptions } from "./curved-roof";
+import { buildLanternMeshes, fallbackLanternGeometries } from "./lantern-model";
+import type { LanternGeometries } from "./lantern-model";
 import {
   BAMBOO_CLUMPS,
   BELL_TOWER,
@@ -139,7 +141,11 @@ function tiles(length: number): number {
   return Math.max(1, Math.round(length / 2.5));
 }
 
-export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisotropy: number): Promise<TempleGrounds> {
+export async function buildTempleGrounds(
+  textureLoader: TextureLoader,
+  maxAnisotropy: number,
+  lanternGeometries: LanternGeometries = fallbackLanternGeometries(),
+): Promise<TempleGrounds> {
   const root = "/sansatemple/materials";
   const names: MaterialName[] = ["wood", "roof", "stone", "rock", "plaster", "cloth"];
   const sets = new Map<MaterialName, PbrSet>();
@@ -1628,34 +1634,13 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     const goldTrim = new MeshStandardMaterial({ color: PALETTE.gold, roughness: 0.4, metalness: 0.6 });
     const wood = new MeshStandardMaterial({ color: PALETTE.bark, roughness: 0.9 });
 
-    const lanternSpots = [
-      ...LANTERN_POSTS.map((post) => ({ x: post.x, y: LANTERN_POST_HEIGHT + 0.36, z: post.z })),
-      ...HALL_LANTERNS,
-    ];
-    const body = new SphereGeometry(0.28, 16, 12);
-    body.scale(1, 1.25, 1);
-    const cap = new CylinderGeometry(0.13, 0.13, 0.07, 12);
-    const bodies = new InstancedMesh(body, paper, lanternSpots.length);
-    const caps = new InstancedMesh(cap, goldTrim, lanternSpots.length * 2);
+    const standing = LANTERN_POSTS.map((post) => ({ x: post.x, y: LANTERN_POST_HEIGHT + 0.36, z: post.z }));
     const posts = new InstancedMesh(
       new CylinderGeometry(0.07, 0.09, LANTERN_POST_HEIGHT, 8),
       wood,
       LANTERN_POSTS.length,
     );
     const place = new Object3D();
-    lanternSpots.forEach((spot, index) => {
-      place.position.set(spot.x, spot.y, spot.z);
-      place.updateMatrix();
-      bodies.setMatrixAt(index, place.matrix);
-      for (const [offset, slot] of [
-        [0.37, index * 2],
-        [-0.37, index * 2 + 1],
-      ] as const) {
-        place.position.set(spot.x, spot.y + offset, spot.z);
-        place.updateMatrix();
-        caps.setMatrixAt(slot, place.matrix);
-      }
-    });
     LANTERN_POSTS.forEach((post, index) => {
       place.position.set(post.x, LANTERN_POST_HEIGHT / 2, post.z);
       place.updateMatrix();
@@ -1663,7 +1648,10 @@ export async function buildTempleGrounds(textureLoader: TextureLoader, maxAnisot
     });
     posts.castShadow = true;
     posts.receiveShadow = true;
-    group.add(bodies, caps, posts);
+    group.add(
+      buildLanternMeshes(lanternGeometries, { paper, gold: goldTrim }, { standing, hanging: HALL_LANTERNS }),
+      posts,
+    );
 
     const lights = LANTERN_LIGHTS.map((spot) => {
       const light = new PointLight(PALETTE.lanternLight, 0, LANTERN_LIGHT_REACH, 2);

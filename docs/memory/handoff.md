@@ -16,8 +16,12 @@ History: `archive/handoff-2026-11-10.md`, `archive/log-to-2026-11-10.md`, git lo
   "Tên | link" field (`isPdfTalk`, told apart by the `.pdf` extension) — a library, not just videos. The
   owner's actual Thiền Sư Nguyên Tuệ files aren't uploaded yet, only the mechanism.
   A single open board now fills most of the screen (`boards__panel--full`) instead of a small corner box.
+- Lanterns (#86): the red paper lanterns (path posts + hall pillars) now use a Blender-made model,
+  `app/public/models/lantern.glb`, committed; rebuild with `scripts/blender/lantern.py`. If the file is missing the
+  old plain ball is drawn. Blender 5.3 runs headless on the owner's machine (`lessons.md`), so other props can be
+  made the same way.
 - Two owners, two machines, one repo (decision 0012): Issues → branch → PR → CI green → CI merges itself → deploy; `main` not locked, one shared GitHub account, owner shown by label `ngoc`/`anh` (0014). No visual-check gate (0016): every green PR auto-merges, 3D/CSS changes included.
-- Tests: server 159, app 287; `npm run check` green.
+- Tests: server 159, app 307; `npm run check` green.
 
 ## Passwords and data (live)
 - Admin password and each cốc password: the first submit sets it. Reset = clear `adminPasswordHash` (or a board's

@@ -63,6 +63,7 @@ browser (app/, Vite + Three.js)  --WebSocket /ws-->  server/ (Node, ws)     -- d
 | `app/src/temple-layout.ts` | Pure plan: sizes and positions of hall, stairs, yard, gate, pond, trees, seats; colliders; `groundHeightAt`. Change sizes here |
 | `app/src/temple-grounds.ts` | All procedural meshes, interior lights, koi animation, camera blockers (1491 lines, to be split) |
 | `app/src/curved-roof.ts` | Vietnamese curved hip roof as raw vertex data |
+| `app/src/lantern-model.ts` | Red paper lanterns: shape from `app/public/models/lantern.glb` (3 named parts), 3 instanced draw calls; plain-ball fallback if the file is missing |
 | `app/src/simplify-geometry.ts` | meshoptimizer simplification (used on pine.glb) |
 | `app/src/sky-cycle.ts` | Sky, sun and fog for the local hour (`?gio=HH` previews an hour) |
 | `app/src/collision.ts` | Point-in-box test and sliding move resolution against layout boxes |
@@ -126,5 +127,7 @@ Next to the file: `x.ts` → `x.test.ts` (Vitest). Pure modules are unit-tested;
   `scripts/check-suppressions.mjs` — lint baseline may only shrink. `scripts/claude-format.mjs` — Claude edit hook.
   Root `package.json`: dev tools only (decision 0017) — Prettier, ESLint, oxlint, Stylelint, knip, lefthook; configs
   `.prettierrc.json`, `eslint.config.mjs`, `.oxlintrc.json`, `.stylelintrc.json`, `knip.json`, `lefthook.yml`.
+- `scripts/blender/lantern.py` — builds `app/public/models/lantern.glb` (committed, our own model): run
+  `blender -b -P scripts/blender/lantern.py -- <out.glb> [<preview.png>]` (Blender 5.x, headless).
 - `docs/memory/` — handoff, decisions, lessons, open questions. `docs/specs/` — milestone 1–10 history
   (read only when the task touches that milestone). `docs/for-owner/` — Vietnamese guides for the owners.

@@ -51,6 +51,12 @@ Full original wording: `archive/handoff-2026-11-10.md` ("Gotchas learned").
 - Headed Chrome is rAF-throttled when its window is covered: pass `--disable-backgrounding-occluded-windows`,
   `--disable-renderer-backgrounding`, `--disable-background-timer-throttling`. For timing, render 60 frames
   synchronously via a temporary `window.__perf` hook; never commit such hooks (`window.__verify` either).
+- Blender on the owner's machine: `C:\Program Files\Blender Foundation\Blender 5.3\blender.exe -b -P script.py -- args`
+  builds and renders headless, no window (Claude can then read the PNG). `download.blender.org` answers automated
+  clients with a Cloudflare 403 (winget and curl alike), so the installer must be downloaded by hand in a browser.
+  Join each material's objects into one mesh before exporting: GLTFLoader turns a multi-material mesh into a Group.
+- After `npm install` changes a lockfile, `npm run dev` under the preview tool can print nothing and never open
+  :5173 (Vite is re-optimizing dependencies); run `npx vite` once in `app/` to rebuild the cache, then retry.
 - `eslint --fix` also applies autofixes for findings listed in `eslint-suppressions.json`: touching one line of an
   old file rewrites its logic. Only `npm run lint:fix` may fix (on purpose, in a cleanup PR); hooks only check.
 - Lint cleanup in app/src: tsconfig has no `noUncheckedIndexedAccess`, so `arr[i]?.x ?? fallback` is flagged as
