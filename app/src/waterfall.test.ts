@@ -77,4 +77,17 @@ describe("animateWaterfall", () => {
     update?.(2);
     expect(map.offset.y).not.toBe(before);
   });
+
+  it("flows downhill: the water texture moves toward lower V (the foot of the fall) as time passes", () => {
+    // UV v grows down the fall; a texture whose offset grows shows its pattern moving to lower v
+    const { model, falls } = fakeTerrain();
+    const update = animateWaterfall(model, textures);
+    const { material } = falls;
+    if (!(material instanceof MeshBasicMaterial) || !material.map) throw new TypeError("the fall has no water texture");
+    const { map } = material;
+    update?.(1);
+    const first = map.offset.y;
+    update?.(1.2);
+    expect(map.offset.y).toBeGreaterThan(first);
+  });
 });
