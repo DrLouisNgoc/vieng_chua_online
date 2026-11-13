@@ -9,7 +9,7 @@ import {
   type BoardView,
   type Question,
 } from "./boards-client";
-import { loadPdfBook, turnPdfPage, type PdfBook } from "./pdf-reader";
+import { clampPdfPage, loadPdfBook, turnPdfPage, type PdfBook } from "./pdf-reader";
 
 // The "Đọc Kinh Nikaya" board — not a board type of its own, so it's
 // special-cased by id like the hall projector/chánh điện boards already
@@ -45,6 +45,18 @@ function statusLine(board: BoardView): string {
   if (board.occupantName) return `Phụ trách: ${board.occupantName}`;
   if (board.pendingName) return `Đang chờ chủ chùa duyệt: ${board.pendingName}`;
   return "Còn trống — đăng ký để thuyết pháp tại đây";
+}
+
+// The one place a fire-and-forget async job is started from a synchronous
+// render path; a failure is handed to the job's optional `onError`.
+function runInBackground(job: () => Promise<void>, onError?: () => void): void {
+  void (async () => {
+    try {
+      await job();
+    } catch {
+      onError?.();
+    }
+  })();
 }
 
 export function createBoardsPanel(
@@ -91,6 +103,8 @@ export function createBoardsPanel(
   let pdfPage = 1;
   let pdfPageImage: string | null = null;
   let pdfPageImageFor: number | null = null;
+  // Text-search result line under the PDF nav: "" idle, or a short status.
+  let pdfSearchNote = "";
   // Questions a board's occupant has pulled up with their password (E,
   // "hỏi pháp") — null until they ask to see them, cleared when leaving
   // the board so a later visitor never sees a stale list. questionsPassword
@@ -106,6 +120,7 @@ export function createBoardsPanel(
     pdfPage = 1;
     pdfPageImage = null;
     pdfPageImageFor = null;
+    pdfSearchNote = "";
     questionsView = null;
     questionsPassword = "";
     panel.hidden = false;
@@ -622,14 +637,15 @@ export function createBoardsPanel(
   function requestPdfBook(url: string): void {
     if (pdfBookCache.has(url)) return;
     pdfBookCache.set(url, undefined);
-    void (async () => {
-      try {
+    runInBackground(
+      async () => {
         await loadPdfBookInto(url);
-      } catch {
+      },
+      () => {
         pdfBookCache.set(url, null);
         render();
-      }
-    })();
+      },
+    );
   }
 
   async function loadPdfPageImageInto(book: PdfBook, requestedPage: number): Promise<void> {
@@ -644,20 +660,77 @@ export function createBoardsPanel(
     if (pdfPageImageFor === pdfPage) return;
     // A page that fails to render just stays on "Đang tải trang..."; the nav
     // still lets the visitor try another page.
-    void (async () => {
-      try {
-        await loadPdfPageImageInto(book, pdfPage);
-      } catch {
-        // see comment above
-      }
-    })();
+    const requestedPage = pdfPage;
+    runInBackground(async () => {
+      await loadPdfPageImageInto(book, requestedPage);
+    });
   }
 
   function turnToPdfPage(page: number): void {
     pdfPage = page;
+    pdfSearchNote = "";
     pdfPageImage = null;
     pdfPageImageFor = null;
     render();
+  }
+
+  // Owner, 2026-11-13: "cho thêm phần tìm kiếm và đánh số trang muốn đi
+  // tới" — jump to a page number, or find the next page with some text.
+  function searchPdf(book: PdfBook, query: string): void {
+    if (query.trim() === "") return;
+    pdfSearchNote = "Đang tìm...";
+    render();
+    runInBackground(
+      async () => {
+        const found = await book.findPage(query, pdfPage);
+        if (found === null) {
+          pdfSearchNote = "Không tìm thấy trong sách này.";
+          render();
+          return;
+        }
+        pdfSearchNote = "";
+        turnToPdfPage(found);
+      },
+      () => {
+        pdfSearchNote = "Không tìm được lúc này, thử lại sau.";
+        render();
+      },
+    );
+  }
+
+  function buildPdfFinder(book: PdfBook): HTMLElement {
+    const finder = document.createElement("form");
+    finder.className = "boards__finder";
+    const goto = document.createElement("input");
+    goto.type = "number";
+    goto.min = "1";
+    goto.max = String(book.numPages);
+    goto.placeholder = "Số trang";
+    goto.setAttribute("aria-label", "Đi tới trang");
+    const gotoButton = document.createElement("button");
+    gotoButton.type = "button";
+    gotoButton.className = "boards__page-turn";
+    gotoButton.textContent = "Đi tới";
+    gotoButton.addEventListener("click", () => {
+      if (goto.value !== "") turnToPdfPage(clampPdfPage(Number(goto.value), book.numPages));
+    });
+    const search = document.createElement("input");
+    search.type = "search";
+    search.placeholder = "Tìm chữ trong sách...";
+    search.setAttribute("aria-label", "Tìm trong sách");
+    const searchButton = document.createElement("button");
+    searchButton.type = "submit";
+    searchButton.className = "boards__page-turn";
+    searchButton.textContent = "Tìm";
+    finder.addEventListener("submit", (event) => {
+      event.preventDefault();
+      searchPdf(book, search.value);
+    });
+    const note = document.createElement("span");
+    note.className = "boards__page-number";
+    note.textContent = pdfSearchNote;
+    finder.append(goto, gotoButton, search, searchButton, note);
+    return finder;
   }
 
   function buildPdfPageNav(book: PdfBook): HTMLElement {
@@ -723,7 +796,7 @@ export function createBoardsPanel(
       wrap.append(loading);
     }
 
-    wrap.append(buildPdfPageNav(book));
+    wrap.append(buildPdfPageNav(book), buildPdfFinder(book));
     return wrap;
   }
 
