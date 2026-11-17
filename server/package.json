@@ -15,7 +15,7 @@
   "type": "module",
   "dependencies": {
     "tsx": "^4.23.15",
-    "ws": "^8.22.1"
+    "ws": "^8.23.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
